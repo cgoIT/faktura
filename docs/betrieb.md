@@ -163,12 +163,12 @@ nennen Nummern, Zähler und Fehlerklassen. Beim Weitergeben von Logs trotzdem ku
 ## Fertiges Container-Image
 
 Zu jedem Release veröffentlicht die CI ein Image in der GitHub Container Registry (`ghcr.io/cgoit/faktura`) für `linux/amd64` und `linux/arm64`,
-getaggt mit der vollen Version (`1.0.1`), `1.0`, `1` (ab Version 1.x) und `latest`. Wer nicht selbst bauen will, nutzt in `docker-compose.yml`
-`image: ghcr.io/cgoit/faktura:1` statt `build: .`. Für reproduzierbare Betriebe die volle Version oder den Digest festschreiben. Die Images sind
+getaggt mit der vollen Version (z. B. `0.2.0`), der Minor-Version (`0.2`), der Major-Version (`0`, später `1` usw.) und `latest`. Wer nicht selbst bauen will, nutzt in `docker-compose.yml`
+`image: ghcr.io/cgoit/faktura:0.2` statt `build: .`. Für reproduzierbare Betriebe die volle Version oder den Digest festschreiben; `latest` und die Major-Version bringen mit einem Update auch größere Änderungen, vor dem Update gilt der Ablauf unter „Update“. Die Images sind
 mit cosign (keyless) signiert und haben eine Herkunftsbescheinigung:
 
 ```bash
-cosign verify ghcr.io/cgoit/faktura:1.0.1 \
+cosign verify ghcr.io/cgoit/faktura:0.2.0 \
   --certificate-identity-regexp 'https://github.com/cgoIT/faktura/\.github/workflows/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```

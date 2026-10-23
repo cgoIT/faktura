@@ -8,7 +8,7 @@
 services:
   faktura:
     build: .
-    # or without building: image: ghcr.io/cgoit/faktura:1
+    # or without building: image: ghcr.io/cgoit/faktura:0.2
     image: faktura:local
     container_name: faktura
     restart: unless-stopped
