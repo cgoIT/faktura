@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{mail.template.title} + ' – Faktura'">Mailvorlagen</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{mail.template.lead}">Texte für den Versand von Belegen per E-Mail.</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('mail')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div class="notice" role="status" th:unless="${status.available}">
+    <span th:text="#{mail.disabled.page}">Der Mailversand ist nicht eingerichtet.</span>
+    <span th:text="#{${status.reasonKey}}">Grund</span>
+  </div>
+  <div class="toolbar">
+    <a class="button" th:href="@{/mail-templates/new}" th:text="#{mail.template.new}">Neue Mailvorlage</a>
+  </div>
+
+  <section class="card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{mail.template.name}">Name</th>
+          <th th:text="#{mail.template.scope}">Dokumenttyp</th>
+          <th th:text="#{mail.template.subject}">Betreff</th>
+          <th></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="template : ${templates}">
+          <td><a th:href="@{/mail-templates/{id}(id=${template.id})}" th:text="${template.name}">Formell</a></td>
+          <td th:text="#{'mail.scope.' + ${template.scope}}">Rechnung</td>
+          <td class="muted" th:text="${template.subject}">Rechnung {rechnungsnummer}</td>
+          <td><span class="badge current" th:if="${template.isDefault}"
+                    th:text="#{mail.template.default.for(#{'mail.scope.plural.' + ${template.scope}})}">Standard für Rechnungen</span></td>
+          <td class="row-actions icons">
+            <a class="icon-button" th:href="@{/mail-templates/{id}(id=${template.id})}"
+               th:attr="aria-label=#{mail.template.edit}, title=#{mail.template.edit}"><svg th:replace="~{fragments/icons :: edit}"></svg></a>
+            <form method="post" th:action="@{/mail-templates/{id}/delete(id=${template.id})}"
+                  th:attr="data-confirm=#{mail.template.delete.confirm}">
+              <button type="submit" class="icon-button danger"
+                      th:attr="aria-label=#{mail.template.delete}, title=#{mail.template.delete}"><svg th:replace="~{fragments/icons :: trash}"></svg></button>
+            </form>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(templates)}"><td colspan="5" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" th:if="${!#lists.isEmpty(systemTemplates)}">
+    <h2 th:text="#{mail.template.system.title}">Hinweise an den Betreiber</h2>
+    <p class="hint" th:text="#{mail.template.system.lead}">Text der täglichen Hinweis-Mail.</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{mail.template.name}">Name</th>
+          <th th:text="#{mail.template.subject}">Betreff</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="template : ${systemTemplates}">
+          <td><a th:href="@{/mail-templates/{id}(id=${template.id})}" th:text="${template.name}">Hinweise</a></td>
+          <td class="muted" th:text="${template.subject}">faktura: {anzahl} Hinweise</td>
+          <td class="row-actions icons">
+            <a class="icon-button" th:href="@{/mail-templates/{id}(id=${template.id})}"
+               th:attr="aria-label=#{mail.template.edit}, title=#{mail.template.edit}"><svg th:replace="~{fragments/icons :: edit}"></svg></a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

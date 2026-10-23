@@ -1,0 +1,25 @@
+# Example setup. Copy .env.example to .env and adjust it (the file is required); no credentials belong in this file.
+#
+#   docker compose up -d --build      start (builds the image; or use the published image, see below)
+#   docker compose logs -f faktura    follow the log
+#
+# The application listens on plain HTTP. Put it behind a reverse proxy with TLS (docs/betrieb.md) and do not publish
+# the port to the network: the port below is bound to localhost only. All settings live in .env.
+services:
+  faktura:
+    build: .
+    # or without building: image: ghcr.io/cgoit/faktura:1
+    image: faktura:local
+    container_name: faktura
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FAKTURA_PORT:-8080}:8080"
+    env_file: .env
+    environment:
+      TZ: Europe/Berlin
+    volumes:
+      # database, archive (PDF/XML), backups: keep and back up this directory
+      # (must be writable for user 10001: chown 10001:10001 ./data)
+      - ${FAKTURA_DATA:-./data}:/data
+      # optional export folder (set EXPORT_PATH=/export in .env); not a backup. Must be writable for user 10001.
+      # - ${FAKTURA_EXPORT:-./export}:/export

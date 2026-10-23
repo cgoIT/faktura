@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <!--/* The set-up checklist; once everything is done it collapses to one line. */-->
+  <section class="card" th:fragment="setup(collapsed)">
+    <details th:attr="open=${!collapsed} ? 'open' : null">
+      <summary class="setup-summary">
+        <h2 th:text="${collapsed} ? #{home.setup.done} : #{home.setup}">Einrichtung</h2>
+      </summary>
+      <p class="hint" th:unless="${collapsed}" th:text="#{home.setup.lead}">Richte zuerst alles ein.</p>
+      <ul class="checklist">
+        <li th:each="item : ${setupItems}">
+          <form method="post" class="setup-item" th:action="@{/setup/{step}(step=${item.step})}"
+                th:if="${item.step.manual()}" data-autosubmit>
+            <input type="checkbox" name="done" value="true" th:id="${'setup-' + item.step}" th:checked="${item.done}">
+            <label th:for="${'setup-' + item.step}" th:text="#{'home.step.' + ${item.step}}">Schritt</label>
+            <a th:href="@{${item.step.path()}}" th:text="#{home.step.open}">Öffnen</a>
+            <noscript><button type="submit" class="secondary" th:text="#{contact.save}">Speichern</button></noscript>
+          </form>
+          <div class="setup-item" th:unless="${item.step.manual()}">
+            <input type="checkbox" th:id="${'setup-' + item.step}" th:checked="${item.done}" disabled>
+            <label th:for="${'setup-' + item.step}" th:text="#{'home.step.' + ${item.step}}">Schritt</label>
+            <a th:href="@{${item.step.path()}}" th:text="#{home.step.open}">Öffnen</a>
+          </div>
+        </li>
+      </ul>
+    </details>
+  </section>
+</body>
+</html>

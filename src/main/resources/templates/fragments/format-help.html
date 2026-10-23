@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Explains the simple markup of document texts. -->
+<div class="format-help" th:fragment="help">
+  <p class="hint"><strong th:text="#{format.help.title}">Formatierung</strong></p>
+  <ul class="hint">
+    <li><code>**fett**</code> <span th:text="#{format.help.bold}">fett</span></li>
+    <li><code>*kursiv*</code> <span th:text="#{format.help.italic}">kursiv</span></li>
+    <li><code>__unterstrichen__</code> <span th:text="#{format.help.underline}">unterstrichen</span></li>
+    <li><code>***fett und kursiv***</code> <span th:text="#{format.help.both}">beides</span></li>
+    <li><code>- Text</code> <span th:text="#{format.help.list}">Aufzählung</span></li>
+    <li><code>1. Text</code> <span th:text="#{format.help.numbered}">Nummerierung</span></li>
+    <li><span th:text="#{format.help.indent}">Zwei Leerzeichen</span></li>
+    <li><code>\*</code> <span th:text="#{format.help.escape}">Zeichen selbst</span></li>
+  </ul>
+</div>
+</body>
+</html>

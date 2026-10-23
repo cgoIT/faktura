@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{shipping.title} + ' – Faktura'">Versandarten</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <div th:replace="~{fragments/settings-tabs :: tabs('shipping')}"></div>
+  <h2 th:text="${option == null} ? #{shipping.new} : #{shipping.editTitle}">Versandart</h2>
+  <p class="lead"><a th:href="@{/settings/shipping}" th:text="#{shipping.back}">Zurück zu den Versandarten</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post"
+        th:action="${option == null} ? @{/settings/shipping} : @{/settings/shipping/{id}(id=${option.id})}">
+    <p class="hint" th:text="#{shipping.hint}">Hinweis</p>
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field">
+          <label for="name" th:text="#{shipping.name}">Name</label>
+          <input type="text" name="name" id="name" th:value="${optionForm.name}" maxlength="100" required>
+        </div>
+        <div class="field">
+          <label for="amount" th:text="#{shipping.amount}">Betrag netto (€)</label>
+          <input type="text" inputmode="decimal" name="amount" id="amount" th:value="${optionForm.amount}" required>
+        </div>
+        <div class="field">
+          <label for="taxCategory" th:text="#{catalog.taxCategory.label}">Steuerkategorie (optional)</label>
+          <select id="taxCategory" name="taxCategory">
+            <option value="" th:selected="${optionForm.taxCategory == null or optionForm.taxCategory == ''}"
+                    th:text="#{catalog.taxFromProfile.option}">aus dem Steuerprofil</option>
+            <option th:each="code : ${taxCategories}" th:value="${code}" th:selected="${code == optionForm.taxCategory}"
+                    th:text="${code} + ' – ' + #{'tax.category.' + ${code}}">S</option>
+          </select>
+          <span class="hint" th:text="#{catalog.taxCategory.hint}">leer = aus dem Steuerprofil</span>
+        </div>
+        <div class="field">
+          <label for="taxRate" th:text="#{shipping.taxRate}">Steuersatz (%)</label>
+          <input type="text" inputmode="decimal" name="taxRate" id="taxRate" th:value="${optionForm.taxRate}" required>
+          <span class="hint" th:text="#{shipping.taxRate.hint}">nur bei einer Kategorie mit Steuersatz</span>
+        </div>
+        <div class="field">
+          <label for="sortOrder" th:text="#{shipping.sortOrder}">Reihenfolge</label>
+          <input type="text" inputmode="numeric" name="sortOrder" id="sortOrder" th:value="${optionForm.sortOrder}" required>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label><input type="checkbox" name="active" value="true" th:checked="${optionForm.active}">
+        <span th:text="#{shipping.active}">Versandart anbieten</span></label>
+    </div>
+
+    <div class="actions">
+      <button type="submit" th:text="#{shipping.save}">Speichern</button>
+      <a class="button secondary" th:href="@{/settings/shipping}" th:text="#{invoice.review.cancel}">Abbrechen</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

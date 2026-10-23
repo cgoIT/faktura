@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Sicherheitslücke melden (privat)
+    url: https://github.com/cgoIT/faktura/security/advisories/new
+    about: Sicherheitsprobleme bitte nicht als öffentliches Issue melden.

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'export')}">
+<head>
+  <title th:text="#{export.title} + ' – Faktura'">Export</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{export.title}">Export</h1>
+  <p class="lead" th:text="#{export.lead}">CSV-Dateien für Buchhaltung und Steuerberater.</p>
+
+  <form class="card" method="get" th:action="@{/export}" data-autosubmit>
+    <div class="form-grid">
+      <div class="field">
+        <label for="year" th:text="#{export.year}">Jahr</label>
+        <select id="year" name="year">
+          <option th:each="y : ${years}" th:value="${y}" th:text="${y}" th:selected="${y == year}">2027</option>
+        </select>
+      </div>
+    </div>
+  </form>
+
+  <section class="card">
+    <h2 th:text="#{export.invoices.title}">Rechnungen</h2>
+    <p th:text="#{export.invoices.hint}">Rechnungen und Stornos nach Rechnungsdatum.</p>
+    <a class="button" th:href="@{/export/invoices.csv(year=${year})}" th:text="#{export.download(${#strings.toString(year)})}">Herunterladen</a>
+  </section>
+
+  <section class="card">
+    <h2 th:text="#{export.payments.title}">Zahlungen</h2>
+    <p th:text="#{export.payments.hint}">Zahlungseingänge nach Zahlungsdatum (Zufluss).</p>
+    <a class="button" th:href="@{/export/payments.csv(year=${year})}" th:text="#{export.download(${#strings.toString(year)})}">Herunterladen</a>
+  </section>
+</main>
+</body>
+</html>

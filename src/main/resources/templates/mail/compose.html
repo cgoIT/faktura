@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Content of the dialog in which a document is sent by mail: recipient, text, preview, attachment, confirmation. */-->
+<div th:fragment="dialog" class="review">
+  <div class="review-head">
+    <h2 id="mail-title" th:text="#{mail.compose.title}">Per E-Mail senden</h2>
+    <button type="button" class="link" data-close-dialog th:attr="aria-label=#{mail.compose.cancel}">✕</button>
+  </div>
+  <div class="notice error" role="alert" th:if="${error != null}" th:text="#{${error}}"></div>
+  <div class="notice success" role="status" th:if="${sent != null}">
+    <span th:text="#{mail.compose.sent(${sent.recipients})}">Gesendet.</span>
+  </div>
+  <th:block th:if="${draft != null and sent == null}">
+    <p class="hint" th:text="#{mail.compose.lead}">Bitte prüfen. Gesendet wird erst nach deiner Bestätigung.</p>
+    <p class="notice" role="status" th:if="${draft.lastSent.isPresent()}"
+       th:text="#{mail.compose.alreadySent(${#temporals.format(draft.lastSent.get().sentAt, 'dd.MM.yyyy HH:mm')},${draft.lastSent.get().recipients})}">Bereits gesendet.</p>
+    <p class="notice error" role="alert" th:if="${draft.blockedKey != null}" th:text="#{${draft.blockedKey}}">Gesperrt</p>
+    <form method="post" th:action="@{/mail/send}" id="mail-form"
+          th:attr="hx-post=@{/mail/send},hx-target='#mail-dialog-' + ${target.id},hx-swap='innerHTML'">
+      <input type="hidden" name="type" th:value="${target.type}">
+      <input type="hidden" name="id" th:value="${target.id}">
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="mail-recipients" th:text="#{mail.compose.recipients}">An</label>
+          <input type="text" id="mail-recipients" name="recipients" maxlength="500" required autocomplete="off"
+                 th:value="${form.recipients}" th:classappend="${field == 'recipients'} ? 'invalid'">
+          <span class="hint" th:text="#{mail.compose.recipientsHint}">Mehrere Adressen mit Komma trennen.</span>
+        </div>
+        <div class="field wide" th:if="${!templates.isEmpty()}">
+          <label for="mail-template" th:text="#{mail.compose.template}">Vorlage</label>
+          <select id="mail-template" name="templateId"
+                  th:attr="hx-get=@{/mail/compose(type=${target.type},id=${target.id})},hx-target='#mail-dialog-' + ${target.id},hx-swap='innerHTML',hx-confirm=#{mail.compose.templateChange}">
+            <option th:each="candidate : ${templates}" th:value="${candidate.id}" th:text="${candidate.name}"
+                    th:selected="${candidate.id == form.templateId}">Formell</option>
+          </select>
+          <span class="hint" th:text="#{mail.compose.templateHint}">Beim Wechsel wird der Text ersetzt.</span>
+        </div>
+        <div class="field wide">
+          <label for="mail-subject" th:text="#{mail.template.subject}">Betreff</label>
+          <input type="text" id="mail-subject" name="subject" maxlength="200" required th:value="${form.subject}">
+        </div>
+        <div class="field wide">
+          <label for="mail-body" th:text="#{mail.template.body}">Text</label>
+          <div th:replace="~{fragments/format-bar :: bar('mail-body')}"></div>
+          <textarea id="mail-body" name="body" rows="10" maxlength="10000" required th:text="${form.body}"></textarea>
+          <span class="hint" th:text="#{mail.compose.bodyHint}">Die Änderungen gelten nur für diese Mail.</span>
+        </div>
+      </div>
+      <dl class="preview">
+        <dt th:text="#{mail.compose.attachment}">Anhang</dt>
+        <dd>
+          <span th:text="${draft.attachmentName}">Rechnung RE202700001.pdf</span>
+          <span class="muted" th:text="'(' + ${@money.fileSize(draft.attachmentBytes)} + ')'">(48 KB)</span>
+        </dd>
+      </dl>
+      <!--/* Collapsed by default; the preview is rendered anyway, so it is current when opened. */-->
+      <details class="collapsible">
+        <summary th:text="#{mail.preview.title}">Vorschau</summary>
+        <div id="mail-preview" th:attr="hx-post=@{/mail/preview}"
+             hx-trigger="load, input from:#mail-form delay:400ms" hx-include="#mail-form" hx-target="this"
+             hx-swap="innerHTML"></div>
+      </details>
+      <div class="review-foot">
+        <label class="check">
+          <input type="checkbox" id="mail-confirm" name="confirmed" value="true" data-dialog-confirm="mail-submit"
+                 th:disabled="${draft.blockedKey != null}">
+          <span th:text="#{mail.compose.checked}">Ich habe die Mail geprüft.</span>
+        </label>
+        <div class="actions">
+          <button type="button" class="secondary" data-close-dialog th:text="#{mail.compose.cancel}">Abbrechen</button>
+          <button type="submit" id="mail-submit" disabled
+                  th:text="#{mail.compose.submit}">Jetzt senden</button>
+        </div>
+      </div>
+    </form>
+  </th:block>
+  <div class="actions" th:if="${draft == null or sent != null}">
+    <button type="button" class="secondary" data-close-dialog th:text="#{mail.compose.close}">Schließen</button>
+  </div>
+</div>
+</body>
+</html>

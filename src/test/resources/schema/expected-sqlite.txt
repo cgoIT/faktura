@@ -1,0 +1,462 @@
+TABLE app_user
+  COLUMN active INTEGER NOT NULL DEFAULT 1
+  COLUMN admin INTEGER NOT NULL DEFAULT 0
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN display_name VARCHAR(200)
+  COLUMN id VARCHAR(36)
+  COLUMN last_login_at VARCHAR(30)
+  COLUMN password_hash VARCHAR(100)
+  COLUMN username VARCHAR(100) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (username)
+  CHECK  (active IN (0, 1))
+  CHECK  (admin IN (0, 1))
+
+TABLE audit_log
+  COLUMN action VARCHAR(30) NOT NULL
+  COLUMN actor VARCHAR(100)
+  COLUMN detail TEXT
+  COLUMN id VARCHAR(36)
+  COLUMN logged_at VARCHAR(30) NOT NULL
+  COLUMN object_id VARCHAR(36) NOT NULL
+  COLUMN object_type VARCHAR(20) NOT NULL
+  PRIMARY KEY (id)
+  INDEX ix_audit_log_object (object_type, object_id)
+
+TABLE catalog_item
+  COLUMN active INTEGER NOT NULL DEFAULT 1
+  COLUMN description VARCHAR(2000)
+  COLUMN id VARCHAR(36)
+  COLUMN name VARCHAR(200) NOT NULL
+  COLUMN number VARCHAR(50) NOT NULL
+  COLUMN tax_category VARCHAR(2)
+  COLUMN unit_id VARCHAR(36) NOT NULL
+  COLUMN unit_price_cents BIGINT NOT NULL
+  PRIMARY KEY (id)
+  FOREIGN KEY (unit_id) REFERENCES unit(id)
+  UNIQUE (number)
+
+TABLE company
+  COLUMN bank_name VARCHAR(100)
+  COLUMN bic VARCHAR(11)
+  COLUMN city VARCHAR(100)
+  COLUMN country VARCHAR(2) NOT NULL DEFAULT 'DE'
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN email VARCHAR(200)
+  COLUMN iban VARCHAR(34)
+  COLUMN id VARCHAR(36)
+  COLUMN name VARCHAR(200) NOT NULL
+  COLUMN offer_valid_days INTEGER NOT NULL DEFAULT 30
+  COLUMN owner VARCHAR(200)
+  COLUMN payment_days INTEGER NOT NULL DEFAULT 14
+  COLUMN phone VARCHAR(50)
+  COLUMN street VARCHAR(200)
+  COLUMN tax_number VARCHAR(50)
+  COLUMN vat_id VARCHAR(30)
+  COLUMN zip VARCHAR(20)
+  PRIMARY KEY (id)
+
+TABLE customer
+  COLUMN archived INTEGER NOT NULL DEFAULT 0
+  COLUMN city VARCHAR(100)
+  COLUMN country VARCHAR(2) NOT NULL DEFAULT 'DE'
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN customer_type VARCHAR(20) NOT NULL DEFAULT 'B2B'
+  COLUMN discount_bp INTEGER
+  COLUMN einvoice_mode VARCHAR(10) NOT NULL DEFAULT 'NONE'
+  COLUMN id VARCHAR(36)
+  COLUMN invoice_email VARCHAR(200)
+  COLUMN name VARCHAR(200) NOT NULL
+  COLUMN note VARCHAR(2000)
+  COLUMN number VARCHAR(50) NOT NULL
+  COLUMN payment_days INTEGER
+  COLUMN street VARCHAR(200)
+  COLUMN vat_id VARCHAR(30)
+  COLUMN zip VARCHAR(20)
+  PRIMARY KEY (id)
+  UNIQUE (number)
+
+TABLE customer_contact
+  COLUMN customer_id VARCHAR(36) NOT NULL
+  COLUMN email VARCHAR(200)
+  COLUMN first_name VARCHAR(100) NOT NULL DEFAULT ''
+  COLUMN id VARCHAR(36)
+  COLUMN last_name VARCHAR(100)
+  COLUMN mobile VARCHAR(50)
+  COLUMN phone VARCHAR(50)
+  COLUMN role VARCHAR(100)
+  COLUMN salutation VARCHAR(10)
+  PRIMARY KEY (id)
+  FOREIGN KEY (customer_id) REFERENCES customer(id)
+
+TABLE document
+  COLUMN contact_id VARCHAR(36)
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN created_by VARCHAR(100)
+  COLUMN customer_id VARCHAR(36) NOT NULL
+  COLUMN customer_reference VARCHAR(200)
+  COLUMN due_date VARCHAR(10)
+  COLUMN finalized_at VARCHAR(30)
+  COLUMN footer_text VARCHAR(4000)
+  COLUMN gross_total_cents BIGINT NOT NULL DEFAULT 0
+  COLUMN header_text VARCHAR(4000)
+  COLUMN id VARCHAR(36)
+  COLUMN issue_date VARCHAR(10) NOT NULL
+  COLUMN net_total_cents BIGINT NOT NULL DEFAULT 0
+  COLUMN number VARCHAR(50)
+  COLUMN recipient_snapshot TEXT
+  COLUMN ref_document_id VARCHAR(36)
+  COLUMN sender_snapshot TEXT
+  COLUMN service_from VARCHAR(10)
+  COLUMN service_to VARCHAR(10)
+  COLUMN shipping_cents BIGINT NOT NULL DEFAULT 0
+  COLUMN shipping_name VARCHAR(100)
+  COLUMN shipping_tax_category VARCHAR(2)
+  COLUMN shipping_tax_rate_bp INTEGER NOT NULL DEFAULT 0
+  COLUMN status VARCHAR(20) NOT NULL
+  COLUMN subject VARCHAR(300)
+  COLUMN tax_snapshot TEXT
+  COLUMN tax_total_cents BIGINT NOT NULL DEFAULT 0
+  COLUMN total_discount_type VARCHAR(10)
+  COLUMN total_discount_value BIGINT
+  COLUMN type VARCHAR(20) NOT NULL
+  COLUMN updated_at VARCHAR(30) NOT NULL
+  COLUMN valid_until VARCHAR(10)
+  COLUMN version INTEGER NOT NULL DEFAULT 1
+  PRIMARY KEY (id)
+  FOREIGN KEY (customer_id) REFERENCES customer(id)
+  FOREIGN KEY (ref_document_id) REFERENCES document(id)
+  INDEX ix_document_customer (customer_id)
+  INDEX ix_document_status (status)
+  INDEX ix_document_type_issue_date (type, issue_date)
+  INDEX uq_document_cancellation UNIQUE (ref_document_id) WHERE type = 'CANCELLATION'
+  UNIQUE (number)
+  CHECK  (status IN ('DRAFT', 'FINAL', 'CANCELLED'))
+  CHECK  (total_discount_type IS NULL OR total_discount_type IN ('PERCENT', 'AMOUNT'))
+  CHECK  (type IN ('OFFER', 'INVOICE', 'CANCELLATION'))
+
+TABLE document_item
+  COLUMN catalog_item_id VARCHAR(36)
+  COLUMN description VARCHAR(2000) NOT NULL
+  COLUMN discount_bp INTEGER NOT NULL DEFAULT 0
+  COLUMN document_id VARCHAR(36) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN line_total_cents BIGINT NOT NULL
+  COLUMN position INTEGER NOT NULL
+  COLUMN quantity_thousandths BIGINT NOT NULL
+  COLUMN tax_category VARCHAR(2) NOT NULL
+  COLUMN tax_rate_bp INTEGER NOT NULL DEFAULT 0
+  COLUMN unit_code VARCHAR(20)
+  COLUMN unit_name VARCHAR(100)
+  COLUMN unit_name_plural VARCHAR(100)
+  COLUMN unit_price_cents BIGINT NOT NULL
+  COLUMN unit_unece_code VARCHAR(5)
+  PRIMARY KEY (id)
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  INDEX ix_document_item_document (document_id)
+
+TABLE document_tax_total
+  COLUMN basis_cents BIGINT NOT NULL
+  COLUMN category VARCHAR(2) NOT NULL
+  COLUMN document_id VARCHAR(36) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN rate_bp INTEGER NOT NULL
+  COLUMN tax_cents BIGINT NOT NULL
+  PRIMARY KEY (id)
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  INDEX ix_document_tax_total_document (document_id)
+
+TABLE dunning
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN document_id VARCHAR(36) NOT NULL
+  COLUMN dunning_date VARCHAR(10) NOT NULL
+  COLUMN fee_cents BIGINT NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN interest_cents BIGINT NOT NULL
+  COLUMN level INTEGER NOT NULL
+  COLUMN level_name VARCHAR(100) NOT NULL
+  COLUMN new_due_date VARCHAR(10) NOT NULL
+  COLUMN number VARCHAR(50) NOT NULL
+  COLUMN open_cents BIGINT NOT NULL
+  PRIMARY KEY (id)
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  INDEX ix_dunning_document (document_id)
+  UNIQUE (document_id, level)
+  UNIQUE (number)
+
+TABLE dunning_level
+  COLUMN active INTEGER NOT NULL DEFAULT 1
+  COLUMN days_after_due INTEGER NOT NULL
+  COLUMN fee_cents BIGINT NOT NULL DEFAULT 0
+  COLUMN footer_text VARCHAR(4000) NOT NULL
+  COLUMN header_text VARCHAR(4000) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN interest_bp INTEGER NOT NULL DEFAULT 0
+  COLUMN level INTEGER NOT NULL
+  COLUMN name VARCHAR(100) NOT NULL
+  COLUMN new_due_days INTEGER NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (level)
+  CHECK  (active IN (0, 1))
+  CHECK  (level > 0 AND days_after_due >= 0 AND fee_cents >= 0 AND interest_bp >= 0 AND new_due_days >= 0)
+  ROW active='1' days_after_due='21' fee_cents='0' footer_text='Ich bitte Sie, die Gesamtforderung von {gesamtforderung} bis zum {neue_frist} auf das Konto {firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}, zu überweisen.' header_text='{anrede}\n\ntrotz meiner Zahlungserinnerung ist die Rechnung {rechnungsnummer} vom {rechnungsdatum} noch nicht beglichen. Sie ist seit {tage_ueberfaellig} Tagen überfällig.' id='20000000-0000-0000-0000-000000000002' interest_bp='0' level='2' name='1. Mahnung' new_due_days='7'
+  ROW active='1' days_after_due='35' fee_cents='0' footer_text='Bitte überweisen Sie die Gesamtforderung von {gesamtforderung} bis spätestens {neue_frist} auf das Konto {firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}. Danach behalte ich mir weitere Schritte vor.' header_text='{anrede}\n\ndie Rechnung {rechnungsnummer} vom {rechnungsdatum} ist trotz Erinnerung und Mahnung weiterhin offen. Dies ist meine letzte Aufforderung zur Zahlung.' id='20000000-0000-0000-0000-000000000003' interest_bp='0' level='3' name='2. Mahnung' new_due_days='7'
+  ROW active='1' days_after_due='7' fee_cents='0' footer_text='Ich bitte Sie, den offenen Betrag bis zum {neue_frist} auf das Konto {firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}, zu überweisen. Sollten Sie bereits bezahlt haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.' header_text='{anrede}\n\nzu meiner Rechnung {rechnungsnummer} vom {rechnungsdatum} konnte ich bisher keinen Zahlungseingang feststellen. Vielleicht ist die Zahlung nur in der Bearbeitung untergegangen.' id='20000000-0000-0000-0000-000000000001' interest_bp='0' level='1' name='Zahlungserinnerung' new_due_days='7'
+
+TABLE file
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN owner_id VARCHAR(36) NOT NULL
+  COLUMN owner_type VARCHAR(20) NOT NULL
+  COLUMN path VARCHAR(500) NOT NULL
+  COLUMN sha256 VARCHAR(64) NOT NULL
+  COLUMN size_bytes BIGINT NOT NULL
+  COLUMN type VARCHAR(20) NOT NULL
+  PRIMARY KEY (id)
+  INDEX ix_file_owner (owner_type, owner_id)
+  UNIQUE (path)
+  CHECK  (type IN ('PDF', 'XML', 'ATTACHMENT'))
+
+TABLE file_export
+  COLUMN exported_at VARCHAR(30) NOT NULL
+  COLUMN file_id VARCHAR(36)
+  COLUMN sha256 VARCHAR(64) NOT NULL
+  PRIMARY KEY (file_id)
+
+TABLE mail_log
+  COLUMN attachment_file_id VARCHAR(36)
+  COLUMN attachment_name VARCHAR(255)
+  COLUMN body TEXT NOT NULL
+  COLUMN error_key VARCHAR(100)
+  COLUMN id VARCHAR(36)
+  COLUMN message_id VARCHAR(255)
+  COLUMN owner_id VARCHAR(36) NOT NULL
+  COLUMN owner_type VARCHAR(20) NOT NULL
+  COLUMN recipients VARCHAR(1000) NOT NULL
+  COLUMN sent_at VARCHAR(30) NOT NULL
+  COLUMN status VARCHAR(10) NOT NULL
+  COLUMN subject VARCHAR(500) NOT NULL
+  PRIMARY KEY (id)
+  INDEX ix_mail_log_owner (owner_type, owner_id)
+  CHECK  (owner_type IN ('DOCUMENT', 'DUNNING'))
+  CHECK  (status IN ('SENT', 'FAILED'))
+
+TABLE mail_template
+  COLUMN body VARCHAR(4000) NOT NULL
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN is_default INTEGER NOT NULL DEFAULT 0
+  COLUMN name VARCHAR(100) NOT NULL
+  COLUMN scope VARCHAR(30) NOT NULL
+  COLUMN subject VARCHAR(200) NOT NULL
+  PRIMARY KEY (id)
+  INDEX uq_mail_template_default UNIQUE (scope) WHERE is_default = 1
+  CHECK  (scope IN ('INVOICE', 'CANCELLATION', 'DUNNING', 'OFFER', 'NOTIFICATION_DIGEST'))
+  ROW body='Hallo {ansprechpartner_vorname},\n\nhier ist das Angebot {angebotsnummer} über {betrag}. Es gilt bis zum {gueltig_bis}.\n\nMelde dich einfach, wenn etwas unklar ist.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000009' is_default='0' name='Informell' scope='OFFER' subject='Dein Angebot {angebotsnummer}'
+  ROW body='Hallo {ansprechpartner_vorname},\n\nhier ist die Rechnung {rechnungsnummer} über {betrag}. Sie ist bis zum {faelligkeit} fällig.\n\nMelde dich einfach, wenn etwas unklar ist.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000002' is_default='0' name='Informell' scope='INVOICE' subject='Deine Rechnung {rechnungsnummer}'
+  ROW body='Hallo {ansprechpartner_vorname},\n\nim Anhang findest du die Stornorechnung {rechnungsnummer} über {betrag}. Sie hebt die ursprüngliche Rechnung auf.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000004' is_default='0' name='Informell' scope='CANCELLATION' subject='Storno {rechnungsnummer}'
+  ROW body='Hallo {ansprechpartner_vorname},\n\nzur Rechnung {rechnungsnummer} habe ich noch keinen Zahlungseingang gesehen. Im Anhang findest du die {mahnstufe}.\n\nKönntest du die {gesamtforderung} bis zum {neue_frist} überweisen? Falls sich das mit deiner Zahlung überschnitten hat, ignoriere die Mail einfach.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000006' is_default='0' name='Informell' scope='DUNNING' subject='Erinnerung zur Rechnung {rechnungsnummer}'
+  ROW body='Hallo {firma_inhaber},\n\nin faktura gibt es etwas zu tun:\n\n{entwuerfe}\n\n{planfehler}\n\n{ueberfaellig}\n\n{mahnfaehig}\n\n{angebote}\n\n{link}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000007' is_default='1' name='Hinweise' scope='NOTIFICATION_DIGEST' subject='faktura: {anzahl} Hinweise'
+  ROW body='{anrede}\n\nanbei erhalten Sie die Rechnung {rechnungsnummer} über {betrag}. Bitte überweisen Sie den Betrag bis zum {faelligkeit}.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000001' is_default='1' name='Formell' scope='INVOICE' subject='Rechnung {rechnungsnummer} von {firma_name}'
+  ROW body='{anrede}\n\nanbei erhalten Sie die Stornorechnung {rechnungsnummer} über {betrag}. Sie hebt die ursprüngliche Rechnung auf.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000003' is_default='1' name='Formell' scope='CANCELLATION' subject='Stornorechnung {rechnungsnummer} von {firma_name}'
+  ROW body='{anrede}\n\nvielen Dank für Ihre Anfrage. Anbei erhalten Sie das Angebot {angebotsnummer} über {betrag}. Es ist gültig bis zum {gueltig_bis}.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000008' is_default='1' name='Formell' scope='OFFER' subject='Angebot {angebotsnummer} von {firma_name}'
+  ROW body='{anrede}\n\nzur Rechnung {rechnungsnummer} vom {rechnungsdatum} konnten wir bislang keinen Zahlungseingang feststellen. Im Anhang finden Sie die {mahnstufe}.\n\nWir bitten Sie, den offenen Betrag von {gesamtforderung} bis zum {neue_frist} zu überweisen. Sollte sich Ihre Zahlung mit diesem Schreiben überschnitten haben, betrachten Sie es bitte als gegenstandslos.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000005' is_default='1' name='Formell' scope='DUNNING' subject='{mahnstufe} zur Rechnung {rechnungsnummer}'
+
+TABLE notification_log
+  COLUMN category VARCHAR(20) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN object_id VARCHAR(36) NOT NULL
+  COLUMN sent_at VARCHAR(30) NOT NULL
+  COLUMN stage VARCHAR(100) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (category, object_id, stage)
+  CHECK  (category IN ('DRAFT', 'PLAN_ERROR', 'OVERDUE', 'DUNNING_DUE', 'OFFER_EXPIRING'))
+
+TABLE notification_setting
+  COLUMN draft_enabled INTEGER NOT NULL DEFAULT 0
+  COLUMN dunning_enabled INTEGER NOT NULL DEFAULT 0
+  COLUMN failure_count INTEGER NOT NULL DEFAULT 0
+  COLUMN id VARCHAR(36)
+  COLUMN last_run_date VARCHAR(10)
+  COLUMN offer_enabled INTEGER NOT NULL DEFAULT 0
+  COLUMN overdue_enabled INTEGER NOT NULL DEFAULT 0
+  COLUMN plan_error_enabled INTEGER NOT NULL DEFAULT 0
+  COLUMN recipient VARCHAR(254)
+  COLUMN send_time VARCHAR(5)
+  PRIMARY KEY (id)
+  ROW draft_enabled='0' dunning_enabled='0' failure_count='0' id='default' last_run_date=NULL offer_enabled='0' overdue_enabled='0' plan_error_enabled='0' recipient=NULL send_time=NULL
+
+TABLE number_pattern
+  COLUMN pattern VARCHAR(100) NOT NULL
+  COLUMN scope VARCHAR(20)
+  PRIMARY KEY (scope)
+  ROW pattern='AN{jahr}{#####}' scope='OFFER'
+  ROW pattern='ART{####}' scope='CATALOG'
+  ROW pattern='KD{####}' scope='CUSTOMER'
+  ROW pattern='MA{jahr}{#####}' scope='DUNNING'
+  ROW pattern='RE{jahr}{#####}' scope='INVOICE'
+  ROW pattern='ST{jahr}{#####}' scope='CANCELLATION'
+
+TABLE number_sequence
+  COLUMN id VARCHAR(36)
+  COLUMN last_value BIGINT NOT NULL DEFAULT 0
+  COLUMN period VARCHAR(10) NOT NULL
+  COLUMN scope VARCHAR(20) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (scope, period)
+
+TABLE offer_event
+  COLUMN actor VARCHAR(100)
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN document_id VARCHAR(36) NOT NULL
+  COLUMN event VARCHAR(10) NOT NULL
+  COLUMN event_date VARCHAR(10) NOT NULL
+  COLUMN id VARCHAR(36)
+  PRIMARY KEY (id)
+  INDEX ix_offer_event_document (document_id)
+  CHECK  (event IN ('SENT', 'ACCEPTED', 'REJECTED'))
+
+TABLE payment
+  COLUMN amount_cents BIGINT NOT NULL
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN document_id VARCHAR(36) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN method VARCHAR(20) NOT NULL
+  COLUMN note VARCHAR(500)
+  COLUMN payment_date VARCHAR(10) NOT NULL
+  COLUMN reference VARCHAR(200)
+  COLUMN reverses_payment_id VARCHAR(36)
+  PRIMARY KEY (id)
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  FOREIGN KEY (reverses_payment_id) REFERENCES payment(id)
+  INDEX ix_payment_document (document_id)
+  UNIQUE (reverses_payment_id)
+  CHECK  ( (reverses_payment_id IS NULL AND amount_cents > 0) OR (reverses_payment_id IS NOT NULL AND amount_cents < 0))
+  CHECK  (method IN ('BANK_TRANSFER', 'CASH', 'OTHER'))
+
+TABLE recurring_plan
+  COLUMN anchor_date VARCHAR(10) NOT NULL
+  COLUMN contact_id VARCHAR(36)
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN customer_id VARCHAR(36) NOT NULL
+  COLUMN customer_reference VARCHAR(200)
+  COLUMN end_date VARCHAR(10)
+  COLUMN footer_text VARCHAR(4000)
+  COLUMN header_text VARCHAR(4000)
+  COLUMN id VARCHAR(36)
+  COLUMN last_error VARCHAR(100)
+  COLUMN lead_days INTEGER NOT NULL
+  COLUMN name VARCHAR(200) NOT NULL
+  COLUMN next_period_index INTEGER NOT NULL DEFAULT 0
+  COLUMN payment_days INTEGER
+  COLUMN period_interval VARCHAR(10) NOT NULL
+  COLUMN status VARCHAR(10) NOT NULL
+  COLUMN subject VARCHAR(300)
+  COLUMN total_discount_type VARCHAR(10)
+  COLUMN total_discount_value BIGINT NOT NULL DEFAULT 0
+  COLUMN updated_at VARCHAR(30) NOT NULL
+  COLUMN version INTEGER NOT NULL DEFAULT 1
+  PRIMARY KEY (id)
+  INDEX ix_recurring_plan_status (status)
+  CHECK  (lead_days >= 0 AND next_period_index >= 0 AND total_discount_value >= 0)
+  CHECK  (period_interval IN ('MONTH', 'TWO_MONTHS', 'QUARTER', 'HALF_YEAR', 'YEAR'))
+  CHECK  (status IN ('ACTIVE', 'PAUSED', 'ENDED'))
+  CHECK  (total_discount_type IS NULL OR total_discount_type IN ('PERCENT', 'AMOUNT'))
+
+TABLE recurring_plan_item
+  COLUMN catalog_item_id VARCHAR(36)
+  COLUMN description VARCHAR(2000) NOT NULL
+  COLUMN discount_bp INTEGER NOT NULL DEFAULT 0
+  COLUMN id VARCHAR(36)
+  COLUMN plan_id VARCHAR(36) NOT NULL
+  COLUMN position INTEGER NOT NULL
+  COLUMN quantity_thousandths BIGINT NOT NULL
+  COLUMN tax_category VARCHAR(2)
+  COLUMN unit_code VARCHAR(20)
+  COLUMN unit_price_cents BIGINT NOT NULL
+  PRIMARY KEY (id)
+  FOREIGN KEY (plan_id) REFERENCES recurring_plan(id)
+  INDEX ix_recurring_plan_item_plan (plan_id)
+
+TABLE recurring_run
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN document_id VARCHAR(36)
+  COLUMN id VARCHAR(36)
+  COLUMN plan_id VARCHAR(36) NOT NULL
+  COLUMN service_from VARCHAR(10) NOT NULL
+  COLUMN service_to VARCHAR(10) NOT NULL
+  COLUMN status VARCHAR(10) NOT NULL
+  PRIMARY KEY (id)
+  FOREIGN KEY (plan_id) REFERENCES recurring_plan(id)
+  INDEX ix_recurring_run_document (document_id)
+  INDEX ix_recurring_run_status (status)
+  UNIQUE (plan_id, service_from)
+  CHECK  (status IN ('DRAFT', 'RELEASED', 'SKIPPED'))
+
+TABLE setup_step
+  COLUMN done_at VARCHAR(30) NOT NULL
+  COLUMN step VARCHAR(30)
+  PRIMARY KEY (step)
+
+TABLE shipping_option
+  COLUMN active INTEGER NOT NULL DEFAULT 1
+  COLUMN amount_cents BIGINT NOT NULL DEFAULT 0
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN name VARCHAR(100) NOT NULL
+  COLUMN sort_order INTEGER NOT NULL DEFAULT 0
+  COLUMN tax_category VARCHAR(2)
+  COLUMN tax_rate_bp INTEGER NOT NULL DEFAULT 0
+  PRIMARY KEY (id)
+  CHECK  (active IN (0, 1))
+  CHECK  (amount_cents >= 0)
+  CHECK  (tax_rate_bp >= 0 AND tax_rate_bp <= 10000)
+
+TABLE tax_category_reason
+  COLUMN category VARCHAR(2)
+  COLUMN reason VARCHAR(500) NOT NULL
+  PRIMARY KEY (category)
+
+TABLE tax_profile
+  COLUMN allowed_categories VARCHAR(100)
+  COLUMN company_id VARCHAR(36) NOT NULL
+  COLUMN default_category VARCHAR(2) NOT NULL DEFAULT 'E'
+  COLUMN default_rate_bp INTEGER NOT NULL DEFAULT 0
+  COLUMN exemption_text VARCHAR(500)
+  COLUMN id VARCHAR(36)
+  COLUMN notice_text VARCHAR(500)
+  COLUMN regime VARCHAR(20) NOT NULL
+  COLUMN valid_from VARCHAR(10) NOT NULL
+  COLUMN valid_to VARCHAR(10)
+  PRIMARY KEY (id)
+  FOREIGN KEY (company_id) REFERENCES company(id)
+
+TABLE text_template
+  COLUMN body VARCHAR(4000) NOT NULL
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN is_default INTEGER NOT NULL DEFAULT 0
+  COLUMN kind VARCHAR(10) NOT NULL
+  COLUMN name VARCHAR(100) NOT NULL
+  COLUMN scope VARCHAR(20) NOT NULL
+  PRIMARY KEY (id)
+  INDEX uq_text_template_default UNIQUE (scope, kind) WHERE is_default = 1
+  CHECK  (kind IN ('HEADER', 'FOOTER'))
+  CHECK  (scope IN ('INVOICE', 'OFFER', 'DUNNING'))
+  ROW body='Ich bedanke mich für die gute Zusammenarbeit und würde mich freuen, wenn Sie mich bei Ihren nächsten Aufträgen erneut ansprechen.\n\nBitte überweisen Sie den Betrag in Höhe von {betrag} unter Angabe der Rechnungsnummer {rechnungsnummer} auf das Konto\n\n{firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}.\n\nZahlbar innerhalb von {zahlungsziel} Tagen (spätestens bis zum {faelligkeit}) ohne Abzug.\n\nSofern nicht anders angegeben entspricht das Liefer-/Leistungsdatum dem Rechnungsdatum.' created_at='2026-10-21T00:00:00Z' id='10000000-0000-0000-0000-000000000002' is_default='1' kind='FOOTER' name='Standard' scope='INVOICE'
+  ROW body='{anrede}\n\nich erlaube mir, für die erbrachten Leistungen folgendes in Rechnung zu stellen:' created_at='2026-10-21T00:00:00Z' id='10000000-0000-0000-0000-000000000001' is_default='1' kind='HEADER' name='Standard' scope='INVOICE'
+
+TABLE unit
+  COLUMN code VARCHAR(20) NOT NULL
+  COLUMN id VARCHAR(36)
+  COLUMN name VARCHAR(100) NOT NULL
+  COLUMN name_plural VARCHAR(100)
+  COLUMN unece_code VARCHAR(5) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (code)
+  ROW code='Mon' id='00000000-0000-0000-0000-000000000003' name='Monat' name_plural='Monate' unece_code='MON'
+  ROW code='Psch' id='00000000-0000-0000-0000-000000000004' name='Pauschale' name_plural='Pauschalen' unece_code='LS'
+  ROW code='Std' id='00000000-0000-0000-0000-000000000001' name='Stunde' name_plural='Stunden' unece_code='HUR'
+  ROW code='Stk' id='00000000-0000-0000-0000-000000000002' name='Stück' name_plural='Stück' unece_code='H87'
+  ROW code='Tag' id='00000000-0000-0000-0000-000000000005' name='Tag' name_plural='Tage' unece_code='DAY'
+

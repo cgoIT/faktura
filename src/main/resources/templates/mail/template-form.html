@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{mail.template.title} + ' – Faktura'">Mailvorlagen</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <div th:replace="~{fragments/settings-tabs :: tabs('mail')}"></div>
+  <h2 th:text="${template == null} ? #{mail.template.new} : #{mail.template.editTitle}">Mailvorlage</h2>
+  <p class="lead"><a th:href="@{/mail-templates}" th:text="#{mail.template.back}">Zurück zu den Mailvorlagen</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div class="notice error" role="alert" th:if="${error != null}" th:text="#{${error}}"></div>
+  <form class="card" id="mail-template-form" method="post" th:object="${mailTemplateForm}"
+        th:action="${template == null} ? @{/mail-templates} : @{/mail-templates/{id}(id=${template.id})}">
+    <div class="form-grid">
+      <div class="field">
+        <label for="scope" th:text="#{mail.template.scope}">Dokumenttyp</label>
+        <select id="scope" name="scope" th:disabled="${template != null}">
+          <option th:each="scope : ${scopes}" th:value="${scope}" th:text="#{'mail.scope.' + ${scope}}"
+                  th:selected="${scope == mailTemplateForm.scope}">Rechnung</option>
+        </select>
+        <input type="hidden" name="scope" th:if="${template != null}" th:value="${mailTemplateForm.scope}">
+      </div>
+      <div class="field wide">
+        <label for="name" th:text="#{mail.template.name}">Name</label>
+        <input type="text" id="name" name="name" maxlength="100" required th:value="${mailTemplateForm.name}">
+        <span class="hint" th:text="#{mail.template.nameHint}">Zum Beispiel „Formell“ oder „Informell“.</span>
+      </div>
+      <div class="field wide">
+        <label for="subject" th:text="#{mail.template.subject}">Betreff</label>
+        <input type="text" id="subject" name="subject" maxlength="200" required th:value="${mailTemplateForm.subject}">
+      </div>
+      <div class="field wide">
+        <label for="body" th:text="#{mail.template.body}">Text</label>
+        <div th:replace="~{fragments/format-bar :: bar('body')}"></div>
+        <textarea id="body" name="body" rows="12" maxlength="4000" required th:text="${mailTemplateForm.body}"></textarea>
+        <div th:replace="~{fragments/format-info :: info(${placeholders})}"></div>
+      </div>
+      <div class="field wide" th:if="${system}">
+        <p class="hint" th:text="#{mail.template.system.hint}">Systemvorlage.</p>
+      </div>
+      <div class="field wide" th:unless="${system}">
+        <label class="check">
+          <input type="checkbox" name="makeDefault" value="true" th:checked="${mailTemplateForm.makeDefault}">
+          <span th:text="#{mail.template.makeDefault}">Als Standard für diesen Dokumenttyp verwenden</span>
+        </label>
+      </div>
+      <div class="field wide" th:unless="${system}">
+        <label for="preview-source" th:text="#{mail.template.previewSource}">Vorschau mit</label>
+        <select id="preview-source" name="source">
+          <option value="" th:text="#{mail.template.previewSample}">Beispieldaten</option>
+          <optgroup th:each="group : ${sourceGroups}" th:label="#{'mail.scope.plural.' + ${group.key}}">
+            <option th:each="source : ${group.value}" th:value="${source.value}" th:text="${source.label}">RE202600001</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="actions form-end">
+      <a class="button secondary" th:if="${template != null and !system}"
+         th:href="@{/mail-templates/new(copy=${template.id})}"
+         th:text="#{mail.template.copy}">Als Kopie anlegen</a>
+      <button type="submit" th:text="#{mail.template.save}">Speichern</button>
+    </div>
+  </form>
+
+  <section class="card" aria-live="polite">
+    <h2 th:text="#{mail.preview.title}">Vorschau</h2>
+    <!--/* Rendered on load and on every change of the form; nothing is saved. */-->
+    <div id="mail-preview" th:attr="hx-post=@{/mail-templates/preview}"
+         hx-trigger="load, input from:#mail-template-form delay:400ms, change from:#mail-template-form"
+         hx-include="#mail-template-form" hx-target="this" hx-swap="innerHTML"></div>
+  </section>
+
+  <form class="card" method="post" th:if="${template != null and !system}"
+        th:action="@{/mail-templates/{id}/delete(id=${template.id})}"
+        th:attr="data-confirm=#{mail.template.delete.confirm}">
+    <p th:text="#{mail.template.delete.hint}">Bereits gesendete Mails behalten ihren Text.</p>
+    <button type="submit" class="danger" th:text="#{mail.template.delete}">Löschen</button>
+  </form>
+</main>
+</body>
+</html>

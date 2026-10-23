@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'offers')}">
+<head>
+  <title th:text="#{offer.title} + ' – Faktura'">Angebote</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{offer.title}">Angebote</h1>
+  <p class="lead" th:text="#{offer.lead}">Entwürfe und Angebote</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <form class="toolbar" method="get" th:action="@{/offers}" th:attr="hx-get=@{/offers}"
+          hx-target="#offer-rows" hx-swap="outerHTML" hx-trigger="input changed delay:300ms from:#q, change from:#status, submit"
+          hx-push-url="false">
+      <label class="visually-hidden" for="q" th:text="#{list.search}">Suchen</label>
+      <input type="search" id="q" name="q" th:value="${q}" th:placeholder="#{invoice.search}" autocomplete="off">
+      <label class="visually-hidden" for="status" th:text="#{list.status}">Status</label>
+      <select id="status" name="status">
+        <option value="all" th:selected="${status == 'all'}" th:text="#{invoice.status.all}">Alle</option>
+        <option th:each="state : ${states}" th:value="${#strings.toLowerCase(state.name())}"
+                th:selected="${status == #strings.toLowerCase(state.name())}"
+                th:text="#{'offer.state.' + ${state}}">Entwurf</option>
+      </select>
+      <button type="submit" class="secondary" th:text="#{list.searchButton}">Suchen</button>
+      <a class="button" th:href="@{/offers/new}" th:text="#{offer.new}">Neues Angebot</a>
+    </form>
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{invoice.number}">Nummer</th>
+          <th th:text="#{invoice.customer}">Kunde</th>
+          <th th:text="#{invoice.subject}">Betreff</th>
+          <th th:text="#{offer.issueDate}">Datum</th>
+          <th th:text="#{offer.validUntil}">Gültig bis</th>
+          <th class="num" th:text="#{invoice.amount}">Betrag</th>
+          <th th:text="#{list.status}">Status</th>
+        </tr>
+        </thead>
+        <tbody id="offer-rows" th:fragment="rows">
+        <tr th:each="row : ${offers}">
+          <td class="mono"><a th:href="@{/offers/{id}(id=${row.id})}"
+                              th:text="${row.number != null} ? ${row.number} : #{invoice.status.DRAFT}"
+                              th:attr="title=${row.customerName}">AN202700001</a></td>
+          <td th:text="${row.customerName}">Muster GmbH</td>
+          <td th:text="${row.subject} ?: '—'">Relaunch Webseite</td>
+          <td th:text="${#temporals.format(row.issueDate, 'dd.MM.yyyy')}">20.10.2026</td>
+          <td th:text="${row.validUntil != null} ? ${#temporals.format(row.validUntil, 'dd.MM.yyyy')} : '—'">19.11.2026</td>
+          <td class="num" th:text="${@money.format(row.grossTotalCents)}">485,45 €</td>
+          <td><span class="badge" th:classappend="${row.state.name() != 'DRAFT'} ? 'current'"
+                    th:text="#{'offer.state.' + ${row.state}}">Offen</span></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(offers)}"><td colspan="7" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="hint" th:text="#{offer.list.hint}">Entwürfe haben noch keine Nummer.</p>
+</main>
+</body>
+</html>

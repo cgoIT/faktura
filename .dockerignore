@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.claude
+.DS_Store
+target
+data
+out
+docs
+*.log
+.env
+.env.local

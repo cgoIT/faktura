@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{company.title} + ' – Faktura'">Unternehmen</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{company.lead}">Stammdaten</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('company')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post" th:action="@{/company}" th:object="${companyForm}">
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field">
+          <label for="name" th:text="#{company.name}">Firmenname</label>
+          <input type="text" id="name" th:field="*{name}" autocomplete="organization">
+          <span class="field-error" th:errors="*{name}"></span>
+        </div>
+        <div class="field">
+          <label for="owner" th:text="#{company.owner}">Inhaber</label>
+          <input type="text" id="owner" th:field="*{owner}">
+          <span class="field-error" th:errors="*{owner}"></span>
+        </div>
+      </div>
+    </div>
+    <fieldset class="form-section">
+      <legend th:text="#{company.section.address}">Anschrift</legend>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="street" th:text="#{company.street}">Straße</label>
+          <input type="text" id="street" th:field="*{street}" autocomplete="street-address">
+          <span class="field-error" th:errors="*{street}"></span>
+        </div>
+        <div class="field">
+          <label for="zip" th:text="#{company.zip}">PLZ</label>
+          <input type="text" id="zip" th:field="*{zip}" autocomplete="postal-code">
+          <span class="field-error" th:errors="*{zip}"></span>
+        </div>
+        <div class="field">
+          <label for="city" th:text="#{company.city}">Ort</label>
+          <input type="text" id="city" th:field="*{city}">
+          <span class="field-error" th:errors="*{city}"></span>
+        </div>
+        <div class="field own-row">
+          <label for="country" th:text="#{company.country}">Land</label>
+          <th:block th:replace="~{fragments/country-select :: select(${companyForm?.country})}"></th:block>
+          <span class="field-error" th:errors="*{country}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{company.section.contact}">Kontakt</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="email" th:text="#{company.email}">E-Mail</label>
+          <input type="email" id="email" th:field="*{email}">
+          <span class="field-error" th:errors="*{email}"></span>
+        </div>
+        <div class="field">
+          <label for="phone" th:text="#{company.phone}">Telefon</label>
+          <input type="text" id="phone" th:field="*{phone}">
+          <span class="field-error" th:errors="*{phone}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{company.section.tax}">Steuer</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="taxNumber" th:text="#{company.taxNumber}">Steuernummer</label>
+          <input type="text" id="taxNumber" th:field="*{taxNumber}">
+          <span class="field-error" th:errors="*{taxNumber}"></span>
+        </div>
+        <div class="field">
+          <label for="vatId" th:text="#{company.vatId}">USt-IdNr.</label>
+          <input type="text" id="vatId" th:field="*{vatId}" placeholder="DE…">
+          <span class="field-error" th:errors="*{vatId}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{company.section.bank}">Bankverbindung</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="iban" th:text="#{company.iban}">IBAN</label>
+          <input type="text" id="iban" th:field="*{iban}">
+          <span class="hint" th:text="#{company.iban.hint}">für Rechnung und Girocode</span>
+          <span class="field-error" th:errors="*{iban}"></span>
+        </div>
+        <div class="field">
+          <label for="bic" th:text="#{company.bic}">BIC</label>
+          <input type="text" id="bic" th:field="*{bic}">
+          <span class="field-error" th:errors="*{bic}"></span>
+        </div>
+        <div class="field wide">
+          <label for="bankName" th:text="#{company.bankName}">Bank</label>
+          <input type="text" id="bankName" th:field="*{bankName}">
+          <span class="field-error" th:errors="*{bankName}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{company.section.invoice}">Rechnung</legend>
+      <div class="form-grid">
+        <div class="field own-row">
+          <label for="paymentDays" th:text="#{company.paymentDays}">Zahlungsziel (Tage)</label>
+          <input type="number" id="paymentDays" th:field="*{paymentDays}" min="0" max="365">
+          <span class="field-error" th:errors="*{paymentDays}"></span>
+        </div>
+        <div class="field own-row">
+          <label for="offerValidDays" th:text="#{company.offerValidDays}">Gültigkeit von Angeboten (Tage)</label>
+          <input type="number" id="offerValidDays" th:field="*{offerValidDays}" min="1" max="365">
+          <span class="field-error" th:errors="*{offerValidDays}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <div class="actions">
+      <button type="submit" th:text="#{company.save}">Stammdaten speichern</button>
+    </div>
+  </form>
+</main>
+</body>
+</html>

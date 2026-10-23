@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Content of the finalize dialog: editable dates, the summary of the document and the confirmation. */-->
+<div th:fragment="dialog" class="review">
+  <div class="review-head">
+    <h2 id="finalize-title" th:text="${offer} ? #{offer.review.title} : #{invoice.review.title}">Rechnung prüfen</h2>
+    <button type="button" class="link" data-close-dialog th:attr="aria-label=#{invoice.review.cancel}">✕</button>
+  </div>
+  <p class="hint" th:text="${offer} ? #{offer.review.lead} : #{invoice.review.lead}">Bitte alles prüfen.</p>
+  <div class="form-grid review-fields">
+    <div class="field">
+      <label for="rv-issueDate" th:text="${offer} ? #{offer.issueDate} : #{invoice.issueDate}">Rechnungsdatum</label>
+      <input type="date" id="rv-issueDate" data-sync="issueDate" th:value="${invoiceForm.issueDate}">
+    </div>
+    <div class="field" th:if="${offer}">
+      <label for="rv-validUntil" th:text="#{offer.validUntil}">Gültig bis</label>
+      <input type="date" id="rv-validUntil" data-sync="validUntil" th:value="${invoiceForm.validUntil}">
+    </div>
+    <div class="field" th:unless="${offer}">
+      <label for="rv-paymentDays" th:text="#{invoice.paymentDays}">Zahlungsziel (Tage)</label>
+      <input type="text" id="rv-paymentDays" data-sync="paymentDays" inputmode="numeric" th:value="${invoiceForm.paymentDays}">
+    </div>
+    <div class="field">
+      <label for="rv-serviceFrom" th:text="#{invoice.serviceFrom}">Leistung von</label>
+      <input type="date" id="rv-serviceFrom" data-sync="serviceFrom" th:value="${invoiceForm.serviceFrom}">
+    </div>
+    <div class="field">
+      <label for="rv-serviceTo" th:text="#{invoice.serviceTo}">Leistung bis</label>
+      <input type="date" id="rv-serviceTo" data-sync="serviceTo" th:value="${invoiceForm.serviceTo}">
+    </div>
+  </div>
+  <p class="hint" th:if="${issueDatePreset}" th:text="#{invoice.review.issueDatePreset}">Rechnungsdatum auf heute gesetzt.</p>
+  <p id="rv-period-hint" class="hint" role="status" hidden th:text="#{invoice.review.periodPending}">Leistungszeitraum unvollständig.</p>
+  <div th:replace="~{:: summary}"></div>
+  <div class="review-foot">
+    <label class="check">
+      <input type="checkbox" id="rv-reviewed" name="reviewed" form="invoice-form">
+      <span th:text="${offer} ? #{offer.review.confirm} : #{invoice.review.confirm}">Ich habe alles geprüft.</span>
+    </label>
+    <div class="actions">
+      <button type="submit" class="secondary" form="invoice-form" formmethod="post" formtarget="_blank"
+              th:formaction="@{${base + '/{id}/preview.pdf'}(id=${invoiceId})}" th:text="#{invoice.preview}">Vorschau als PDF</button>
+      <button type="button" class="secondary" data-close-dialog th:text="#{invoice.review.cancel}">Abbrechen</button>
+      <button type="submit" class="finalize" id="rv-submit" disabled form="invoice-form" formmethod="post"
+              th:formaction="@{${base + '/{id}/finalize'}(id=${invoiceId})}" th:text="#{invoice.review.submit}">Jetzt finalisieren</button>
+    </div>
+  </div>
+</div>
+
+<!--/* Part that is reloaded when a date changes. data-blocked keeps the finalize button locked. */-->
+<div th:fragment="summary" id="review-summary" aria-live="polite"
+     th:attr="data-error-text=#{invoice.review.loadFailed}, data-blocked=${review == null or !review.ok()} ? 'true' : null">
+  <div class="notice error" th:if="${error != null}">
+    <span th:text="#{${error}}"></span>
+    <ul th:if="${violationKeys != null and !violationKeys.isEmpty()}">
+      <li th:each="key : ${violationKeys}" th:text="#{${key}}"></li>
+    </ul>
+    <ul th:if="${errorDetails != null and !errorDetails.isEmpty()}">
+      <li th:each="detail : ${errorDetails}"
+          th:text="${#messages.msgOrNull('einvoice.rule.' + detail)} ?: #{einvoice.rule.unknown(${detail})}"></li>
+    </ul>
+  </div>
+  <th:block th:if="${review != null}">
+    <div class="notice error" th:if="${review.einvoiceFailed}">
+      <span th:text="#{einvoice.error.validation}"></span>
+      <ul th:if="${!review.einvoiceRules.isEmpty()}">
+        <li th:each="rule : ${review.einvoiceRules}"
+            th:text="${#messages.msgOrNull('einvoice.rule.' + rule)} ?: #{einvoice.rule.unknown(${rule})}"></li>
+      </ul>
+    </div>
+    <div class="notice success"
+         th:if="${!offer and review.einvoiceMode.name() == 'ZUGFERD' and !review.einvoiceFailed}"
+         th:text="#{invoice.review.einvoiceOk}">E-Rechnung geprüft.</div>
+    <dl class="preview">
+      <dt th:text="#{invoice.customer}">Kunde</dt>
+      <dd>
+        <span th:text="${review.customerName} + ' (' + ${review.customerNumber} + ')'">Muster GmbH (KD0001)</span>
+        <span class="block" th:each="line : ${review.addressLines}" th:text="${line}">Straße</span>
+        <span class="block" th:if="${review.contactName != null}" th:text="#{invoice.contact} + ': ' + ${review.contactName}">Ansprechpartner</span>
+      </dd>
+      <dt th:text="${offer} ? #{offer.validUntil} : #{invoice.dueDate}">Fällig</dt>
+      <dd th:with="date=${offer} ? ${review.validUntil} : ${review.dueDate}"
+          th:text="${date != null} ? ${#temporals.format(date, 'dd.MM.yyyy')} : '–'">03.11.2026</dd>
+      <dt th:text="#{invoice.review.number}">Nummer</dt>
+      <dd th:text="#{invoice.review.numberLater}">Wird beim Finalisieren vergeben</dd>
+      <dt th:text="#{invoice.review.tax}">Steuer</dt>
+      <dd>
+        <span th:text="#{'tax.regime.' + ${review.regime}}">Kleinunternehmer</span>
+        <span class="block" th:if="${review.exemptionText != null}" th:text="${review.exemptionText}">§ 19 UStG</span>
+      </dd>
+      <dt th:unless="${offer}" th:text="#{customer.einvoiceMode}">E-Rechnung</dt>
+      <dd th:unless="${offer}" th:text="${review.einvoiceMode.name() == 'ZUGFERD'} ? #{customer.einvoiceMode.zugferd} : #{customer.einvoiceMode.none}">Keine</dd>
+      <dt th:text="#{invoice.subject}" th:if="${review.subject != null and !review.subject.isBlank()}">Betreff</dt>
+      <dd th:if="${review.subject != null and !review.subject.isBlank()}" th:text="${review.subject}">Betreff</dd>
+      <dt th:if="${review.customerReference != null}" th:text="#{invoice.customerReference}">Kundenreferenz</dt>
+      <dd th:if="${review.customerReference != null}" th:text="${review.customerReference}">PO-1</dd>
+    </dl>
+    <div class="table-scroll">
+      <table class="items">
+        <thead>
+        <tr>
+          <th th:text="#{invoice.item.description}">Beschreibung</th>
+          <th class="num" th:text="#{invoice.item.quantity}">Menge</th>
+          <th th:text="#{invoice.item.unit}">Einheit</th>
+          <th class="num" th:text="#{invoice.item.price}">Einzelpreis</th>
+          <th class="num" th:text="#{invoice.item.discount}">Rabatt %</th>
+          <th class="num" th:text="#{invoice.item.total}">Summe</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${review.items}">
+          <td class="pre" th:text="${item.description}">Webentwicklung</td>
+          <td class="num" th:text="${@money.quantity(item.quantityThousandths)}">6</td>
+          <td th:text="${item.unitLabel()}">Stunde</td>
+          <td class="num" th:text="${@money.format(item.unitPriceCents)}">85,00 €</td>
+          <td class="num" th:text="${@money.percent(item.discountBp)}">10 %</td>
+          <td class="num" th:text="${@money.format(item.lineTotalCents)}">459,00 €</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="totals">
+      <div class="totals-row" th:if="${review.totalDiscountCents != 0}">
+        <span th:text="#{invoice.totalDiscount}">Gesamtrabatt</span>
+        <span th:text="${@money.format(-review.totalDiscountCents)}">-25,55 €</span></div>
+      <div class="totals-row" th:if="${review.calculation.shippingCents != 0}">
+        <span th:text="${review.shippingName} ?: #{invoice.shipping}">Versandkosten</span>
+        <span th:text="${@money.format(review.calculation.shippingCents)}">4,95 €</span></div>
+      <div class="totals-row"><span th:text="#{invoice.net}">Netto</span>
+        <span th:text="${@money.format(review.calculation.netCents)}">0,00 €</span></div>
+      <div class="totals-row" th:each="total : ${review.calculation.taxTotals}" th:if="${total.rateBp > 0}">
+        <span th:text="#{invoice.taxAt(${@money.percent(total.rateBp)})}">USt 19 %</span>
+        <span th:text="${@money.format(total.taxCents)}">0,00 €</span></div>
+      <div class="totals-row grand"><span th:text="#{invoice.total}">Gesamtbetrag</span>
+        <span th:text="${@money.format(review.calculation.grossCents)}">0,00 €</span></div>
+    </div>
+    <div class="review-texts">
+      <h3 th:text="#{invoice.headerText}">Kopftext</h3>
+      <div class="rich" th:utext="${headerHtml}"></div>
+      <h3 th:text="#{invoice.footerText}">Fußtext</h3>
+      <div class="rich" th:utext="${footerHtml}"></div>
+    </div>
+  </th:block>
+</div>
+</body>
+</html>

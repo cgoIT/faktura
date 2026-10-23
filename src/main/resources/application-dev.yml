@@ -1,0 +1,59 @@
+# Development profile: start with  ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+# The database is reset and filled with invented test data on every start (see de.cgoit.faktura.dev).
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/dev.db
+  # Starts Mailpit from compose.dev.yml with the application and leaves it running afterwards. Needs Docker; skipped in tests.
+  docker:
+    compose:
+      enabled: true
+      file: compose.dev.yml
+      lifecycle-management: start_only
+  mail:
+    host: localhost
+    port: 10025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+  flyway:
+    clean-disabled: false
+  # Template and static file changes apply without a restart: they are read from the source directory (the
+  # application is started from the project root) and not cached. Messages and Java code still need a restart.
+  thymeleaf:
+    cache: false
+    prefix: file:src/main/resources/templates/
+  web:
+    resources:
+      static-locations: file:src/main/resources/static/
+      cache:
+        period: 0
+
+faktura:
+  archive:
+    path: ./data/dev-archive
+  # Mail goes to Mailpit (docker compose -f compose.dev.yml up -d), web interface http://localhost:10081.
+  # Nothing leaves the machine; the invented addresses end in @example.test.
+  mail:
+    enabled: true
+    from: rechnung@example.test
+  # The notification mail is due at 00:00 (set by the seeder), so the first check after the start sends it to Mailpit.
+  base-url: http://localhost:8090
+  notification:
+    poll-interval: PT1M
+  security:
+    # NONE (protected by the reverse proxy), FORM (sign-in page) or PROXY_HEADER (username from a header of the proxy)
+    mode: ${SECURITY_MODE:PROXY_HEADER_ADMIN_FORM}
+    header: ${SECURITY_HEADER:Remote-User}
+    name-header: ${SECURITY_NAME_HEADER:Remote-Name}
+    # addresses or CIDR ranges that may set that header; behind Docker this is the address of the proxy, not 127.0.0.1
+    trusted-proxies: ${SECURITY_TRUSTED_PROXIES:172.23.1.1/32,127.0.0.1/32,::1/128}
+    min-password-length: 6
+    max-failures: 5
+    admin-user: ${SECURITY_ADMIN_USER:admin}
+    admin-password: ${SECURITY_ADMIN_PASSWORD:anmeldung}

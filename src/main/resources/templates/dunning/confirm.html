@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Content of the dialog in which a dunning letter is confirmed before it is created. */-->
+<div th:fragment="dialog" class="review">
+  <div class="review-head">
+    <h2 id="dunning-title" th:text="#{dunning.confirm.title}">Mahnung erstellen</h2>
+    <button type="button" class="link" data-close-dialog th:attr="aria-label=#{dunning.confirm.cancel}">✕</button>
+  </div>
+  <div class="notice error" role="alert" th:if="${error != null}" th:text="#{${error}}"></div>
+  <th:block th:if="${review != null}">
+    <p class="hint" th:text="#{dunning.confirm.lead}">Bitte prüfen.</p>
+    <dl class="preview">
+      <dt th:text="#{dunning.confirm.invoice}">Rechnung</dt>
+      <dd>
+        <a th:href="@{/invoices/{id}(id=${review.invoiceId})}" target="_blank" th:text="${review.invoiceNumber}">RE202600001</a>
+        <span th:text="'(' + ${#temporals.format(review.invoiceDate, 'dd.MM.yyyy')} + ')'">(01.09.2026)</span>
+      </dd>
+      <dt th:text="#{invoice.customer}">Kunde</dt>
+      <dd th:text="${review.customerName}">Muster GmbH</dd>
+      <dt th:text="#{invoice.dueDate}">Fällig</dt>
+      <dd th:text="${#temporals.format(review.dueDate, 'dd.MM.yyyy')} + ' (' + #{payment.overdueDays(${review.daysOverdue})} + ')'">03.11.2026</dd>
+      <dt th:text="#{dunning.level}">Stufe</dt>
+      <dd th:text="${review.level.name}">Zahlungserinnerung</dd>
+      <dt th:text="#{dunning.newDueDate}">Neue Frist</dt>
+      <dd th:text="${#temporals.format(review.newDueDate, 'dd.MM.yyyy')}">27.10.2026</dd>
+    </dl>
+    <div class="totals">
+      <div class="totals-row"><span th:text="#{payment.open}">Offen</span>
+        <span th:text="${@money.format(review.amounts.openCents)}">0,00 €</span></div>
+      <div class="totals-row" th:if="${review.amounts.feeCents != 0}"><span th:text="#{dunning.fee}">Gebühr</span>
+        <span th:text="${@money.format(review.amounts.feeCents)}">0,00 €</span></div>
+      <div class="totals-row" th:if="${review.amounts.interestCents != 0}"><span th:text="#{dunning.interest}">Zinsen</span>
+        <span th:text="${@money.format(review.amounts.interestCents)}">0,00 €</span></div>
+      <div class="totals-row grand"><span th:text="#{dunning.total}">Forderung</span>
+        <span th:text="${@money.format(review.amounts.totalCents)}">0,00 €</span></div>
+    </div>
+    <form method="post" th:action="@{/dunning}" class="review-foot">
+      <input type="hidden" name="invoiceId" th:value="${review.invoiceId}">
+      <input type="hidden" name="levelId" th:value="${review.level.id}">
+      <input type="hidden" name="from" th:value="${from}">
+      <label class="check">
+        <input type="checkbox" id="dunning-confirm" name="confirmed" data-dialog-confirm="dunning-submit">
+        <span th:text="#{dunning.confirm.checked}">Ich habe alles geprüft.</span>
+      </label>
+      <div class="actions">
+        <a class="button secondary" target="_blank"
+           th:href="@{/dunning/preview.pdf(invoiceId=${review.invoiceId},levelId=${review.level.id})}"
+           th:text="#{dunning.preview}">Vorschau</a>
+        <button type="button" class="secondary" data-close-dialog th:text="#{dunning.confirm.cancel}">Abbrechen</button>
+        <button type="submit" id="dunning-submit" disabled th:text="#{dunning.create}">Mahnung erstellen</button>
+      </div>
+    </form>
+  </th:block>
+  <div class="actions" th:if="${review == null}">
+    <button type="button" class="secondary" data-close-dialog th:text="#{dunning.confirm.cancel}">Schließen</button>
+  </div>
+</div>
+</body>
+</html>

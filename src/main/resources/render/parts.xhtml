@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Layout parts shared by all letters: invoice, cancellation and dunning. -->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="de">
+<body>
+<div id="footer" th:fragment="footer(sender, account, ibanDisplay)">
+  <table>
+    <tr>
+      <td>
+        <div th:text="${sender.name}">Firma</div>
+        <div th:if="${sender.contact}" th:text="${sender.contact}">Inhaber</div>
+        <div th:if="${sender.street}" th:text="${sender.street}">Straße</div>
+        <div th:if="${sender.city}" th:text="${(sender.zip ?: '') + ' ' + sender.city}">Ort</div>
+      </td>
+      <td>
+        <div th:if="${sender.email}"><span th:text="#{render.email}">E-Mail</span>: <span th:text="${sender.email}">a@example.test</span></div>
+        <div th:if="${sender.phone}"><span th:text="#{render.phone}">Telefon</span>: <span th:text="${sender.phone}">0</span></div>
+        <div th:if="${sender.taxNumber}"><span th:text="#{render.taxNumber}">Steuer-Nr.</span>: <span th:text="${sender.taxNumber}">1</span></div>
+        <div th:if="${sender.vatId}"><span th:text="#{render.vatId}">USt-IdNr.</span>: <span th:text="${sender.vatId}">DE1</span></div>
+      </td>
+      <td th:if="${account}">
+        <div th:if="${account.holder}"><span th:text="#{render.accountHolder}">Kontoinhaber</span>: <span th:text="${account.holder}">Name</span></div>
+        <div th:if="${account.bankName}"><span th:text="#{render.bank}">Bank</span>: <span th:text="${account.bankName}">Bank</span></div>
+        <div th:if="${account.iban}"><span th:text="#{render.iban}">IBAN</span>: <span th:text="${ibanDisplay}">DE00</span></div>
+        <div th:if="${account.bic}"><span th:text="#{render.bic}">BIC</span>: <span th:text="${account.bic}">XXXX</span></div>
+      </td>
+      <td th:unless="${account}"></td>
+    </tr>
+  </table>
+</div>
+
+<div class="letterhead" th:fragment="letterhead(sender, logo)">
+  <div class="logo"><img th:src="${logo}" alt="" src="" /></div>
+  <div class="sender">
+    <div th:text="${sender.name}">Firma</div>
+    <div th:if="${sender.contact}" th:text="${sender.contact}">Inhaber</div>
+    <div th:if="${sender.street}" th:text="${sender.street}">Straße</div>
+    <div th:if="${sender.city}" th:text="${(sender.zip ?: '') + ' ' + sender.city}">Ort</div>
+    <div th:if="${sender.phone}" style="margin-top: 3mm"><span th:text="#{render.phone}">Telefon</span> <span th:text="${sender.phone}">0</span></div>
+    <div th:if="${sender.taxNumber}"><span th:text="#{render.taxNumber}">Steuer-Nr.</span> <span th:text="${sender.taxNumber}">1</span></div>
+  </div>
+</div>
+
+<table><tr>
+    <td class="address" th:fragment="addressCell(recipient, countryName)">
+      <div th:text="${recipient.name}">Muster GmbH</div>
+      <div th:if="${recipient.contact}" th:text="${recipient.contact}">Kontakt</div>
+      <div th:if="${recipient.street}" th:text="${recipient.street}">Straße</div>
+      <div th:if="${recipient.city}" th:text="${(recipient.zip ?: '') + ' ' + recipient.city}">Ort</div>
+      <div th:if="${countryName}" th:text="${countryName}">Land</div>
+    </td>
+</tr></table>
+</body>
+</html>

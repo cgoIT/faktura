@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'customers')}">
+<head>
+  <title th:text="#{customer.title} + ' – Faktura'">Kunden</title>
+</head>
+<body>
+<main>
+  <h1 th:text="${customer == null} ? #{customer.new} : #{customer.edit}">Kunde</h1>
+  <p class="lead"><a th:href="@{/customers}" th:text="#{customer.back}">Zurück zur Liste</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div class="notice error" th:if="${customer != null and customer.archived}" th:text="#{customer.archivedHint}">archiviert</div>
+  <form class="card" method="post" th:object="${customerForm}"
+        th:action="${customer == null} ? @{/customers} : @{/customers/{id}(id=${customer.id})}">
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field own-row">
+          <label for="number" th:text="#{customer.number.auto}">Kundennummer</label>
+          <input type="text" id="number" readonly disabled
+                 th:value="${customer == null} ? #{customer.number.pending} : ${customer.number}">
+        </div>
+        <div class="field wide">
+          <label for="name" th:text="#{customer.name}">Name</label>
+          <input type="text" id="name" th:field="*{name}" required maxlength="200" autocomplete="off">
+          <span class="field-error" th:errors="*{name}"></span>
+        </div>
+      </div>
+    </div>
+    <fieldset class="form-section">
+      <legend th:text="#{customer.section.address}">Anschrift</legend>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="street" th:text="#{customer.street}">Straße</label>
+          <input type="text" id="street" th:field="*{street}" autocomplete="off">
+          <span class="field-error" th:errors="*{street}"></span>
+        </div>
+        <div class="field">
+          <label for="zip" th:text="#{customer.zip}">PLZ</label>
+          <input type="text" id="zip" th:field="*{zip}" autocomplete="off">
+          <span class="field-error" th:errors="*{zip}"></span>
+        </div>
+        <div class="field">
+          <label for="city" th:text="#{customer.city}">Ort</label>
+          <input type="text" id="city" th:field="*{city}" autocomplete="off">
+          <span class="field-error" th:errors="*{city}"></span>
+        </div>
+        <div class="field own-row">
+          <label for="country" th:text="#{customer.country}">Land</label>
+          <th:block th:replace="~{fragments/country-select :: select(${customerForm?.country})}"></th:block>
+          <span class="field-error" th:errors="*{country}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{customer.section.billing}">Rechnung</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="vatId" th:text="#{customer.vatId}">USt-IdNr.</label>
+          <input type="text" id="vatId" th:field="*{vatId}" placeholder="DE…" autocomplete="off">
+          <span class="field-error" th:errors="*{vatId}"></span>
+        </div>
+        <div class="field">
+          <label for="invoiceEmail" th:text="#{customer.invoiceEmail}">E-Mail für Rechnungen</label>
+          <input type="email" id="invoiceEmail" th:field="*{invoiceEmail}" autocomplete="off">
+          <span class="field-error" th:errors="*{invoiceEmail}"></span>
+        </div>
+        <div class="field">
+          <label for="paymentDays" th:text="#{customer.paymentDays}">Zahlungsziel (Tage)</label>
+          <input type="number" id="paymentDays" th:field="*{paymentDays}" min="0" max="365">
+          <span class="hint" th:text="#{customer.paymentDays.hint}">leer = Standard</span>
+          <span class="field-error" th:errors="*{paymentDays}"></span>
+        </div>
+        <div class="field">
+          <label for="discount" th:text="#{customer.discount}">Standardrabatt (%)</label>
+          <input type="text" id="discount" th:field="*{discount}" inputmode="decimal" class="num" maxlength="10">
+          <span class="field-error" th:errors="*{discount}"></span>
+        </div>
+        <div class="field wide">
+          <label for="einvoiceMode" th:text="#{customer.einvoiceMode}">E-Rechnung</label>
+          <select id="einvoiceMode" th:field="*{einvoiceMode}">
+            <option value="NONE" th:text="#{customer.einvoiceMode.none}">Keine</option>
+            <option value="ZUGFERD" th:text="#{customer.einvoiceMode.zugferd}">ZUGFeRD</option>
+          </select>
+          <span class="hint" th:text="#{customer.einvoiceMode.hint}">Hinweis</span>
+          <span class="field-error" th:errors="*{einvoiceMode}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{customer.section.note}">Notiz</legend>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="note" class="visually-hidden" th:text="#{customer.note}">Notiz</label>
+          <textarea id="note" th:field="*{note}" rows="3" maxlength="2000"></textarea>
+          <span class="field-error" th:errors="*{note}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <div class="actions">
+      <button type="submit" th:text="#{customer.save}">Speichern</button>
+    </div>
+  </form>
+
+  <section class="card" th:if="${customer != null}">
+    <div class="section-head">
+      <h2 th:text="#{contact.title}">Ansprechpartner</h2>
+      <a class="button" th:href="@{/customers/{id}/contacts/new(id=${customer.id})}" th:text="#{contact.add}">Hinzufügen</a>
+    </div>
+    <p class="hint" th:if="${#lists.isEmpty(contacts)}" th:text="#{contact.none}">Noch keine Ansprechpartner.</p>
+    <div class="table-scroll" th:unless="${#lists.isEmpty(contacts)}">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{contact.name}">Name</th>
+          <th th:text="#{contact.role}">Funktion</th>
+          <th th:text="#{contact.details}">Kontaktdaten</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="contact : ${contacts}">
+          <td>
+            <a th:href="@{/customers/{id}/contacts/{contactId}(id=${customer.id},contactId=${contact.id})}"
+               th:text="${(contact.salutation != null ? #messages.msg('contact.salutation.' + contact.salutation) + ' ' : '') + contact.fullName()}">Herr Max Mustermann</a>
+          </td>
+          <td th:text="${contact.role} ?: '–'">Geschäftsführung</td>
+          <td class="contact-details">
+            <div th:if="${contact.email}"><span class="contact-label" th:text="#{contact.email}">E-Mail</span>
+              <span th:text="${contact.email}">max@example.test</span></div>
+            <div th:if="${contact.phone}"><span class="contact-label" th:text="#{contact.phone}">Telefon</span>
+              <span th:text="${contact.phone}">+49 30 1234567</span></div>
+            <div th:if="${contact.mobile}"><span class="contact-label" th:text="#{contact.mobile}">Mobil</span>
+              <span th:text="${contact.mobile}">+49 171 1234567</span></div>
+            <span th:if="${contact.email == null and contact.phone == null and contact.mobile == null}">–</span>
+          </td>
+          <td class="row-actions icons">
+            <a class="icon-button" th:href="@{/customers/{id}/contacts/{contactId}(id=${customer.id},contactId=${contact.id})}"
+               th:attr="aria-label=#{text.edit}, title=#{text.edit}"><svg th:replace="~{fragments/icons :: edit}"></svg></a>
+            <form method="post"
+                  th:action="@{/customers/{id}/contacts/{contactId}/delete(id=${customer.id},contactId=${contact.id})}"
+                  th:attr="data-confirm=#{contact.delete.confirm}">
+              <button type="submit" class="icon-button danger" th:attr="aria-label=#{contact.delete}, title=#{contact.delete}"><svg th:replace="~{fragments/icons :: trash}"></svg></button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" th:if="${customer != null}">
+    <form method="post" th:if="${!customer.archived}" th:action="@{/customers/{id}/archive(id=${customer.id})}">
+      <p th:text="#{customer.archive.hint}">Archivierte Kunden sind nicht mehr wählbar. Gelöscht wird nichts.</p>
+      <button type="submit" class="secondary" th:text="#{customer.archive}">Archivieren</button>
+    </form>
+    <form method="post" th:if="${customer.archived}" th:action="@{/customers/{id}/restore(id=${customer.id})}">
+      <button type="submit" class="secondary" th:text="#{customer.restore}">Wiederherstellen</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>

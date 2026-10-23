@@ -1,0 +1,20 @@
+<nav xmlns:th="http://www.thymeleaf.org" class="tabs" th:fragment="tabs(current)" th:aria-label="#{settings.title}">
+  <a class="tab" th:classappend="${current == 'company'} ? 'active'" th:href="@{/company}"
+     th:attr="aria-current=${current == 'company'} ? 'page' : null" th:text="#{company.tab.master}">Unternehmen</a>
+  <a class="tab" th:classappend="${current == 'tax'} ? 'active'" th:href="@{/company/tax-profiles}"
+     th:attr="aria-current=${current == 'tax'} ? 'page' : null" th:text="#{company.tab.taxProfiles}">Steuerprofile</a>
+  <a class="tab" th:classappend="${current == 'texts'} ? 'active'" th:href="@{/text-templates}"
+     th:attr="aria-current=${current == 'texts'} ? 'page' : null" th:text="#{nav.texts}">Textvorlagen</a>
+  <a class="tab" th:classappend="${current == 'mail'} ? 'active'" th:href="@{/mail-templates}"
+     th:attr="aria-current=${current == 'mail'} ? 'page' : null" th:text="#{mail.template.tab}">Mailvorlagen</a>
+  <a class="tab" th:classappend="${current == 'notification'} ? 'active'" th:href="@{/settings/notifications}"
+     th:attr="aria-current=${current == 'notification'} ? 'page' : null" th:text="#{notification.tab}">Benachrichtigungen</a>
+  <a class="tab" th:classappend="${current == 'units'} ? 'active'" th:href="@{/units}"
+     th:attr="aria-current=${current == 'units'} ? 'page' : null" th:text="#{nav.units}">Einheiten</a>
+  <a class="tab" th:classappend="${current == 'dunning'} ? 'active'" th:href="@{/dunning/levels}"
+     th:attr="aria-current=${current == 'dunning'} ? 'page' : null" th:text="#{dunning.levels.tab}">Mahnstufen</a>
+  <a class="tab" th:classappend="${current == 'shipping'} ? 'active'" th:href="@{/settings/shipping}"
+     th:attr="aria-current=${current == 'shipping'} ? 'page' : null" th:text="#{shipping.tab}">Versandarten</a>
+  <a class="tab" th:classappend="${current == 'numbering'} ? 'active'" th:href="@{/numbering}"
+     th:attr="aria-current=${current == 'numbering'} ? 'page' : null" th:text="#{nav.numbering}">Nummernkreise</a>
+</nav>

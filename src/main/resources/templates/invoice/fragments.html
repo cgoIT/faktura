@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Item table. Posted back as a whole by the editor form, so every field has an indexed name. -->
+<div id="items" class="table-scroll" th:fragment="items">
+  <table class="items editor">
+    <colgroup>
+      <col>
+      <col class="col-qty">
+      <col class="col-unit">
+      <col class="col-price">
+      <col class="col-disc">
+      <col class="col-tax">
+      <col class="col-sum">
+      <col class="col-remove">
+    </colgroup>
+    <thead>
+    <tr>
+      <th th:text="#{invoice.item.description}">Beschreibung</th>
+      <th th:text="#{invoice.item.quantity}">Menge</th>
+      <th th:text="#{invoice.item.unit}">Einheit</th>
+      <th th:text="#{invoice.item.price}">Einzelpreis</th>
+      <th th:text="#{invoice.item.discount}">Rabatt %</th>
+      <th th:text="#{invoice.item.taxRate}">Steuer %</th>
+      <th class="num" th:text="#{invoice.item.total}">Summe</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item, i : ${invoiceForm.items}">
+      <td>
+        <textarea rows="2" maxlength="2000" th:name="|items[${i.index}].description|" th:text="${item.description}"
+                  th:attr="aria-label=#{invoice.item.descriptionOf(${i.count})}"></textarea>
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].description}"></span>
+        <input type="hidden" th:name="|items[${i.index}].catalogItemId|" th:value="${item.catalogItemId}">
+      </td>
+      <td><input type="text" inputmode="decimal" class="num qty" th:name="|items[${i.index}].quantity|"
+                 th:value="${item.quantity}" th:attr="aria-label=#{invoice.item.quantityOf(${i.count})}">
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].quantity}"></span></td>
+      <td>
+        <select th:name="|items[${i.index}].unitCode|" th:attr="aria-label=#{invoice.item.unitOf(${i.count})}">
+          <option value="" th:selected="${item.unitCode == null or item.unitCode == ''}">–</option>
+          <option th:each="unit : ${units}" th:value="${unit.code}" th:text="${unit.code}" th:title="${unit.name}"
+                  th:selected="${unit.code == item.unitCode}">Stunde</option>
+        </select>
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].unitCode}"></span>
+      </td>
+      <td><input type="text" inputmode="decimal" class="num price" th:name="|items[${i.index}].price|"
+                 th:value="${item.price}" th:attr="aria-label=#{invoice.item.priceOf(${i.count})}">
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].price}"></span></td>
+      <td><input type="text" inputmode="decimal" class="num disc" th:name="|items[${i.index}].discount|"
+                 th:value="${item.discount}" th:attr="aria-label=#{invoice.item.discountOf(${i.count})}">
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].discount}"></span></td>
+      <td>
+        <div class="rate">
+          <select class="tax-category-select" th:name="|items[${i.index}].taxCategory|"
+                  th:title="${item.taxCategory + ' – ' + #messages.msg('tax.category.' + item.taxCategory)}"
+                  th:attr="aria-label=#{invoice.item.taxCategoryOf(${i.count})}">
+            <option th:each="code : ${taxCategories}" th:value="${code}" th:selected="${code == item.taxCategory}"
+                    th:if="${#lists.contains(allowedCategories, code) or code == item.taxCategory}"
+                    th:attr="data-rated=${#lists.contains(ratedCategories, code)},data-full=${code + ' – ' + #messages.msg('tax.category.' + code)}"
+                    th:text="${code}">E</option>
+          </select>
+          <input type="text" inputmode="decimal" class="num rate-input" th:name="|items[${i.index}].taxRate|"
+                 th:value="${item.taxRate}" th:readonly="${!#lists.contains(ratedCategories, item.taxCategory)}"
+                 th:attr="aria-label=#{invoice.item.taxRateOf(${i.count})}">
+        </div>
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].taxCategory}"></span>
+        <span class="field-error" th:errors="${invoiceForm.items[__${i.index}__].taxRate}"></span>
+      </td>
+      <td class="num line-total"><span th:id="|line-total-${i.index}|"
+                            th:text="${calc != null} ? ${@money.format(calc.lineTotals().get(i.index))} : '–'">0,00 €</span></td>
+      <td>
+        <button type="button" class="secondary" th:hx-post="@{${base + '/items/remove'}(index=${i.index})}"
+                hx-target="#items" hx-swap="outerHTML" th:aria-label="#{invoice.item.remove(${i.count})}"
+                th:text="#{invoice.item.removeShort}">Entfernen</button>
+      </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(invoiceForm.items)}"><td colspan="8" class="empty" th:text="#{invoice.items.empty}">Noch keine Positionen.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Totals in three parts, so that the discount input in the middle is never replaced while the user types.
+     With oob=true a part replaces the block in the page next to the main swap. -->
+<div id="totals-top" class="totals" th:fragment="totalsTop(oob)" th:attr="hx-swap-oob=${oob} ? 'true' : null">
+  <div class="totals-row" th:if="${calc != null}"><span th:text="#{invoice.subtotal}">Zwischensumme</span>
+    <span th:text="${@money.format(calc.subtotalCents)}">511,00 €</span></div>
+</div>
+
+<span id="discount-amount" class="discount-amount" th:fragment="discountAmount(oob)" th:attr="hx-swap-oob=${oob} ? 'true' : null"
+      th:text="${calc != null and calc.discountCents > 0} ? '−' + ${@money.format(calc.discountCents)} : ''">−25,55 €</span>
+
+<div id="totals" class="totals" th:fragment="totals(oob)" th:attr="hx-swap-oob=${oob} ? 'true' : null">
+  <div th:if="${calc != null}">
+    <div class="totals-row" th:if="${calc.shippingCents != 0}"><span th:text="#{invoice.shipping}">Versandkosten</span>
+      <span th:text="${@money.format(calc.shippingCents)}">4,95 €</span></div>
+    <div class="totals-row" th:if="${showTax}"><span th:text="#{invoice.net}">Netto</span>
+      <span th:text="${@money.format(calc.netCents)}">485,45 €</span></div>
+    <div class="totals-row" th:each="total : ${calc.taxTotals}" th:if="${total.rateBp > 0}">
+      <span th:text="#{invoice.taxAt(${@money.percent(total.rateBp)})}">USt 19 %</span>
+      <span th:text="${@money.format(total.taxCents)}">92,24 €</span></div>
+    <div class="totals-row grand"><span th:text="#{invoice.total}">Gesamtbetrag</span>
+      <span th:text="${@money.format(calc.grossCents)}">485,45 €</span></div>
+  </div>
+  <p class="hint" th:if="${calc == null}" th:text="#{invoice.totals.unavailable}">Summen nicht verfügbar.</p>
+</div>
+
+<div id="live-error" class="field-error" role="alert" th:fragment="error(oob)" th:attr="hx-swap-oob=${oob} ? 'true' : null"
+     th:text="${liveError != null} ? #{${liveError}} : ''"></div>
+
+<!-- Contact person select; swapped in when the customer changes. -->
+<div class="field" id="contact-field" th:fragment="contactField">
+  <label for="contactId" th:text="#{invoice.contact}">Ansprechpartner</label>
+  <select id="contactId" name="contactId">
+    <option value="" th:text="#{invoice.contact.none}">– keiner –</option>
+    <option th:each="contact : ${contacts}" th:value="${contact.id}" th:text="${contact.fullName()}"
+            th:selected="${contact.id == selectedContactId}">Erika Beispiel</option>
+  </select>
+  <span class="hint" th:text="#{invoice.contact.hint}">Für die Anrede im Text.</span>
+</div>
+
+<!-- Response of the live calculation: only out-of-band swaps. -->
+<th:block th:fragment="live">
+  <div th:replace="~{invoice/fragments :: totalsTop(true)}"></div>
+  <span th:replace="~{invoice/fragments :: discountAmount(true)}"></span>
+  <div th:replace="~{invoice/fragments :: totals(true)}"></div>
+  <div th:replace="~{invoice/fragments :: error(true)}"></div>
+  <th:block th:if="${calc != null}">
+    <span th:each="total, i : ${calc.lineTotals}" th:id="|line-total-${i.index}|"
+          hx-swap-oob="true" th:text="${@money.format(total)}">0,00 €</span>
+  </th:block>
+</th:block>
+
+<!-- Response after adding or removing an item: new table as main swap, totals and error out of band. -->
+<th:block th:fragment="itemsUpdate">
+  <div th:replace="~{invoice/fragments :: items}"></div>
+  <div th:replace="~{invoice/fragments :: totalsTop(true)}"></div>
+  <span th:replace="~{invoice/fragments :: discountAmount(true)}"></span>
+  <div th:replace="~{invoice/fragments :: totals(true)}"></div>
+  <div th:replace="~{invoice/fragments :: error(true)}"></div>
+</th:block>
+
+<!-- Response after the issue date or the service period changed: like itemsUpdate, plus the catalog results, because
+     the tax profile of that day decides which entries are allowed. -->
+<th:block th:fragment="itemsRefresh">
+  <th:block th:replace="~{invoice/fragments :: itemsUpdate}"></th:block>
+  <div th:replace="~{fragments/catalog-results :: results(true)}"></div>
+</th:block>
+
+</body>
+</html>

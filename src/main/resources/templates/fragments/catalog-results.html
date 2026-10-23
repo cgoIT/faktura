@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Search results of the catalog picker. Needs catalogChoices and catalogBase ("/invoices" or "/recurring").
+     With oob=true it replaces the list next to the main swap (when the tax profile of the service day changes). -->
+<div id="catalog-results" class="catalog-results" th:fragment="results(oob)"
+     th:attr="hx-swap-oob=${oob} ? 'true' : null">
+  <p class="hint catalog-count" aria-live="polite" th:text="#{invoice.item.catalogCount(${catalogChoices.matches})}">148 Leistungen</p>
+  <ul>
+    <li th:each="entry : ${catalogChoices.items}">
+      <button type="button" class="secondary catalog-result"
+              th:hx-post="@{${catalogBase + '/items/add-catalog'}(catalogItemId=${entry.id})}"
+              hx-include="closest form" hx-target="#items" hx-swap="outerHTML">
+        <span class="catalog-name">
+          <span th:text="${entry.name}">Webentwicklung</span>
+          <small><span th:text="${entry.number}">ART0001</span><span th:if="${entry.description != null}"
+                 th:text="' · ' + ${entry.description}"> · Stundensatz</span></small>
+        </span>
+        <span th:text="${@money.format(entry.unitPriceCents)} + ' / ' + ${entry.unitCode}">85,00 € / Std</span>
+      </button>
+    </li>
+  </ul>
+  <p class="hint" th:if="${#lists.isEmpty(catalogChoices.items)}" th:text="#{invoice.item.catalogNone}">Keine Leistung gefunden.</p>
+  <p class="hint" th:if="${catalogChoices.more() > 0}"
+     th:text="#{invoice.item.catalogMore(${catalogChoices.more()})}">12 weitere Treffer, bitte Suche eingrenzen.</p>
+  <p class="hint" th:if="${catalogChoices.hidden > 0}"
+     th:text="#{invoice.item.catalogHidden(${catalogChoices.hidden})}">2 Leistungen ausgeblendet.</p>
+</div>
+</body>
+</html>

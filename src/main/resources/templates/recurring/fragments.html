@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Item templates. Posted back as a whole by the plan form, so every field has an indexed name. -->
+<div id="items" class="table-scroll" th:fragment="items">
+  <table class="items editor">
+    <thead>
+    <tr>
+      <th th:text="#{invoice.item.description}">Beschreibung</th>
+      <th th:text="#{invoice.item.quantity}">Menge</th>
+      <th th:text="#{invoice.item.unit}">Einheit</th>
+      <th th:text="#{invoice.item.price}">Einzelpreis</th>
+      <th th:text="#{invoice.item.discount}">Rabatt %</th>
+      <th th:text="#{recurring.item.taxCategory}">Steuerkategorie</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item, i : ${planForm.items}">
+      <td>
+        <textarea rows="2" maxlength="2000" th:name="|items[${i.index}].description|" th:text="${item.description}"
+                  th:attr="aria-label=#{invoice.item.descriptionOf(${i.count})}"></textarea>
+        <span class="field-error" th:errors="${planForm.items[__${i.index}__].description}"></span>
+        <input type="hidden" th:name="|items[${i.index}].catalogItemId|" th:value="${item.catalogItemId}">
+      </td>
+      <td><input type="text" inputmode="decimal" class="num qty" th:name="|items[${i.index}].quantity|"
+                 th:value="${item.quantity}" th:attr="aria-label=#{invoice.item.quantityOf(${i.count})}">
+        <span class="field-error" th:errors="${planForm.items[__${i.index}__].quantity}"></span></td>
+      <td>
+        <select th:name="|items[${i.index}].unitCode|" th:attr="aria-label=#{invoice.item.unitOf(${i.count})}">
+          <option value="" th:selected="${item.unitCode == null or item.unitCode == ''}">–</option>
+          <option th:each="unit : ${units}" th:value="${unit.code}" th:text="${unit.code}" th:title="${unit.name}"
+                  th:selected="${unit.code == item.unitCode}">Stunde</option>
+        </select>
+        <span class="field-error" th:errors="${planForm.items[__${i.index}__].unitCode}"></span>
+      </td>
+      <td><input type="text" inputmode="decimal" class="num price" th:name="|items[${i.index}].price|"
+                 th:value="${item.price}" th:attr="aria-label=#{invoice.item.priceOf(${i.count})}">
+        <span class="field-error" th:errors="${planForm.items[__${i.index}__].price}"></span></td>
+      <td><input type="text" inputmode="decimal" class="num disc" th:name="|items[${i.index}].discount|"
+                 th:value="${item.discount}" th:attr="aria-label=#{invoice.item.discountOf(${i.count})}">
+        <span class="field-error" th:errors="${planForm.items[__${i.index}__].discount}"></span></td>
+      <td>
+        <select th:name="|items[${i.index}].taxCategory|" th:attr="aria-label=#{invoice.item.taxCategoryOf(${i.count})}">
+          <option value="" th:selected="${item.taxCategory == null or item.taxCategory == ''}"
+                  th:text="#{recurring.item.fromProfile}">laut Steuerprofil</option>
+          <option th:each="code : ${taxCategories}" th:value="${code}" th:selected="${code == item.taxCategory}"
+                  th:text="${code + ' – ' + #messages.msg('tax.category.' + code)}">E</option>
+        </select>
+        <span class="field-error" th:errors="${planForm.items[__${i.index}__].taxCategory}"></span>
+      </td>
+      <td>
+        <button type="button" class="secondary" th:hx-post="@{/recurring/items/remove(index=${i.index})}"
+                hx-include="#plan-form" hx-target="#items" hx-swap="outerHTML"
+                th:aria-label="#{invoice.item.remove(${i.count})}" th:text="#{invoice.item.removeShort}">×</button>
+      </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(planForm.items)}"><td colspan="7" class="empty" th:text="#{invoice.items.empty}">Noch keine Positionen.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Preview of the next periods; reloaded when interval, anchor or end date change. -->
+<div id="period-preview" th:fragment="preview">
+  <h3 th:text="#{recurring.preview}">Nächste Zeiträume</h3>
+  <p class="hint" th:if="${#lists.isEmpty(periods)}" th:text="#{recurring.preview.none}">Keine Zeiträume.</p>
+  <ol th:unless="${#lists.isEmpty(periods)}">
+    <li th:each="period : ${periods}"
+        th:text="${#temporals.format(period.from, 'dd.MM.yyyy')} + ' – ' + ${#temporals.format(period.to, 'dd.MM.yyyy')}">01.02.2027 – 30.04.2027</li>
+  </ol>
+</div>
+
+</body>
+</html>

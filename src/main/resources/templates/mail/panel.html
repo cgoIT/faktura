@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* The send button of a document with its history and the (empty) send dialog. Loaded with htmx. */-->
+<div class="mail-panel" th:fragment="panel">
+  <p class="actions">
+    <button type="button" class="secondary" th:disabled="${!status.available}"
+            th:attr="hx-get=@{/mail/compose(type=${type},id=${id})},hx-target='#mail-dialog-' + ${id},hx-swap='innerHTML'"
+            th:text="#{mail.send}">Per E-Mail senden</button>
+    <span class="hint" th:unless="${status.available}" th:text="#{${status.reasonKey}}">Grund</span>
+  </p>
+  <div class="mail-history" hx-trigger="load, mailSent from:body" hx-swap="innerHTML"
+       th:attr="hx-get=@{/mail/history(type=${type},id=${id})}"></div>
+  <dialog class="review-dialog" data-htmx-dialog aria-labelledby="mail-title" th:id="'mail-dialog-' + ${id}"></dialog>
+</div>
+
+<ul class="mail-history-list" th:fragment="history">
+  <li th:each="entry : ${entries}">
+    <span th:if="${entry.sent}"
+          th:text="#{mail.history.sent(${#temporals.format(entry.sentAt, 'dd.MM.yyyy HH:mm')},${entry.recipients})}">Gesendet am … an …</span>
+    <span class="error-text" th:unless="${entry.sent}"
+          th:text="#{mail.history.failed(${#temporals.format(entry.sentAt, 'dd.MM.yyyy HH:mm')},${entry.recipients},#{${entry.errorKey}})}">Fehlgeschlagen</span>
+  </li>
+</ul>
+</body>
+</html>

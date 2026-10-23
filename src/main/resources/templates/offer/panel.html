@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Course of a finalized offer: state, events and the actions. Needs invoice, offerState, offerEvents, offerInvoiceIds, offerConfirmKey. */-->
+<section class="card" th:fragment="panel">
+  <h2 th:text="#{offer.panel.title}">Verlauf</h2>
+  <dl class="preview">
+    <dt th:text="#{list.status}">Status</dt>
+    <dd><span class="badge current" th:text="#{'offer.state.' + ${offerState}}">Offen</span></dd>
+    <dt th:if="${!offerEvents.isEmpty()}" th:text="#{offer.panel.events}">Ereignisse</dt>
+    <dd th:if="${!offerEvents.isEmpty()}">
+      <span class="block" th:each="event : ${offerEvents}"
+            th:text="${#temporals.format(event.date, 'dd.MM.yyyy')} + ' – ' + #{'offer.event.' + ${event.type}}
+                     + (${event.actor} != null ? ' (' + ${event.actor} + ')' : '')">20.10.2026 – Gesendet</span>
+    </dd>
+    <dt th:if="${!offerInvoiceIds.isEmpty()}" th:text="#{offer.panel.invoices}">Rechnungen</dt>
+    <dd th:if="${!offerInvoiceIds.isEmpty()}">
+      <a class="block" th:each="invoiceId, i : ${offerInvoiceIds}" th:href="@{/invoices/{id}(id=${invoiceId})}"
+         th:text="#{offer.panel.invoice(${i.count})}">Rechnung 1</a>
+    </dd>
+  </dl>
+  <div class="actions">
+    <form method="post" th:action="@{/offers/{id}/invoice(id=${invoice.id})}"
+          th:attr="data-confirm=${offerConfirmKey != null} ? #{${offerConfirmKey}} : null">
+      <button type="submit" th:text="#{offer.invoice.create}">Rechnung erstellen</button>
+    </form>
+    <form method="post" th:unless="${offerState.name() == 'REJECTED'}" th:action="@{/offers/{id}/reject(id=${invoice.id})}"
+          th:attr="data-confirm=#{offer.reject.confirm}">
+      <button type="submit" class="secondary" th:text="#{offer.reject}">Als abgelehnt vermerken</button>
+    </form>
+  </div>
+  <p class="hint" th:text="#{offer.invoice.hint}">Die Rechnung wird als Entwurf angelegt.</p>
+</section>
+</body>
+</html>

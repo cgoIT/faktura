@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'catalog')}">
+<head>
+  <title th:text="#{catalog.title} + ' – Faktura'">Leistungskatalog</title>
+</head>
+<body>
+<main>
+  <h1 th:text="${item == null} ? #{catalog.new} : #{catalog.edit}">Leistung</h1>
+  <p class="lead"><a th:href="@{/catalog}" th:text="#{catalog.back}">Zurück zum Katalog</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post" th:object="${catalogItemForm}"
+        th:action="${item == null} ? @{/catalog} : @{/catalog/{id}(id=${item.id})}">
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field own-row">
+          <label for="number" th:text="#{catalog.number.auto}">Nummer</label>
+          <input type="text" id="number" readonly disabled
+                 th:value="${item == null} ? #{catalog.number.pending} : ${item.number}">
+        </div>
+        <div class="field wide">
+          <label for="name" th:text="#{catalog.name}">Bezeichnung</label>
+          <input type="text" id="name" th:field="*{name}" required maxlength="200">
+          <span class="field-error" th:errors="*{name}"></span>
+        </div>
+        <div class="field wide">
+          <label for="description" th:text="#{catalog.description}">Beschreibung</label>
+          <textarea id="description" th:field="*{description}" rows="3" maxlength="2000"></textarea>
+          <span class="field-error" th:errors="*{description}"></span>
+        </div>
+      </div>
+    </div>
+    <fieldset class="form-section">
+      <legend th:text="#{catalog.section.price}">Preis und Steuer</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="unitId" th:text="#{catalog.unit}">Einheit</label>
+          <select id="unitId" th:field="*{unitId}" required>
+            <option value="" th:text="#{catalog.unit.choose}">Bitte wählen</option>
+            <option th:each="unit : ${units}" th:value="${unit.id}" th:text="${unit.name} + ' (' + ${unit.code} + ')'">Stunde</option>
+          </select>
+          <span class="field-error" th:errors="*{unitId}"></span>
+        </div>
+        <div class="field">
+          <label for="price" th:text="#{catalog.price}">Preis netto je Einheit</label>
+          <input type="text" id="price" th:field="*{price}" inputmode="decimal" class="num" required placeholder="0,00">
+          <span class="hint" th:text="#{catalog.price.hint}">in Euro</span>
+          <span class="field-error" th:errors="*{price}"></span>
+        </div>
+        <div class="field wide">
+          <label for="taxCategory" th:text="#{catalog.taxCategory.label}">Steuerkategorie</label>
+          <select id="taxCategory" th:field="*{taxCategory}">
+            <option value="" th:text="#{catalog.taxFromProfile.option}">Aus dem Steuerprofil</option>
+            <option th:each="code : ${taxCategories}" th:value="${code}"
+                    th:text="${code} + ' – ' + #{'tax.category.' + ${code}}">E – Steuerbefreit</option>
+          </select>
+          <span class="hint" th:text="#{catalog.taxCategory.hint}">leer = aus dem Steuerprofil</span>
+          <span class="field-error" th:errors="*{taxCategory}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <p class="hint" th:text="#{catalog.copyHint}">Änderungen wirken nur auf neue Positionen.</p>
+    <div class="actions">
+      <button type="submit" th:text="#{catalog.save}">Speichern</button>
+    </div>
+  </form>
+  <div class="card" th:if="${item != null}">
+    <form method="post" th:if="${item.active}" th:action="@{/catalog/{id}/deactivate(id=${item.id})}">
+      <p th:text="#{catalog.deactivate.hint}">Inaktive Leistungen sind nicht mehr wählbar.</p>
+      <button type="submit" class="secondary" th:text="#{catalog.deactivate}">Deaktivieren</button>
+    </form>
+    <form method="post" th:unless="${item.active}" th:action="@{/catalog/{id}/activate(id=${item.id})}">
+      <p th:text="#{catalog.activate.hint}">Diese Leistung ist inaktiv.</p>
+      <button type="submit" class="secondary" th:text="#{catalog.activate}">Aktivieren</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

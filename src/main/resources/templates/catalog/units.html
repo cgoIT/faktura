@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{unit.title} + ' – Faktura'">Einheiten</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{unit.lead}">Einheiten</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('units')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{unit.code}">Kürzel</th>
+        <th th:text="#{unit.name}">Name</th>
+        <th th:text="#{unit.namePlural}">Plural</th>
+        <th th:text="#{unit.uneceCode}">UN/ECE-Code</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="unit : ${units}">
+        <td><input type="text" name="code" th:value="${unit.code}" required maxlength="20"
+                   th:attr="form='unit-' + ${unit.id},aria-label=#{unit.code}"></td>
+        <td><input type="text" name="name" th:value="${unit.name}" required maxlength="100"
+                   th:attr="form='unit-' + ${unit.id},aria-label=#{unit.name}"></td>
+        <td><input type="text" name="namePlural" th:value="${unit.namePlural}" maxlength="100"
+                   th:attr="form='unit-' + ${unit.id},aria-label=#{unit.namePlural}"></td>
+        <td><input type="text" name="uneceCode" th:value="${unit.uneceCode}" required maxlength="5"
+                   th:attr="form='unit-' + ${unit.id},aria-label=#{unit.uneceCode}"></td>
+        <td class="row-actions icons">
+          <form method="post" th:id="'unit-' + ${unit.id}" th:action="@{/units/{id}(id=${unit.id})}">
+            <button type="submit" class="icon-button" th:attr="aria-label=#{unit.save},title=#{unit.save}"><svg th:replace="~{fragments/icons :: save}"></svg></button>
+          </form>
+          <form method="post" th:action="@{/units/{id}/delete(id=${unit.id})}">
+            <button type="submit" class="icon-button danger" th:attr="aria-label=#{unit.delete},title=#{unit.delete}"><svg th:replace="~{fragments/icons :: trash}"></svg></button>
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <td><input type="text" name="code" form="unit-new" required maxlength="20" th:attr="aria-label=#{unit.code}"></td>
+        <td><input type="text" name="name" form="unit-new" required maxlength="100" th:attr="aria-label=#{unit.name}"></td>
+        <td><input type="text" name="namePlural" form="unit-new" maxlength="100" th:attr="aria-label=#{unit.namePlural}"></td>
+        <td><input type="text" name="uneceCode" form="unit-new" required maxlength="5"
+                   th:attr="aria-label=#{unit.uneceCode}"></td>
+        <td class="row-actions icons">
+          <form method="post" id="unit-new" th:action="@{/units}">
+            <button type="submit" class="icon-button primary" th:attr="aria-label=#{unit.add},title=#{unit.add}"><svg th:replace="~{fragments/icons :: plus}"></svg></button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

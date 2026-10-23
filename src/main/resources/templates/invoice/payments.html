@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section class="card" id="payment-panel" th:fragment="panel" th:if="${balance != null}">
+  <h2 th:text="#{payment.title}">Zahlungen</h2>
+  <div class="notice success" role="status" th:if="${message != null}" th:text="#{${message}}"></div>
+  <div class="notice error" role="alert" th:if="${error != null}" th:text="#{${error}}"></div>
+  <dl class="preview">
+    <dt th:text="#{payment.state}">Zahlungsstand</dt>
+    <dd>
+      <span class="badge" th:classappend="${balance.state.name() == 'PAID'} ? 'current'"
+            th:text="#{'payment.state.' + ${balance.state}}">Offen</span>
+      <span class="badge overdue" th:if="${balance.overdue}"
+            th:text="#{payment.overdueDays(${balance.daysOverdue})}">Überfällig</span>
+    </dd>
+    <dt th:text="#{payment.paid}">Bezahlt</dt>
+    <dd th:text="${@money.format(balance.paidCents)}">0,00 €</dd>
+    <dt th:text="#{payment.open}">Offen</dt>
+    <dd th:text="${@money.format(balance.openCents)}">485,45 €</dd>
+    <dt th:if="${balance.overpaidCents > 0}" th:text="#{payment.overpaid}">Überzahlung</dt>
+    <dd th:if="${balance.overpaidCents > 0}" th:text="${@money.format(balance.overpaidCents)}">0,00 €</dd>
+  </dl>
+  <div class="table-scroll" th:if="${!#lists.isEmpty(payments)}">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{payment.date}">Datum</th>
+        <th th:text="#{payment.method}">Art</th>
+        <th th:text="#{payment.reference}">Verwendungszweck</th>
+        <th class="num" th:text="#{payment.amount}">Betrag</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="payment : ${payments}">
+        <td th:text="${#temporals.format(payment.date, 'dd.MM.yyyy')}">20.10.2026</td>
+        <td th:text="#{'payment.method.' + ${payment.method}}">Überweisung</td>
+        <td>
+          <span th:text="${payment.reference} ?: '—'">RE202600001</span>
+          <span class="hint" th:if="${payment.reversal}" th:text="#{payment.reversal}">Gegenbuchung</span>
+          <span class="hint" th:if="${payment.reversedById != null}" th:text="#{payment.wasReversed}">korrigiert</span>
+        </td>
+        <td class="num" th:text="${@money.format(payment.amountCents)}">485,45 €</td>
+        <td>
+          <button type="button" class="secondary" th:if="${payment.canBeReversed()}"
+                  th:attr="hx-post=@{/invoices/{id}/payments/{pid}/reverse(id=${invoice.id},pid=${payment.id})},hx-confirm=#{payment.reverse.confirm}"
+                  hx-target="#payment-panel" hx-swap="outerHTML" th:text="#{payment.reverse}">Korrigieren</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="hint" th:if="${#lists.isEmpty(payments)}" th:text="#{payment.none}">Noch keine Zahlung erfasst.</p>
+  <form method="post" th:if="${canRecord}" th:action="@{/invoices/{id}/payments(id=${invoice.id})}"
+        th:attr="hx-post=@{/invoices/{id}/payments(id=${invoice.id})}" hx-target="#payment-panel" hx-swap="outerHTML">
+    <fieldset class="form-section">
+      <legend th:text="#{payment.record}">Zahlung erfassen</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="payment-date" th:text="#{payment.date}">Datum</label>
+          <input type="date" id="payment-date" name="date" th:value="${today}" th:max="${today}" required>
+        </div>
+        <div class="field">
+          <label for="payment-amount" th:text="#{payment.amount}">Betrag</label>
+          <input type="text" id="payment-amount" name="amount" inputmode="decimal" class="num" th:value="${openAmount}" required>
+        </div>
+        <div class="field">
+          <label for="payment-method" th:text="#{payment.method}">Art</label>
+          <select id="payment-method" name="method">
+            <option th:each="m : ${paymentMethods}" th:value="${m}" th:text="#{'payment.method.' + ${m}}">Überweisung</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="payment-reference" th:text="#{payment.reference}">Verwendungszweck</label>
+          <input type="text" id="payment-reference" name="reference" maxlength="200">
+        </div>
+        <div class="field wide">
+          <label for="payment-note" th:text="#{payment.note}">Notiz</label>
+          <input type="text" id="payment-note" name="note" maxlength="500">
+        </div>
+      </div>
+    </fieldset>
+    <div class="actions">
+      <button type="submit" th:text="#{payment.record}">Zahlung erfassen</button>
+    </div>
+  </form>
+</section>
+</body>
+</html>

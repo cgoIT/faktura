@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Toolbar for a text area with the simple markup of document texts; the buttons wrap or prefix the selection. -->
+<div class="format-bar" role="toolbar" th:fragment="bar(target)" th:attr="data-format-target=${target},aria-label=#{format.toolbar}">
+  <button type="button" class="secondary" data-format="bold" th:attr="aria-label=#{format.bold},title=#{format.bold}"><b>B</b></button>
+  <button type="button" class="secondary" data-format="italic" th:attr="aria-label=#{format.italic},title=#{format.italic}"><i>I</i></button>
+  <button type="button" class="secondary" data-format="underline" th:attr="aria-label=#{format.underline},title=#{format.underline}"><u>U</u></button>
+  <button type="button" class="secondary" data-format="list" th:attr="aria-label=#{format.list},title=#{format.list}">•</button>
+  <button type="button" class="secondary" data-format="indent" th:attr="aria-label=#{format.indent},title=#{format.indent}">→</button>
+  <button type="button" class="secondary" data-format="outdent" th:attr="aria-label=#{format.outdent},title=#{format.outdent}">←</button>
+</div>
+</body>
+</html>

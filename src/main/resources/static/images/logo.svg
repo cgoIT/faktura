@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="faktura">
+  <title>faktura</title>
+  <rect width="512" height="512" rx="104" fill="#0f5c6e"/>
+  <path d="M148 88h150l90 90v246a24 24 0 0 1-24 24H148a24 24 0 0 1-24-24V112a24 24 0 0 1 24-24z" fill="#ffffff"/>
+  <path d="M298 88v66a24 24 0 0 0 24 24h66z" fill="#bfe3ea"/>
+  <path d="M184 392V216h104v36h-60v36h52v36h-52v68z" fill="#0f5c6e"/>
+  <rect x="316" y="296" width="44" height="14" rx="7" fill="#0f5c6e" opacity=".35"/>
+  <rect x="316" y="332" width="44" height="14" rx="7" fill="#0f5c6e" opacity=".35"/>
+  <rect x="316" y="368" width="44" height="14" rx="7" fill="#0f5c6e" opacity=".35"/>
+</svg>

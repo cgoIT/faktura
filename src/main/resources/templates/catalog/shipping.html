@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{shipping.title} + ' – Faktura'">Versandarten</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{shipping.lead}">Versandarten</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('shipping')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div class="toolbar">
+    <a class="button" th:href="@{/settings/shipping/new}" th:text="#{shipping.new}">Neue Versandart</a>
+  </div>
+
+  <section class="card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{shipping.name}">Name</th>
+          <th class="num" th:text="#{shipping.amount}">Betrag netto (€)</th>
+          <th th:text="#{shipping.taxCategory}">Steuer</th>
+          <th class="num" th:text="#{shipping.sortOrder}">Reihenfolge</th>
+          <th th:text="#{list.status}">Status</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="option : ${options}">
+          <td><a th:href="@{/settings/shipping/{id}(id=${option.id})}" th:text="${option.name}">Paket</a></td>
+          <td class="num" th:text="${option.amount}">4,95</td>
+          <td th:text="${option.taxCategory != null} ? ${option.taxCategory} + ' – ' + #{'tax.category.' + ${option.taxCategory}} : #{catalog.taxFromProfile}">Profil</td>
+          <td class="num" th:text="${option.sortOrder}">0</td>
+          <td>
+            <span class="badge current" th:if="${option.active}" th:text="#{shipping.status.active}">aktiv</span>
+            <span class="badge" th:unless="${option.active}" th:text="#{shipping.status.inactive}">ausgeschaltet</span>
+          </td>
+          <td class="row-actions icons">
+            <a class="icon-button" th:href="@{/settings/shipping/{id}(id=${option.id})}"
+               th:attr="aria-label=#{text.edit}, title=#{text.edit}"><svg th:replace="~{fragments/icons :: edit}"></svg></a>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(options)}"><td colspan="6" class="empty" th:text="#{shipping.empty}">Keine Versandarten.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

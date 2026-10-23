@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, ${offer} ? 'offers' : 'invoices')}">
+<head>
+  <title th:text="(${offer} ? #{offer.title} : #{invoice.title}) + ' – Faktura'">Rechnungen</title>
+</head>
+<body>
+<main class="wide">
+  <p class="lead"><a th:href="@{${base}}" th:text="${offer} ? #{offer.back} : #{invoice.back}">Zurück zu den Rechnungen</a></p>
+  <h1>
+    <span th:text="${invoice == null} ? (${offer} ? #{offer.newTitle} : #{invoice.newTitle}) : (${offer} ? #{offer.editTitle} : #{invoice.editTitle})">Neue Rechnung</span>
+    <span class="badge" th:text="#{invoice.status.DRAFT}">Entwurf</span>
+  </h1>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <!--/* No "required" on the fields of this form: htmx validates the form before every live request and would skip it. The service validates on save. */-->
+  <form id="invoice-form" method="post" th:action="${invoice == null} ? @{${base}} : @{${base + '/{id}'}(id=${invoice.id})}"
+        th:hx-post="@{${base + '/calculate'}}" hx-trigger="input delay:300ms" hx-swap="none">
+    <input type="hidden" name="version" th:value="${invoiceForm.version}">
+    <section class="card">
+      <div class="form-section">
+        <div class="form-grid">
+          <div class="field wide">
+            <label for="subject" th:text="#{invoice.subject}">Betreff</label>
+            <input type="text" id="subject" name="subject" maxlength="300" th:value="${invoiceForm.subject}">
+            <span class="field-error" th:errors="${invoiceForm.subject}"></span>
+            <span class="hint" th:text="#{invoice.subject.hint}">Nur intern.</span>
+          </div>
+        </div>
+      </div>
+      <fieldset class="form-section">
+        <legend th:text="#{invoice.section.recipient}">Empfänger</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="customerId" th:text="#{invoice.customer}">Kunde</label>
+            <select id="customerId" name="customerId" th:hx-get="@{${base + '/contact-field'}}" hx-trigger="change"
+                    hx-target="#contact-field" hx-swap="outerHTML" hx-include="this">
+              <option value="" th:text="#{invoice.customer.choose}">Bitte wählen</option>
+              <option th:each="customer : ${customers}" th:value="${customer.id}"
+                      th:selected="${customer.id == invoiceForm.customerId}"
+                      th:text="${customer.name} + ' (' + ${customer.number} + ')'">Muster GmbH (KD0001)</option>
+            </select>
+            <span class="field-error" th:errors="${invoiceForm.customerId}"></span>
+          </div>
+          <div th:replace="~{invoice/fragments :: contactField}"></div>
+          <div class="field">
+            <label for="customerReference" th:text="#{invoice.customerReference}">Kundenreferenz</label>
+            <input type="text" id="customerReference" name="customerReference" maxlength="200"
+                   th:value="${invoiceForm.customerReference}">
+            <span class="hint" th:text="#{invoice.customerReference.hint}">Optional.</span>
+            <span class="field-error" th:errors="${invoiceForm.customerReference}"></span>
+          </div>
+        </div>
+      </fieldset>
+      <fieldset class="form-section">
+        <legend th:text="${offer} ? #{offer.section.dates} : #{invoice.section.dates}">Datum und Zahlungsziel</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="issueDate" th:text="${offer} ? #{offer.issueDate} : #{invoice.issueDate}">Rechnungsdatum</label>
+            <input type="date" id="issueDate" name="issueDate" th:value="${invoiceForm.issueDate}"
+                   th:hx-post="@{${base + '/items/refresh'}}" hx-trigger="change" hx-target="#items" hx-swap="outerHTML">
+            <span class="field-error" th:errors="${invoiceForm.issueDate}"></span>
+          </div>
+          <div class="field" th:if="${offer}">
+            <label for="validUntil" th:text="#{offer.validUntil}">Gültig bis</label>
+            <input type="date" id="validUntil" name="validUntil" th:value="${invoiceForm.validUntil}">
+            <span class="hint" th:text="#{offer.validUntil.hint}">leer = Standard</span>
+            <span class="field-error" th:errors="${invoiceForm.validUntil}"></span>
+          </div>
+          <div class="field" th:unless="${offer}">
+            <label for="paymentDays" th:text="#{invoice.paymentDays}">Zahlungsziel (Tage)</label>
+            <input type="text" id="paymentDays" name="paymentDays" inputmode="numeric" th:value="${invoiceForm.paymentDays}">
+            <span class="hint" th:text="#{invoice.paymentDays.hint}">leer = Standard</span>
+            <span class="field-error" th:errors="${invoiceForm.paymentDays}"></span>
+          </div>
+        </div>
+      </fieldset>
+      <fieldset class="form-section">
+        <legend th:text="#{invoice.section.service}">Leistungszeitraum</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="serviceFrom" th:text="#{invoice.serviceFrom}">Leistung von</label>
+            <input type="date" id="serviceFrom" name="serviceFrom" th:value="${invoiceForm.serviceFrom}"
+                   th:hx-post="@{${base + '/items/refresh'}}" hx-trigger="change" hx-target="#items" hx-swap="outerHTML">
+          </div>
+          <div class="field">
+            <label for="serviceTo" th:text="#{invoice.serviceTo}">Leistung bis</label>
+            <input type="date" id="serviceTo" name="serviceTo" th:value="${invoiceForm.serviceTo}">
+            <span class="field-error" th:errors="${invoiceForm.serviceTo}"></span>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <section class="card">
+      <h2 th:text="#{invoice.items}">Positionen</h2>
+      <div th:replace="~{invoice/fragments :: items}"></div>
+      <div class="actions add-row">
+        <button type="button" th:if="${catalogChoices.items.size() + catalogChoices.hidden > 0}" data-open-dialog="catalog-dialog" aria-keyshortcuts="Alt+K"
+                th:title="#{invoice.item.catalogShortcut}" th:text="#{invoice.item.addCatalog}">Aus Katalog einfügen</button>
+        <button type="button" class="link" th:hx-post="@{${base + '/items/add'}}" hx-target="#items"
+                hx-swap="outerHTML" th:text="#{invoice.item.addFreeText}">Freitext-Position einfügen</button>
+      </div>
+      <dialog id="catalog-dialog" class="catalog-dialog" aria-labelledby="catalog-dialog-title"
+              th:attr="data-added=#{invoice.item.catalogAdded}" th:if="${catalogChoices.items.size() + catalogChoices.hidden > 0}">
+        <div class="catalog-dialog-body">
+          <div class="catalog-dialog-head">
+            <h2 id="catalog-dialog-title" th:text="#{invoice.item.catalogTitle}">Leistung einfügen</h2>
+            <button type="button" class="link" data-close-dialog th:text="#{dialog.close}">Schließen</button>
+          </div>
+          <label for="catalog-query" class="visually-hidden" th:text="#{invoice.item.catalogSearch}">Leistung suchen</label>
+          <input type="search" id="catalog-query" name="catalogQuery" autocomplete="off" data-catalog-search
+                 th:placeholder="#{invoice.item.catalogSearch}"
+                 th:hx-post="@{${base + '/catalog/search'}}" hx-trigger="input changed delay:200ms, search"
+                 hx-include="closest form" hx-target="#catalog-results" hx-swap="outerHTML">
+          <p class="hint" th:text="#{invoice.item.catalogKeys}">Mit den Pfeiltasten wählen, Enter fügt ein.</p>
+          <p class="hint catalog-added" id="catalog-added" aria-live="polite"></p>
+          <div class="catalog-scroll">
+            <div th:replace="~{fragments/catalog-results :: results(false)}"></div>
+          </div>
+        </div>
+      </dialog>
+      <!--/* Closed by default and remembered per browser (app.js, data-remember); open when the draft has shipping costs. */-->
+      <details class="collapsible shipping-section" data-remember="shipping"
+               th:attr="open=${(invoiceForm.shippingAmount != null and !invoiceForm.shippingAmount.isBlank()) or (invoiceForm.shippingName != null and !invoiceForm.shippingName.isBlank())} ? 'open' : null,
+                        data-forced=${(invoiceForm.shippingAmount != null and !invoiceForm.shippingAmount.isBlank()) or (invoiceForm.shippingName != null and !invoiceForm.shippingName.isBlank())} ? 'true' : null">
+        <summary>
+          <strong th:text="#{invoice.shipping}">Versandkosten</strong>
+          <span class="hint" th:text="#{invoice.shipping.summary}">Optional.</span>
+        </summary>
+        <div class="form-grid">
+          <div class="field" th:if="${!#lists.isEmpty(shippingOptions)}">
+            <label for="shippingOption" th:text="#{invoice.shipping.option}">Versandart</label>
+            <select id="shippingOption" class="shipping-option-select">
+              <option value="" th:text="#{invoice.shipping.none}">Keine Versandkosten</option>
+              <option th:each="option : ${shippingOptions}" th:value="${option.id}" th:text="${option.name}"
+                      th:attr="data-name=${option.name}, data-amount=${option.amount}, data-category=${option.taxCategory},
+                               data-rate=${option.taxRate}">Paket</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="shippingName" th:text="#{invoice.shipping.name}">Bezeichnung</label>
+            <input type="text" id="shippingName" name="shippingName" maxlength="100" th:value="${invoiceForm.shippingName}">
+            <span class="field-error" th:errors="${invoiceForm.shippingName}"></span>
+          </div>
+          <div class="field">
+            <label for="shippingAmount" th:text="#{invoice.shipping.amount}">Betrag netto (€)</label>
+            <input type="text" id="shippingAmount" name="shippingAmount" inputmode="decimal" class="num"
+                   th:value="${invoiceForm.shippingAmount}">
+            <span class="field-error" th:errors="${invoiceForm.shippingAmount}"></span>
+          </div>
+          <div class="field">
+            <label for="shippingTaxCategory" th:text="#{invoice.shipping.taxCategory}">Steuerkategorie</label>
+            <select id="shippingTaxCategory" name="shippingTaxCategory">
+              <option value="" th:selected="${invoiceForm.shippingTaxCategory == null or invoiceForm.shippingTaxCategory == ''}"
+                      th:text="#{catalog.taxFromProfile.option}">aus dem Steuerprofil</option>
+              <option th:each="code : ${taxCategories}" th:value="${code}"
+                      th:selected="${code == invoiceForm.shippingTaxCategory}"
+                      th:if="${#lists.contains(allowedCategories, code) or code == invoiceForm.shippingTaxCategory}"
+                      th:text="${code} + ' – ' + #{'tax.category.' + ${code}}">S</option>
+            </select>
+            <span class="field-error" th:errors="${invoiceForm.shippingTaxCategory}"></span>
+          </div>
+          <div class="field">
+            <label for="shippingTaxRate" th:text="#{invoice.shipping.taxRate}">Steuersatz (%)</label>
+            <input type="text" id="shippingTaxRate" name="shippingTaxRate" inputmode="decimal" class="num"
+                   th:value="${invoiceForm.shippingTaxRate}">
+            <span class="field-error" th:errors="${invoiceForm.shippingTaxRate}"></span>
+          </div>
+        </div>
+        <p class="hint" th:text="#{invoice.shipping.hint}">Kommt nach dem Gesamtrabatt dazu.</p>
+      </details>
+      <div class="totals-area">
+        <div th:replace="~{invoice/fragments :: totalsTop(false)}"></div>
+        <div class="totals-row discount-line">
+          <label for="discountValue" th:text="#{invoice.totalDiscount}">Gesamtrabatt</label>
+          <span class="discount-controls">
+            <input type="text" id="discountValue" name="discountValue" inputmode="decimal" class="num"
+                   th:value="${invoiceForm.discountValue}">
+            <select name="discountType" th:attr="aria-label=#{invoice.discountType}">
+              <option value="PERCENT" th:selected="${invoiceForm.discountType != 'AMOUNT'}" th:text="#{invoice.discountType.percent}">Prozent</option>
+              <option value="AMOUNT" th:selected="${invoiceForm.discountType == 'AMOUNT'}" th:text="#{invoice.discountType.amount}">Betrag in €</option>
+            </select>
+          </span>
+          <span th:replace="~{invoice/fragments :: discountAmount(false)}"></span>
+        </div>
+        <p class="hint discount-hint" th:text="#{invoice.totalDiscount.hint}">leer = Rabatt des Kunden</p>
+        <span class="field-error" th:errors="${invoiceForm.discountValue}"></span>
+        <div th:replace="~{invoice/fragments :: totals(false)}"></div>
+      </div>
+      <div th:replace="~{invoice/fragments :: error(false)}"></div>
+      <p class="hint" th:text="#{invoice.taxHint}">Steuersätze kommen aus dem Steuerprofil.</p>
+    </section>
+
+    <details class="card collapsible" th:attr="open=${error == 'text.error.unknownPlaceholder'} ? 'open' : null">
+      <summary>
+        <h2 th:text="#{invoice.texts}">Texte</h2>
+        <span class="hint" th:text="#{invoice.texts.summary}">Kopf- und Fußtext, vorbelegt mit dem Standard.</span>
+      </summary>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="headerText" th:text="#{invoice.headerText}">Kopftext</label>
+          <select class="text-template-select" data-fill-target="headerText"
+                  th:if="${!#lists.isEmpty(headerTemplates)}" th:attr="aria-label=#{invoice.textTemplate}">
+            <option value="" th:text="#{invoice.textTemplate}">Textvorlage wählen</option>
+            <option th:each="template : ${headerTemplates}" th:value="${template.id}" th:text="${template.name}"
+                    th:attr="data-body=${template.body}">Standard</option>
+          </select>
+ <div th:replace="~{fragments/format-bar :: bar('headerText')}"></div>
+          <textarea id="headerText" name="headerText" rows="8" maxlength="4000" th:text="${invoiceForm.headerText}"></textarea>
+          <span class="field-error" th:errors="${invoiceForm.headerText}"></span>
+        </div>
+        <div class="field wide">
+          <label for="footerText" th:text="#{invoice.footerText}">Fußtext</label>
+          <select class="text-template-select" data-fill-target="footerText"
+                  th:if="${!#lists.isEmpty(footerTemplates)}" th:attr="aria-label=#{invoice.textTemplate}">
+            <option value="" th:text="#{invoice.textTemplate}">Textvorlage wählen</option>
+            <option th:each="template : ${footerTemplates}" th:value="${template.id}" th:text="${template.name}"
+                    th:attr="data-body=${template.body}">Standard</option>
+          </select>
+ <div th:replace="~{fragments/format-bar :: bar('footerText')}"></div>
+          <textarea id="footerText" name="footerText" rows="14" maxlength="4000" th:text="${invoiceForm.footerText}"></textarea>
+          <span class="field-error" th:errors="${invoiceForm.footerText}"></span>
+        </div>
+      </div>
+      <div th:replace="~{fragments/format-help :: help}"></div>
+      <p class="hint" th:text="#{invoice.texts.hint}">Platzhalter werden beim Finalisieren ersetzt.</p>
+    </details>
+
+    <div class="actions form-end">
+      <button type="submit" th:text="#{invoice.saveDraft}">Entwurf speichern</button>
+    </div>
+  </form>
+
+  <section class="card" th:if="${invoice != null}">
+    <p th:text="${offer} ? #{offer.finalize.hint} : #{invoice.finalize.hint}">Beim Finalisieren bekommt die Rechnung ihre Nummer.</p>
+    <div class="actions">
+      <button type="submit" class="secondary" form="invoice-form" formmethod="post" formtarget="_blank"
+              th:formaction="@{${base + '/{id}/preview.pdf'}(id=${invoice.id})}"
+              th:text="#{invoice.preview}">Vorschau als PDF</button>
+      <button type="button" class="finalize" id="finalize-open" th:hx-post="@{${base + '/{id}/finalize-review'}(id=${invoice.id})}"
+              hx-include="#invoice-form" hx-target="#finalize-dialog" hx-swap="innerHTML" hx-disabled-elt="this" th:attr="data-error-text=#{invoice.review.loadFailed}"
+              th:text="#{invoice.finalize}">Finalisieren</button>
+    </div>
+  </section>
+
+  <dialog id="finalize-dialog" class="review-dialog" data-htmx-dialog aria-labelledby="finalize-title"
+          th:if="${invoice != null}" th:attr="data-review-url=@{${base + '/{id}/finalize-review'}(id=${invoice.id})}"></dialog>
+
+  <form class="card" method="post" th:if="${invoice != null}" th:action="@{${base + '/{id}/delete'}(id=${invoice.id})}">
+    <p th:text="${offer} ? #{offer.delete.hint} : #{invoice.delete.hint}">Ein Entwurf kann gelöscht werden.</p>
+    <button type="submit" class="danger" th:text="#{invoice.delete}">Entwurf löschen</button>
+  </form>
+</main>
+</body>
+</html>

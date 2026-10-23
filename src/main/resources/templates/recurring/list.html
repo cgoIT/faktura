@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'recurring')}">
+<head>
+  <title th:text="#{recurring.title} + ' – Faktura'">Wiedervorlagen</title>
+</head>
+<body>
+<main class="wide">
+  <div class="page-head">
+    <h1 th:text="#{recurring.title}">Wiedervorlagen</h1>
+    <div class="actions">
+      <form method="post" th:action="@{/recurring/run}">
+        <button type="submit" class="secondary" th:text="#{recurring.run}">Jetzt prüfen</button>
+      </form>
+      <a class="button" th:href="@{/recurring/new}" th:text="#{recurring.new}">Neue Wiedervorlage</a>
+    </div>
+  </div>
+  <p class="lead" th:text="#{recurring.lead}">Der tägliche Lauf erzeugt nur Entwürfe.</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+
+  <section class="card">
+    <h2 th:text="#{recurring.pending}">Zur Freigabe</h2>
+    <p class="hint" th:if="${#lists.isEmpty(releases)}" th:text="#{recurring.pending.none}">Keine Entwürfe.</p>
+    <ul class="release-list" th:unless="${#lists.isEmpty(releases)}">
+      <li class="release" th:each="entry : ${releases}">
+        <div class="release-info">
+          <strong th:text="${entry.planName} + ', ' + ${#temporals.format(entry.serviceFrom, 'dd.MM.yyyy')} + ' – ' + ${#temporals.format(entry.serviceTo, 'dd.MM.yyyy')}">Wartung, 01.11.2026 – 31.01.2027</strong>
+          <span th:text="${entry.customerName}">Muster GmbH</span>
+          <span class="hint" th:text="#{recurring.pending.note(#{'recurring.interval.' + ${entry.interval}}, ${#temporals.format(entry.createdOn, 'dd.MM.yyyy')})}">Plan quartalsweise · Entwurf erzeugt am 20.10.2026</span>
+        </div>
+        <strong class="release-amount" th:text="${@money.format(entry.grossCents)}">450,00 €</strong>
+        <div class="actions">
+          <a class="button" th:href="@{/invoices/{id}(id=${entry.documentId})}" th:text="#{recurring.review}">Prüfen und finalisieren</a>
+          <form method="post" th:action="@{/recurring/runs/{id}/skip(id=${entry.runId})}"
+                th:attr="data-confirm=#{recurring.skip.confirm}">
+            <button type="submit" class="secondary" th:text="#{recurring.skip}">Überspringen</button>
+          </form>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2 th:text="#{recurring.all}">Alle Wiedervorlagen</h2>
+    <p class="hint" th:if="${#lists.isEmpty(plans)}" th:text="#{recurring.none}">Noch keine Wiedervorlage.</p>
+    <div class="table-scroll" th:unless="${#lists.isEmpty(plans)}">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{recurring.name}">Plan</th>
+          <th th:text="#{invoice.customer}">Kunde</th>
+          <th th:text="#{recurring.interval}">Intervall</th>
+          <th th:text="#{recurring.nextPeriod}">Nächster Zeitraum ab</th>
+          <th class="num" th:text="#{recurring.net}">Netto je Zeitraum</th>
+          <th th:text="#{list.status}">Status</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="plan : ${plans}">
+          <td>
+            <a th:href="@{/recurring/{id}(id=${plan.id})}" th:text="${plan.name}">Wartungsvertrag</a>
+            <div class="field-error" role="alert" th:if="${plan.lastError != null}" th:text="#{${plan.lastError}}">Fehler</div>
+          </td>
+          <td th:text="${plan.customerName}">Muster GmbH</td>
+          <td th:text="#{'recurring.interval.' + ${plan.interval}}">Quartal</td>
+          <td th:text="${plan.nextPeriod != null} ? ${#temporals.format(plan.nextPeriod.from, 'dd.MM.yyyy')} : '—'">01.02.2027</td>
+          <td class="num" th:text="${@money.format(plan.netCents)}">450,00 €</td>
+          <td><span class="badge" th:classappend="${plan.status.name() == 'ACTIVE'} ? 'current'"
+                    th:text="#{'recurring.status.' + ${plan.status}}">Aktiv</span></td>
+          <td>
+            <form method="post" th:action="@{/recurring/{id}/status(id=${plan.id})}"
+                  th:if="${plan.status.name() == 'ACTIVE'}">
+              <input type="hidden" name="status" value="PAUSED">
+              <button type="submit" class="secondary" th:text="#{recurring.pause}">Pausieren</button>
+            </form>
+            <form method="post" th:action="@{/recurring/{id}/status(id=${plan.id})}"
+                  th:if="${plan.status.name() == 'PAUSED'}">
+              <input type="hidden" name="status" value="ACTIVE">
+              <button type="submit" class="secondary" th:text="#{recurring.resume}">Fortsetzen</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" th:text="#{recurring.hint}">Die Zeiträume ergeben sich aus Ankerdatum und Intervall.</p>
+  </section>
+</main>
+</body>
+</html>

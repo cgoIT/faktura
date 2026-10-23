@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{numbering.title} + ' – Faktura'">Nummernkreise</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{numbering.lead}">Nummernmuster</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('numbering')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{numbering.scope}">Bereich</th>
+        <th th:text="#{numbering.pattern}">Muster</th>
+        <th th:text="#{numbering.next}">Nächste Nummer</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="info : ${patterns}">
+        <td th:text="#{'numbering.scope.' + ${info.scope}}">Rechnung</td>
+        <td><input type="text" name="pattern" th:value="${info.pattern}" required maxlength="100"
+                   th:attr="form='pattern-' + ${info.scope},aria-label=#{numbering.pattern}"></td>
+        <td th:text="${info.nextNumber}">RE202700001</td>
+        <td class="row-actions icons">
+          <form method="post" th:id="'pattern-' + ${info.scope}" th:action="@{/numbering/{scope}(scope=${info.scope})}">
+            <button type="submit" class="icon-button" th:attr="aria-label=#{numbering.save},title=#{numbering.save}"><svg th:replace="~{fragments/icons :: save}"></svg></button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <p class="hint" th:text="#{numbering.hint}">Platzhalter</p>
+  </section>
+</main>
+</body>
+</html>

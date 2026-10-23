@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{dunning.levels.title} + ' – Faktura'">Mahnstufen</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <div th:replace="~{fragments/settings-tabs :: tabs('dunning')}"></div>
+  <h2 th:text="${level == null} ? #{dunning.level.new} : #{dunning.level.editTitle}">Mahnstufe</h2>
+  <p class="lead"><a th:href="@{/dunning/levels}" th:text="#{dunning.level.back}">Zurück zu den Mahnstufen</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post"
+        th:action="${level == null} ? @{/dunning/levels} : @{/dunning/levels/{id}(id=${level.id})}">
+    <p class="hint" th:text="#{dunning.level.lead}">Hinweis</p>
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field">
+          <label for="level" th:text="#{dunning.level.number}">Stufe</label>
+          <input type="text" inputmode="numeric" name="level" id="level" th:value="${levelForm.level}" required>
+        </div>
+        <div class="field">
+          <label for="name" th:text="#{dunning.level.name}">Name</label>
+          <input type="text" name="name" id="name" th:value="${levelForm.name}" maxlength="100" required>
+        </div>
+      </div>
+    </div>
+    <fieldset class="form-section">
+      <legend th:text="#{dunning.level.section.trigger}">Auslöser und Frist</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="days" th:text="#{dunning.level.daysAfterDue}">Tage nach Fälligkeit</label>
+          <input type="text" inputmode="numeric" name="daysAfterDue" id="days" th:value="${levelForm.daysAfterDue}" required>
+        </div>
+        <div class="field">
+          <label for="new" th:text="#{dunning.level.newDueDays}">Neue Frist in Tagen</label>
+          <input type="text" inputmode="numeric" name="newDueDays" id="new" th:value="${levelForm.newDueDays}" required>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{dunning.level.section.charges}">Gebühr und Zins</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="fee" th:text="#{dunning.level.fee}">Mahngebühr (€)</label>
+          <input type="text" inputmode="decimal" name="fee" id="fee" th:value="${levelForm.fee}" required>
+        </div>
+        <div class="field">
+          <label for="interest" th:text="#{dunning.level.interest}">Verzugszins (% p. a.)</label>
+          <input type="text" inputmode="decimal" name="interest" id="interest" th:value="${levelForm.interest}" required>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{dunning.level.section.texts}">Texte</legend>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="header" th:text="#{dunning.level.headerText}">Text oben</label>
+          <div th:replace="~{fragments/format-bar :: bar('header')}"></div>
+          <textarea name="headerText" rows="5" id="header" th:text="${levelForm.headerText}" maxlength="4000" required></textarea>
+        </div>
+        <div class="field wide">
+          <label for="footer" th:text="#{dunning.level.footerText}">Text unten</label>
+          <div th:replace="~{fragments/format-bar :: bar('footer')}"></div>
+          <textarea name="footerText" rows="5" id="footer" th:text="${levelForm.footerText}" maxlength="4000" required></textarea>
+        </div>
+      </div>
+      <div th:replace="~{fragments/format-info :: info(${placeholders})}"></div>
+    </fieldset>
+    <div class="form-section">
+      <label><input type="checkbox" name="active" value="true" th:checked="${levelForm.active}">
+        <span th:text="#{dunning.level.active}">Stufe verwenden</span></label>
+    </div>
+
+    <div class="actions">
+      <button type="submit" th:text="#{dunning.level.save}">Speichern</button>
+      <a class="button secondary" th:href="@{/dunning/levels}" th:text="#{invoice.review.cancel}">Abbrechen</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

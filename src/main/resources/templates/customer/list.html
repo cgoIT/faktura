@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'customers')}">
+<head>
+  <title th:text="#{customer.title} + ' – Faktura'">Kunden</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{customer.title}">Kunden</h1>
+  <p class="lead" th:text="#{customer.lead}">Kundenstamm</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <form class="toolbar" method="get" th:action="@{/customers}" th:attr="hx-get=@{/customers}"
+          hx-target="#customer-rows" hx-swap="outerHTML" hx-trigger="input changed delay:300ms from:#q, change from:#status, submit"
+          hx-push-url="false">
+      <label class="visually-hidden" for="q" th:text="#{list.search}">Suchen</label>
+      <input type="search" id="q" name="q" th:value="${q}" th:placeholder="#{customer.search}" autocomplete="off">
+      <label class="visually-hidden" for="status" th:text="#{list.status}">Status</label>
+      <select id="status" name="status">
+        <option value="active" th:selected="${status == 'active'}" th:text="#{customer.status.active}">Aktive</option>
+        <option value="archived" th:selected="${status == 'archived'}" th:text="#{customer.status.archived}">Archiviert</option>
+        <option value="all" th:selected="${status == 'all'}" th:text="#{customer.status.all}">Alle</option>
+      </select>
+      <button type="submit" class="secondary" th:text="#{list.searchButton}">Suchen</button>
+      <a class="button" th:href="@{/customers/new}" th:text="#{customer.new}">Neuer Kunde</a>
+    </form>
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{customer.number}">Nummer</th>
+          <th th:text="#{customer.name}">Name</th>
+          <th th:text="#{customer.city}">Ort</th>
+          <th th:text="#{customer.invoiceEmail}">E-Mail</th>
+          <th th:text="#{list.status}">Status</th>
+        </tr>
+        </thead>
+        <tbody id="customer-rows" th:fragment="rows">
+        <tr th:each="customer : ${customers}">
+          <td class="mono" th:text="${customer.number}">KD0001</td>
+          <td><a th:href="@{/customers/{id}(id=${customer.id})}" th:text="${customer.name}">Beispiel GmbH</a></td>
+          <td th:text="${customer.city}">Musterstadt</td>
+          <td th:text="${customer.invoiceEmail}">rechnung@example.org</td>
+          <td><span class="badge" th:classappend="${!customer.archived} ? 'current'"
+                    th:text="${customer.archived} ? #{customer.archivedBadge} : #{customer.activeBadge}">Aktiv</span></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(customers)}"><td colspan="5" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

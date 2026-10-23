@@ -1,0 +1,462 @@
+TABLE app_user
+  COLUMN active integer NOT NULL DEFAULT 1
+  COLUMN admin integer NOT NULL DEFAULT 0
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN display_name character varying(200)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN last_login_at character varying(30)
+  COLUMN password_hash character varying(100)
+  COLUMN username character varying(100) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (username)
+  ck_app_user_active CHECK ((active = ANY (ARRAY[0, 1])))
+  ck_app_user_admin CHECK ((admin = ANY (ARRAY[0, 1])))
+
+TABLE audit_log
+  COLUMN action character varying(30) NOT NULL
+  COLUMN actor character varying(100)
+  COLUMN detail text
+  COLUMN id character varying(36) NOT NULL
+  COLUMN logged_at character varying(30) NOT NULL
+  COLUMN object_id character varying(36) NOT NULL
+  COLUMN object_type character varying(20) NOT NULL
+  PRIMARY KEY (id)
+  INDEX CREATE INDEX ix_audit_log_object ON public.audit_log USING btree (object_type, object_id)
+
+TABLE catalog_item
+  COLUMN active integer NOT NULL DEFAULT 1
+  COLUMN description character varying(2000)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN name character varying(200) NOT NULL
+  COLUMN number character varying(50) NOT NULL
+  COLUMN tax_category character varying(2)
+  COLUMN unit_id character varying(36) NOT NULL
+  COLUMN unit_price_cents bigint NOT NULL
+  FOREIGN KEY (unit_id) REFERENCES unit(id)
+  PRIMARY KEY (id)
+  UNIQUE (number)
+
+TABLE company
+  COLUMN bank_name character varying(100)
+  COLUMN bic character varying(11)
+  COLUMN city character varying(100)
+  COLUMN country character varying(2) NOT NULL DEFAULT 'DE'::character varying
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN email character varying(200)
+  COLUMN iban character varying(34)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN name character varying(200) NOT NULL
+  COLUMN offer_valid_days integer NOT NULL DEFAULT 30
+  COLUMN owner character varying(200)
+  COLUMN payment_days integer NOT NULL DEFAULT 14
+  COLUMN phone character varying(50)
+  COLUMN street character varying(200)
+  COLUMN tax_number character varying(50)
+  COLUMN vat_id character varying(30)
+  COLUMN zip character varying(20)
+  PRIMARY KEY (id)
+
+TABLE customer
+  COLUMN archived integer NOT NULL DEFAULT 0
+  COLUMN city character varying(100)
+  COLUMN country character varying(2) NOT NULL DEFAULT 'DE'::character varying
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN customer_type character varying(20) NOT NULL DEFAULT 'B2B'::character varying
+  COLUMN discount_bp integer
+  COLUMN einvoice_mode character varying(10) NOT NULL DEFAULT 'NONE'::character varying
+  COLUMN id character varying(36) NOT NULL
+  COLUMN invoice_email character varying(200)
+  COLUMN name character varying(200) NOT NULL
+  COLUMN note character varying(2000)
+  COLUMN number character varying(50) NOT NULL
+  COLUMN payment_days integer
+  COLUMN street character varying(200)
+  COLUMN vat_id character varying(30)
+  COLUMN zip character varying(20)
+  PRIMARY KEY (id)
+  UNIQUE (number)
+
+TABLE customer_contact
+  COLUMN customer_id character varying(36) NOT NULL
+  COLUMN email character varying(200)
+  COLUMN first_name character varying(100) NOT NULL DEFAULT ''::character varying
+  COLUMN id character varying(36) NOT NULL
+  COLUMN last_name character varying(100)
+  COLUMN mobile character varying(50)
+  COLUMN phone character varying(50)
+  COLUMN role character varying(100)
+  COLUMN salutation character varying(10)
+  FOREIGN KEY (customer_id) REFERENCES customer(id)
+  PRIMARY KEY (id)
+
+TABLE document
+  COLUMN contact_id character varying(36)
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN created_by character varying(100)
+  COLUMN customer_id character varying(36) NOT NULL
+  COLUMN customer_reference character varying(200)
+  COLUMN due_date character varying(10)
+  COLUMN finalized_at character varying(30)
+  COLUMN footer_text character varying(4000)
+  COLUMN gross_total_cents bigint NOT NULL DEFAULT 0
+  COLUMN header_text character varying(4000)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN issue_date character varying(10) NOT NULL
+  COLUMN net_total_cents bigint NOT NULL DEFAULT 0
+  COLUMN number character varying(50)
+  COLUMN recipient_snapshot text
+  COLUMN ref_document_id character varying(36)
+  COLUMN sender_snapshot text
+  COLUMN service_from character varying(10)
+  COLUMN service_to character varying(10)
+  COLUMN shipping_cents bigint NOT NULL DEFAULT 0
+  COLUMN shipping_name character varying(100)
+  COLUMN shipping_tax_category character varying(2)
+  COLUMN shipping_tax_rate_bp integer NOT NULL DEFAULT 0
+  COLUMN status character varying(20) NOT NULL
+  COLUMN subject character varying(300)
+  COLUMN tax_snapshot text
+  COLUMN tax_total_cents bigint NOT NULL DEFAULT 0
+  COLUMN total_discount_type character varying(10)
+  COLUMN total_discount_value bigint
+  COLUMN type character varying(20) NOT NULL
+  COLUMN updated_at character varying(30) NOT NULL
+  COLUMN valid_until character varying(10)
+  COLUMN version integer NOT NULL DEFAULT 1
+  FOREIGN KEY (customer_id) REFERENCES customer(id)
+  FOREIGN KEY (ref_document_id) REFERENCES document(id)
+  PRIMARY KEY (id)
+  UNIQUE (number)
+  ck_document_discount CHECK (((total_discount_type IS NULL) OR ((total_discount_type)::text = ANY ((ARRAY['PERCENT'::character varying, 'AMOUNT'::character varying])::text[]))))
+  ck_document_status CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'FINAL'::character varying, 'CANCELLED'::character varying])::text[])))
+  ck_document_type CHECK (((type)::text = ANY ((ARRAY['OFFER'::character varying, 'INVOICE'::character varying, 'CANCELLATION'::character varying])::text[])))
+  INDEX CREATE INDEX ix_document_customer ON public.document USING btree (customer_id)
+  INDEX CREATE INDEX ix_document_status ON public.document USING btree (status)
+  INDEX CREATE INDEX ix_document_type_issue_date ON public.document USING btree (type, issue_date)
+  INDEX CREATE UNIQUE INDEX uq_document_cancellation ON public.document USING btree (ref_document_id) WHERE ((type)::text = 'CANCELLATION'::text)
+
+TABLE document_item
+  COLUMN catalog_item_id character varying(36)
+  COLUMN description character varying(2000) NOT NULL
+  COLUMN discount_bp integer NOT NULL DEFAULT 0
+  COLUMN document_id character varying(36) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN line_total_cents bigint NOT NULL
+  COLUMN position integer NOT NULL
+  COLUMN quantity_thousandths bigint NOT NULL
+  COLUMN tax_category character varying(2) NOT NULL
+  COLUMN tax_rate_bp integer NOT NULL DEFAULT 0
+  COLUMN unit_code character varying(20)
+  COLUMN unit_name character varying(100)
+  COLUMN unit_name_plural character varying(100)
+  COLUMN unit_price_cents bigint NOT NULL
+  COLUMN unit_unece_code character varying(5)
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  PRIMARY KEY (id)
+  INDEX CREATE INDEX ix_document_item_document ON public.document_item USING btree (document_id)
+
+TABLE document_tax_total
+  COLUMN basis_cents bigint NOT NULL
+  COLUMN category character varying(2) NOT NULL
+  COLUMN document_id character varying(36) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN rate_bp integer NOT NULL
+  COLUMN tax_cents bigint NOT NULL
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  PRIMARY KEY (id)
+  INDEX CREATE INDEX ix_document_tax_total_document ON public.document_tax_total USING btree (document_id)
+
+TABLE dunning
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN document_id character varying(36) NOT NULL
+  COLUMN dunning_date character varying(10) NOT NULL
+  COLUMN fee_cents bigint NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN interest_cents bigint NOT NULL
+  COLUMN level integer NOT NULL
+  COLUMN level_name character varying(100) NOT NULL
+  COLUMN new_due_date character varying(10) NOT NULL
+  COLUMN number character varying(50) NOT NULL
+  COLUMN open_cents bigint NOT NULL
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  PRIMARY KEY (id)
+  UNIQUE (document_id, level)
+  UNIQUE (number)
+  INDEX CREATE INDEX ix_dunning_document ON public.dunning USING btree (document_id)
+
+TABLE dunning_level
+  COLUMN active integer NOT NULL DEFAULT 1
+  COLUMN days_after_due integer NOT NULL
+  COLUMN fee_cents bigint NOT NULL DEFAULT 0
+  COLUMN footer_text character varying(4000) NOT NULL
+  COLUMN header_text character varying(4000) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN interest_bp integer NOT NULL DEFAULT 0
+  COLUMN level integer NOT NULL
+  COLUMN name character varying(100) NOT NULL
+  COLUMN new_due_days integer NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (level)
+  ck_dunning_level_active CHECK ((active = ANY (ARRAY[0, 1])))
+  ck_dunning_level_values CHECK (((level > 0) AND (days_after_due >= 0) AND (fee_cents >= 0) AND (interest_bp >= 0) AND (new_due_days >= 0)))
+  ROW active='1' days_after_due='21' fee_cents='0' footer_text='Ich bitte Sie, die Gesamtforderung von {gesamtforderung} bis zum {neue_frist} auf das Konto {firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}, zu überweisen.' header_text='{anrede}\n\ntrotz meiner Zahlungserinnerung ist die Rechnung {rechnungsnummer} vom {rechnungsdatum} noch nicht beglichen. Sie ist seit {tage_ueberfaellig} Tagen überfällig.' id='20000000-0000-0000-0000-000000000002' interest_bp='0' level='2' name='1. Mahnung' new_due_days='7'
+  ROW active='1' days_after_due='35' fee_cents='0' footer_text='Bitte überweisen Sie die Gesamtforderung von {gesamtforderung} bis spätestens {neue_frist} auf das Konto {firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}. Danach behalte ich mir weitere Schritte vor.' header_text='{anrede}\n\ndie Rechnung {rechnungsnummer} vom {rechnungsdatum} ist trotz Erinnerung und Mahnung weiterhin offen. Dies ist meine letzte Aufforderung zur Zahlung.' id='20000000-0000-0000-0000-000000000003' interest_bp='0' level='3' name='2. Mahnung' new_due_days='7'
+  ROW active='1' days_after_due='7' fee_cents='0' footer_text='Ich bitte Sie, den offenen Betrag bis zum {neue_frist} auf das Konto {firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}, zu überweisen. Sollten Sie bereits bezahlt haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.' header_text='{anrede}\n\nzu meiner Rechnung {rechnungsnummer} vom {rechnungsdatum} konnte ich bisher keinen Zahlungseingang feststellen. Vielleicht ist die Zahlung nur in der Bearbeitung untergegangen.' id='20000000-0000-0000-0000-000000000001' interest_bp='0' level='1' name='Zahlungserinnerung' new_due_days='7'
+
+TABLE file
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN owner_id character varying(36) NOT NULL
+  COLUMN owner_type character varying(20) NOT NULL
+  COLUMN path character varying(500) NOT NULL
+  COLUMN sha256 character varying(64) NOT NULL
+  COLUMN size_bytes bigint NOT NULL
+  COLUMN type character varying(20) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (path)
+  ck_file_type CHECK (((type)::text = ANY ((ARRAY['PDF'::character varying, 'XML'::character varying, 'ATTACHMENT'::character varying])::text[])))
+  INDEX CREATE INDEX ix_file_owner ON public.file USING btree (owner_type, owner_id)
+
+TABLE file_export
+  COLUMN exported_at character varying(30) NOT NULL
+  COLUMN file_id character varying(36) NOT NULL
+  COLUMN sha256 character varying(64) NOT NULL
+  PRIMARY KEY (file_id)
+
+TABLE mail_log
+  COLUMN attachment_file_id character varying(36)
+  COLUMN attachment_name character varying(255)
+  COLUMN body text NOT NULL
+  COLUMN error_key character varying(100)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN message_id character varying(255)
+  COLUMN owner_id character varying(36) NOT NULL
+  COLUMN owner_type character varying(20) NOT NULL
+  COLUMN recipients character varying(1000) NOT NULL
+  COLUMN sent_at character varying(30) NOT NULL
+  COLUMN status character varying(10) NOT NULL
+  COLUMN subject character varying(500) NOT NULL
+  PRIMARY KEY (id)
+  ck_mail_log_owner CHECK (((owner_type)::text = ANY ((ARRAY['DOCUMENT'::character varying, 'DUNNING'::character varying])::text[])))
+  ck_mail_log_status CHECK (((status)::text = ANY ((ARRAY['SENT'::character varying, 'FAILED'::character varying])::text[])))
+  INDEX CREATE INDEX ix_mail_log_owner ON public.mail_log USING btree (owner_type, owner_id)
+
+TABLE mail_template
+  COLUMN body character varying(4000) NOT NULL
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN is_default integer NOT NULL DEFAULT 0
+  COLUMN name character varying(100) NOT NULL
+  COLUMN scope character varying(30) NOT NULL
+  COLUMN subject character varying(200) NOT NULL
+  PRIMARY KEY (id)
+  ck_mail_template_scope CHECK (((scope)::text = ANY ((ARRAY['INVOICE'::character varying, 'CANCELLATION'::character varying, 'DUNNING'::character varying, 'OFFER'::character varying, 'NOTIFICATION_DIGEST'::character varying])::text[])))
+  INDEX CREATE UNIQUE INDEX uq_mail_template_default ON public.mail_template USING btree (scope) WHERE (is_default = 1)
+  ROW body='Hallo {ansprechpartner_vorname},\n\nhier ist das Angebot {angebotsnummer} über {betrag}. Es gilt bis zum {gueltig_bis}.\n\nMelde dich einfach, wenn etwas unklar ist.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000009' is_default='0' name='Informell' scope='OFFER' subject='Dein Angebot {angebotsnummer}'
+  ROW body='Hallo {ansprechpartner_vorname},\n\nhier ist die Rechnung {rechnungsnummer} über {betrag}. Sie ist bis zum {faelligkeit} fällig.\n\nMelde dich einfach, wenn etwas unklar ist.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000002' is_default='0' name='Informell' scope='INVOICE' subject='Deine Rechnung {rechnungsnummer}'
+  ROW body='Hallo {ansprechpartner_vorname},\n\nim Anhang findest du die Stornorechnung {rechnungsnummer} über {betrag}. Sie hebt die ursprüngliche Rechnung auf.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000004' is_default='0' name='Informell' scope='CANCELLATION' subject='Storno {rechnungsnummer}'
+  ROW body='Hallo {ansprechpartner_vorname},\n\nzur Rechnung {rechnungsnummer} habe ich noch keinen Zahlungseingang gesehen. Im Anhang findest du die {mahnstufe}.\n\nKönntest du die {gesamtforderung} bis zum {neue_frist} überweisen? Falls sich das mit deiner Zahlung überschnitten hat, ignoriere die Mail einfach.\n\nViele Grüße\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000006' is_default='0' name='Informell' scope='DUNNING' subject='Erinnerung zur Rechnung {rechnungsnummer}'
+  ROW body='Hallo {firma_inhaber},\n\nin faktura gibt es etwas zu tun:\n\n{entwuerfe}\n\n{planfehler}\n\n{ueberfaellig}\n\n{mahnfaehig}\n\n{angebote}\n\n{link}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000007' is_default='1' name='Hinweise' scope='NOTIFICATION_DIGEST' subject='faktura: {anzahl} Hinweise'
+  ROW body='{anrede}\n\nanbei erhalten Sie die Rechnung {rechnungsnummer} über {betrag}. Bitte überweisen Sie den Betrag bis zum {faelligkeit}.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000001' is_default='1' name='Formell' scope='INVOICE' subject='Rechnung {rechnungsnummer} von {firma_name}'
+  ROW body='{anrede}\n\nanbei erhalten Sie die Stornorechnung {rechnungsnummer} über {betrag}. Sie hebt die ursprüngliche Rechnung auf.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000003' is_default='1' name='Formell' scope='CANCELLATION' subject='Stornorechnung {rechnungsnummer} von {firma_name}'
+  ROW body='{anrede}\n\nvielen Dank für Ihre Anfrage. Anbei erhalten Sie das Angebot {angebotsnummer} über {betrag}. Es ist gültig bis zum {gueltig_bis}.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000008' is_default='1' name='Formell' scope='OFFER' subject='Angebot {angebotsnummer} von {firma_name}'
+  ROW body='{anrede}\n\nzur Rechnung {rechnungsnummer} vom {rechnungsdatum} konnten wir bislang keinen Zahlungseingang feststellen. Im Anhang finden Sie die {mahnstufe}.\n\nWir bitten Sie, den offenen Betrag von {gesamtforderung} bis zum {neue_frist} zu überweisen. Sollte sich Ihre Zahlung mit diesem Schreiben überschnitten haben, betrachten Sie es bitte als gegenstandslos.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000005' is_default='1' name='Formell' scope='DUNNING' subject='{mahnstufe} zur Rechnung {rechnungsnummer}'
+
+TABLE notification_log
+  COLUMN category character varying(20) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN object_id character varying(36) NOT NULL
+  COLUMN sent_at character varying(30) NOT NULL
+  COLUMN stage character varying(100) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (category, object_id, stage)
+  ck_notification_log_category CHECK (((category)::text = ANY ((ARRAY['DRAFT'::character varying, 'PLAN_ERROR'::character varying, 'OVERDUE'::character varying, 'DUNNING_DUE'::character varying, 'OFFER_EXPIRING'::character varying])::text[])))
+
+TABLE notification_setting
+  COLUMN draft_enabled integer NOT NULL DEFAULT 0
+  COLUMN dunning_enabled integer NOT NULL DEFAULT 0
+  COLUMN failure_count integer NOT NULL DEFAULT 0
+  COLUMN id character varying(36) NOT NULL
+  COLUMN last_run_date character varying(10)
+  COLUMN offer_enabled integer NOT NULL DEFAULT 0
+  COLUMN overdue_enabled integer NOT NULL DEFAULT 0
+  COLUMN plan_error_enabled integer NOT NULL DEFAULT 0
+  COLUMN recipient character varying(254)
+  COLUMN send_time character varying(5)
+  PRIMARY KEY (id)
+  ROW draft_enabled='0' dunning_enabled='0' failure_count='0' id='default' last_run_date=NULL offer_enabled='0' overdue_enabled='0' plan_error_enabled='0' recipient=NULL send_time=NULL
+
+TABLE number_pattern
+  COLUMN pattern character varying(100) NOT NULL
+  COLUMN scope character varying(20) NOT NULL
+  PRIMARY KEY (scope)
+  ROW pattern='AN{jahr}{#####}' scope='OFFER'
+  ROW pattern='ART{####}' scope='CATALOG'
+  ROW pattern='KD{####}' scope='CUSTOMER'
+  ROW pattern='MA{jahr}{#####}' scope='DUNNING'
+  ROW pattern='RE{jahr}{#####}' scope='INVOICE'
+  ROW pattern='ST{jahr}{#####}' scope='CANCELLATION'
+
+TABLE number_sequence
+  COLUMN id character varying(36) NOT NULL
+  COLUMN last_value bigint NOT NULL DEFAULT 0
+  COLUMN period character varying(10) NOT NULL
+  COLUMN scope character varying(20) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (scope, period)
+
+TABLE offer_event
+  COLUMN actor character varying(100)
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN document_id character varying(36) NOT NULL
+  COLUMN event character varying(10) NOT NULL
+  COLUMN event_date character varying(10) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  PRIMARY KEY (id)
+  ck_offer_event_event CHECK (((event)::text = ANY ((ARRAY['SENT'::character varying, 'ACCEPTED'::character varying, 'REJECTED'::character varying])::text[])))
+  INDEX CREATE INDEX ix_offer_event_document ON public.offer_event USING btree (document_id)
+
+TABLE payment
+  COLUMN amount_cents bigint NOT NULL
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN document_id character varying(36) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN method character varying(20) NOT NULL
+  COLUMN note character varying(500)
+  COLUMN payment_date character varying(10) NOT NULL
+  COLUMN reference character varying(200)
+  COLUMN reverses_payment_id character varying(36)
+  FOREIGN KEY (document_id) REFERENCES document(id)
+  FOREIGN KEY (reverses_payment_id) REFERENCES payment(id)
+  PRIMARY KEY (id)
+  UNIQUE (reverses_payment_id)
+  ck_payment_amount CHECK ((((reverses_payment_id IS NULL) AND (amount_cents > 0)) OR ((reverses_payment_id IS NOT NULL) AND (amount_cents < 0))))
+  ck_payment_method CHECK (((method)::text = ANY ((ARRAY['BANK_TRANSFER'::character varying, 'CASH'::character varying, 'OTHER'::character varying])::text[])))
+  INDEX CREATE INDEX ix_payment_document ON public.payment USING btree (document_id)
+
+TABLE recurring_plan
+  COLUMN anchor_date character varying(10) NOT NULL
+  COLUMN contact_id character varying(36)
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN customer_id character varying(36) NOT NULL
+  COLUMN customer_reference character varying(200)
+  COLUMN end_date character varying(10)
+  COLUMN footer_text character varying(4000)
+  COLUMN header_text character varying(4000)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN last_error character varying(100)
+  COLUMN lead_days integer NOT NULL
+  COLUMN name character varying(200) NOT NULL
+  COLUMN next_period_index integer NOT NULL DEFAULT 0
+  COLUMN payment_days integer
+  COLUMN period_interval character varying(10) NOT NULL
+  COLUMN status character varying(10) NOT NULL
+  COLUMN subject character varying(300)
+  COLUMN total_discount_type character varying(10)
+  COLUMN total_discount_value bigint NOT NULL DEFAULT 0
+  COLUMN updated_at character varying(30) NOT NULL
+  COLUMN version integer NOT NULL DEFAULT 1
+  PRIMARY KEY (id)
+  ck_recurring_plan_discount CHECK (((total_discount_type IS NULL) OR ((total_discount_type)::text = ANY ((ARRAY['PERCENT'::character varying, 'AMOUNT'::character varying])::text[]))))
+  ck_recurring_plan_interval CHECK (((period_interval)::text = ANY ((ARRAY['MONTH'::character varying, 'TWO_MONTHS'::character varying, 'QUARTER'::character varying, 'HALF_YEAR'::character varying, 'YEAR'::character varying])::text[])))
+  ck_recurring_plan_status CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'PAUSED'::character varying, 'ENDED'::character varying])::text[])))
+  ck_recurring_plan_values CHECK (((lead_days >= 0) AND (next_period_index >= 0) AND (total_discount_value >= 0)))
+  INDEX CREATE INDEX ix_recurring_plan_status ON public.recurring_plan USING btree (status)
+
+TABLE recurring_plan_item
+  COLUMN catalog_item_id character varying(36)
+  COLUMN description character varying(2000) NOT NULL
+  COLUMN discount_bp integer NOT NULL DEFAULT 0
+  COLUMN id character varying(36) NOT NULL
+  COLUMN plan_id character varying(36) NOT NULL
+  COLUMN position integer NOT NULL
+  COLUMN quantity_thousandths bigint NOT NULL
+  COLUMN tax_category character varying(2)
+  COLUMN unit_code character varying(20)
+  COLUMN unit_price_cents bigint NOT NULL
+  FOREIGN KEY (plan_id) REFERENCES recurring_plan(id)
+  PRIMARY KEY (id)
+  INDEX CREATE INDEX ix_recurring_plan_item_plan ON public.recurring_plan_item USING btree (plan_id)
+
+TABLE recurring_run
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN document_id character varying(36)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN plan_id character varying(36) NOT NULL
+  COLUMN service_from character varying(10) NOT NULL
+  COLUMN service_to character varying(10) NOT NULL
+  COLUMN status character varying(10) NOT NULL
+  FOREIGN KEY (plan_id) REFERENCES recurring_plan(id)
+  PRIMARY KEY (id)
+  UNIQUE (plan_id, service_from)
+  ck_recurring_run_status CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'RELEASED'::character varying, 'SKIPPED'::character varying])::text[])))
+  INDEX CREATE INDEX ix_recurring_run_document ON public.recurring_run USING btree (document_id)
+  INDEX CREATE INDEX ix_recurring_run_status ON public.recurring_run USING btree (status)
+
+TABLE setup_step
+  COLUMN done_at character varying(30) NOT NULL
+  COLUMN step character varying(30) NOT NULL
+  PRIMARY KEY (step)
+
+TABLE shipping_option
+  COLUMN active integer NOT NULL DEFAULT 1
+  COLUMN amount_cents bigint NOT NULL DEFAULT 0
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN name character varying(100) NOT NULL
+  COLUMN sort_order integer NOT NULL DEFAULT 0
+  COLUMN tax_category character varying(2)
+  COLUMN tax_rate_bp integer NOT NULL DEFAULT 0
+  PRIMARY KEY (id)
+  ck_shipping_option_active CHECK ((active = ANY (ARRAY[0, 1])))
+  ck_shipping_option_amount CHECK ((amount_cents >= 0))
+  ck_shipping_option_rate CHECK (((tax_rate_bp >= 0) AND (tax_rate_bp <= 10000)))
+
+TABLE tax_category_reason
+  COLUMN category character varying(2) NOT NULL
+  COLUMN reason character varying(500) NOT NULL
+  PRIMARY KEY (category)
+
+TABLE tax_profile
+  COLUMN allowed_categories character varying(100)
+  COLUMN company_id character varying(36) NOT NULL
+  COLUMN default_category character varying(2) NOT NULL DEFAULT 'E'::character varying
+  COLUMN default_rate_bp integer NOT NULL DEFAULT 0
+  COLUMN exemption_text character varying(500)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN notice_text character varying(500)
+  COLUMN regime character varying(20) NOT NULL
+  COLUMN valid_from character varying(10) NOT NULL
+  COLUMN valid_to character varying(10)
+  FOREIGN KEY (company_id) REFERENCES company(id)
+  PRIMARY KEY (id)
+
+TABLE text_template
+  COLUMN body character varying(4000) NOT NULL
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN is_default integer NOT NULL DEFAULT 0
+  COLUMN kind character varying(10) NOT NULL
+  COLUMN name character varying(100) NOT NULL
+  COLUMN scope character varying(20) NOT NULL
+  PRIMARY KEY (id)
+  ck_text_template_kind CHECK (((kind)::text = ANY ((ARRAY['HEADER'::character varying, 'FOOTER'::character varying])::text[])))
+  ck_text_template_scope CHECK (((scope)::text = ANY ((ARRAY['INVOICE'::character varying, 'OFFER'::character varying, 'DUNNING'::character varying])::text[])))
+  INDEX CREATE UNIQUE INDEX uq_text_template_default ON public.text_template USING btree (scope, kind) WHERE (is_default = 1)
+  ROW body='Ich bedanke mich für die gute Zusammenarbeit und würde mich freuen, wenn Sie mich bei Ihren nächsten Aufträgen erneut ansprechen.\n\nBitte überweisen Sie den Betrag in Höhe von {betrag} unter Angabe der Rechnungsnummer {rechnungsnummer} auf das Konto\n\n{firma_iban} bei der {firma_bank}, BIC {firma_bic}, Kontoinhaber {firma_kontoinhaber}.\n\nZahlbar innerhalb von {zahlungsziel} Tagen (spätestens bis zum {faelligkeit}) ohne Abzug.\n\nSofern nicht anders angegeben entspricht das Liefer-/Leistungsdatum dem Rechnungsdatum.' created_at='2026-10-21T00:00:00Z' id='10000000-0000-0000-0000-000000000002' is_default='1' kind='FOOTER' name='Standard' scope='INVOICE'
+  ROW body='{anrede}\n\nich erlaube mir, für die erbrachten Leistungen folgendes in Rechnung zu stellen:' created_at='2026-10-21T00:00:00Z' id='10000000-0000-0000-0000-000000000001' is_default='1' kind='HEADER' name='Standard' scope='INVOICE'
+
+TABLE unit
+  COLUMN code character varying(20) NOT NULL
+  COLUMN id character varying(36) NOT NULL
+  COLUMN name character varying(100) NOT NULL
+  COLUMN name_plural character varying(100)
+  COLUMN unece_code character varying(5) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (code)
+  ROW code='Mon' id='00000000-0000-0000-0000-000000000003' name='Monat' name_plural='Monate' unece_code='MON'
+  ROW code='Psch' id='00000000-0000-0000-0000-000000000004' name='Pauschale' name_plural='Pauschalen' unece_code='LS'
+  ROW code='Std' id='00000000-0000-0000-0000-000000000001' name='Stunde' name_plural='Stunden' unece_code='HUR'
+  ROW code='Stk' id='00000000-0000-0000-0000-000000000002' name='Stück' name_plural='Stück' unece_code='H87'
+  ROW code='Tag' id='00000000-0000-0000-0000-000000000005' name='Tag' name_plural='Tage' unece_code='DAY'
+

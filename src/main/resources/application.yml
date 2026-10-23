@@ -1,0 +1,195 @@
+spring:
+  application:
+    name: faktura
+  docker:
+    compose:
+      # only the profile dev starts a compose file (see application-dev.yml)
+      enabled: false
+  datasource:
+    # SQLite by default; PostgreSQL via DB_URL (jdbc:postgresql://...), DB_USER and DB_PASSWORD. The driver follows the URL.
+    url: ${DB_URL:jdbc:sqlite:./data/faktura.db}
+    username: ${DB_USER:}
+    password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:1}   # SQLite: single writer; increase for PostgreSQL
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  web:
+    locale: de
+    locale-resolver: fixed
+  messages:
+    fallback-to-system-locale: false
+  # SMTP server for sending documents. The host stays empty by default: without it no mail sender exists and the
+  # send function is disabled. Credentials only come from the environment.
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_AUTH:true}
+          starttls:
+            enable: ${MAIL_STARTTLS:true}
+            # no silent fall back to an unencrypted connection (credentials and PDFs would travel in plain text)
+            required: ${MAIL_STARTTLS:true}
+          ssl:
+            enable: ${MAIL_SSL:false}
+            checkserveridentity: true
+          connectiontimeout: 10000
+          timeout: 20000
+          writetimeout: 20000
+server:
+  port: ${SERVER_PORT:8090}
+  servlet:
+    session:
+      # the session exists in mode FORM only; set the cookie secure (SERVER_SERVLET_SESSION_COOKIE_SECURE=true) behind TLS
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
+  # The application runs behind a reverse proxy (Pangolin): take scheme and host from the X-Forwarded-* headers
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
+
+# Only the health endpoint is reachable, without details (used by the container health check)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    # an unreachable mail server must not turn the container health check red
+    mail:
+      enabled: false
+
+# Defaults for new tax profiles. They are copied into the profile (tax_profile) and can differ per profile afterwards.
+faktura:
+  security:
+    # NONE (protected by the reverse proxy), FORM (sign-in page) PROXY_HEADER (username from a header of the proxy) or
+    # PROXY_HEADER_ADMIN_FORM (proxy header for everybody, the administrator signs in with a password: "admin mode")
+    mode: ${SECURITY_MODE:NONE}
+    header: ${SECURITY_HEADER:X-Forwarded-User}
+    # optional header with the display name (Pangolin: Remote-Name); empty = not used
+    name-header: ${SECURITY_NAME_HEADER:}
+    # addresses or CIDR ranges that may set that header; behind Docker this is the address of the proxy, not 127.0.0.1
+    trusted-proxies: ${SECURITY_TRUSTED_PROXIES:127.0.0.1/32,::1/128}
+    # style-src: the hash lets the preview frame of a mail (srcdoc inherits this policy) use the style element of the mail
+    # (MailRenderer.STYLE); MailStyleHashTest fails when the two drift apart
+    csp: "default-src 'self'; script-src 'self'; style-src 'self' 'sha256-R2Lb5WkYlHGbNVwwdgttKxfTUR2qS1poGhHDvryo+YI='; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'"
+    min-password-length: 12
+    max-failures: 5
+    lock-duration: 15m
+    # a visit through the proxy header updates the time of the last sign-in only after this long since the last one
+    proxy-login-interval: 30m
+    admin-user: ${SECURITY_ADMIN_USER:}
+    admin-password: ${SECURITY_ADMIN_PASSWORD:}
+  tax:
+    # EN 16931 categories that are taxed with the rate of the tax profile; all others are taxed with 0 %
+    rated-categories: [S, L, M]
+    # Reasons printed in the e-invoice for categories without tax. The keys are the categories that need a reason;
+    # the user can override the texts in the application. Check them against your tax situation.
+    category-reasons:
+      E: Steuerfreie Leistung
+      AE: Steuerschuldnerschaft des Leistungsempfängers (Reverse Charge, § 13b UStG)
+      K: Steuerfreie innergemeinschaftliche Lieferung (§ 4 Nr. 1b UStG)
+      G: Steuerfreie Ausfuhrlieferung (§ 4 Nr. 1a UStG)
+      O: Nicht steuerbar
+    small-business:
+      rate-bp: 0
+      category: E
+      exemption-text: Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.
+      notice-text:
+      # categories allowed on items; empty allows all
+      allowed-categories: [E]
+    regular:
+      rate-bp: 1900
+      category: S
+      exemption-text:
+      notice-text:
+      allowed-categories:
+
+  # Electronic invoice (ZUGFeRD). Fallbacks are used when master data lacks a value.
+  einvoice:
+    default-country: ${EINVOICE_DEFAULT_COUNTRY:DE}
+    default-unit-code: ${EINVOICE_DEFAULT_UNIT_CODE:H87}
+    # text that names a discount in the XML (item and total discount)
+    discount-reason: ${EINVOICE_DISCOUNT_REASON:Rabatt}
+
+  # Salutation lines for the {anrede} placeholder; {0} is the name
+  text:
+    salutation-mr: Sehr geehrter Herr {0},
+    salutation-ms: Sehr geehrte Frau {0},
+    salutation-named: Guten Tag {0},
+    salutation-generic: Sehr geehrte Damen und Herren,
+
+  # Sending documents by mail. Only on explicit action of the user, never automatically.
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    # sender address; empty: the e-mail address of the company
+    from: ${MAIL_FROM:}
+    reply-to: ${MAIL_REPLY_TO:}
+    # optional blind copy of every mail to the operator
+    bcc: ${MAIL_BCC:}
+    # larger attachments are not sent (many servers refuse mails above 10 to 25 MB)
+    max-attachment-bytes: ${MAIL_MAX_ATTACHMENT_BYTES:10485760}
+
+  # Address of the application as the operator reaches it, for the link in the notification mail. Empty: no link.
+  base-url: ${BASE_URL:}
+
+  # Daily notification mail to the operator (never to customers). Which categories are reported, to whom and at what
+  # time is set in the application (Einstellungen, Benachrichtigungen); every category is off until switched on.
+  offer:
+    # an open or sent offer counts as expiring soon (home page tile, notification mail) when it ends within this many days
+    expiring-days: 7
+  notification:
+    enabled: ${NOTIFICATION_ENABLED:true}
+    # how often the scheduler checks whether the mail is due
+    poll-interval: ${NOTIFICATION_POLL_INTERVAL:PT5M}
+    # time of day when no other was chosen
+    default-send-time: "08:00"
+    # wait after a failed mail before the scheduler tries again
+    retry-delay: PT1H
+    # failed runs in a row after which the automatic run pauses
+    max-failures: 5
+    # most items per category in one mail; the rest follows in a later mail
+    max-list-rows: 20
+
+  # Archive of finalized documents (PDF, XML). Part of the backup together with the database.
+  archive:
+    path: ${ARCHIVE_PATH:./data/archive}
+    # Optional second directory for finalized PDFs (flat, e.g. a folder watched by ecoDMS); empty: off.
+    # The archive stays the source of truth, the export folder is a copy and not a backup.
+    export-path: ${EXPORT_PATH:}
+    # Retry of copies that failed or were missed (only with an export path)
+    export-retry-cron: ${EXPORT_RETRY_CRON:0 45 5 * * *}
+
+  # Backup of database and archive. The nightly job is off by default; run it from the command line or switch it on.
+  backup:
+    enabled: ${BACKUP_ENABLED:false}
+    cron: ${BACKUP_CRON:0 30 2 * * *}
+    path: ${BACKUP_PATH:./data/backup}
+    # database dumps (and manifests) to keep; the archive mirror is never deleted from
+    keep-count: ${BACKUP_KEEP_COUNT:14}
+    verify: true
+
+  # PDF rendering. Texts here are defaults for the printed document; labels live in messages_de.properties.
+  render:
+    # Logo file (PNG, JPEG or GIF); empty: the placeholder logo shipped with the application
+    logo-path: ${LOGO_PATH:}
+    side-text: Ich bedanke mich für Ihren Auftrag
+    cancellation-text: Hiermit storniere ich die Rechnung {0} vom {1}.
+
+  # Recurring invoices (Wiedervorlagen). The daily job only creates drafts; it never finalizes or sends anything.
+  recurring:
+    enabled: ${RECURRING_ENABLED:true}
+    # Spring cron: second minute hour day month weekday
+    cron: ${RECURRING_CRON:0 15 5 * * *}
+    # A missed period is still billed up to this many days after its start; older ones are recorded as skipped
+    catch-up-days: 31
+    # Lead time proposed for a new plan (each plan stores its own)
+    default-lead-days: 14

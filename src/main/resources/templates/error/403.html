@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, '')}">
+<head>
+  <title th:text="#{error.forbidden.title} + ' – Faktura'">Nicht erlaubt</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{error.forbidden.title}">Nicht erlaubt</h1>
+  <p class="lead" th:text="#{error.forbidden.text}">Die Sitzung ist abgelaufen oder die Anfrage ist nicht erlaubt.</p>
+  <p><a class="button" th:href="@{/}" th:text="#{error.forbidden.home}">Zur Startseite</a></p>
+</main>
+</body>
+</html>

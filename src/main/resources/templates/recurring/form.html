@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'recurring')}">
+<head>
+  <title th:text="#{recurring.title} + ' – Faktura'">Wiedervorlagen</title>
+</head>
+<body>
+<main class="wide">
+  <p class="lead"><a th:href="@{/recurring}" th:text="#{recurring.back}">Zurück zu den Wiedervorlagen</a></p>
+  <h1 th:text="${plan == null} ? #{recurring.newTitle} : #{recurring.editTitle}">Neue Wiedervorlage</h1>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <p class="hint" th:if="${plan != null}" th:text="#{recurring.changeHint}">Änderungen gelten nur für künftige Entwürfe.</p>
+  <div class="field-error" role="alert" th:if="${plan != null and plan.lastError != null}"
+       th:text="#{${plan.lastError}}">Fehler</div>
+
+  <form id="plan-form" method="post" th:action="${plan == null} ? @{/recurring} : @{/recurring/{id}(id=${plan.id})}">
+    <input type="hidden" name="version" th:value="${planForm.version}">
+    <section class="card">
+      <h2 th:text="#{recurring.settings}">Plan</h2>
+      <div class="form-section">
+        <div class="form-grid">
+          <div class="field">
+            <label for="name" th:text="#{recurring.name}">Name</label>
+            <input type="text" id="name" name="name" maxlength="200" th:value="${planForm.name}">
+            <span class="field-error" th:errors="${planForm.name}"></span>
+          </div>
+          <div class="field">
+            <label for="status" th:text="#{list.status}">Status</label>
+            <select id="status" name="status">
+              <option th:each="status : ${statuses}" th:value="${status}" th:selected="${status == planForm.status}"
+                      th:text="#{'recurring.status.' + ${status}}">Aktiv</option>
+            </select>
+            <span class="field-error" th:errors="${planForm.status}"></span>
+          </div>
+          <div class="field wide">
+            <label for="subject" th:text="#{recurring.subject}">Interne Bezeichnung der Rechnung</label>
+            <input type="text" id="subject" name="subject" maxlength="300" th:value="${planForm.subject}">
+            <span class="hint" th:text="#{recurring.subject.hint}">Leer: Name des Plans. Der Zeitraum wird angehängt.</span>
+            <span class="field-error" th:errors="${planForm.subject}"></span>
+          </div>
+        </div>
+      </div>
+      <fieldset class="form-section">
+        <legend th:text="#{recurring.section.customer}">Kunde</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="customerId" th:text="#{invoice.customer}">Kunde</label>
+            <select id="customerId" name="customerId" th:hx-get="@{/invoices/contact-field}" hx-trigger="change"
+                    hx-target="#contact-field" hx-swap="outerHTML" hx-include="this">
+              <option value="" th:text="#{invoice.customer.choose}">Bitte wählen</option>
+              <option th:each="customer : ${customers}" th:value="${customer.id}"
+                      th:selected="${customer.id == planForm.customerId}"
+                      th:text="${customer.name} + ' (' + ${customer.number} + ')'">Muster GmbH (KD0001)</option>
+            </select>
+            <span class="field-error" th:errors="${planForm.customerId}"></span>
+          </div>
+          <div th:replace="~{invoice/fragments :: contactField}"></div>
+        </div>
+      </fieldset>
+      <fieldset class="form-section">
+        <legend th:text="#{recurring.section.period}">Zeitraum</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="interval" th:text="#{recurring.interval}">Intervall</label>
+            <select id="interval" name="interval" th:hx-post="@{/recurring/preview}" hx-trigger="change"
+                    hx-include="#interval, #anchorDate, #endDate" hx-target="#period-preview" hx-swap="outerHTML">
+              <option th:each="interval : ${intervals}" th:value="${interval}" th:selected="${interval == planForm.interval}"
+                      th:text="#{'recurring.interval.' + ${interval}}">Quartal</option>
+            </select>
+            <span class="field-error" th:errors="${planForm.interval}"></span>
+          </div>
+          <div class="field">
+            <label for="anchorDate" th:text="#{recurring.anchorDate}">Ankerdatum (Beginn des ersten Zeitraums)</label>
+            <input type="date" id="anchorDate" name="anchorDate" th:value="${planForm.anchorDate}"
+                   th:hx-post="@{/recurring/preview}" hx-trigger="change"
+                   hx-include="#interval, #anchorDate, #endDate" hx-target="#period-preview" hx-swap="outerHTML">
+            <span class="field-error" th:errors="${planForm.anchorDate}"></span>
+          </div>
+          <div class="field">
+            <label for="endDate" th:text="#{recurring.endDate}">Letzter Beginn eines Zeitraums</label>
+            <input type="date" id="endDate" name="endDate" th:value="${planForm.endDate}"
+                   th:hx-post="@{/recurring/preview}" hx-trigger="change"
+                   hx-include="#interval, #anchorDate, #endDate" hx-target="#period-preview" hx-swap="outerHTML">
+            <span class="hint" th:text="#{recurring.endDate.hint}">Leer: läuft unbegrenzt.</span>
+            <span class="field-error" th:errors="${planForm.endDate}"></span>
+          </div>
+          <div class="field">
+            <label for="leadDays" th:text="#{recurring.leadDays}">Vorlaufzeit (Tage)</label>
+            <input type="text" id="leadDays" name="leadDays" inputmode="numeric" th:value="${planForm.leadDays}">
+            <span class="hint" th:text="#{recurring.leadDays.hint}">So viele Tage vor Beginn entsteht der Entwurf.</span>
+            <span class="field-error" th:errors="${planForm.leadDays}"></span>
+          </div>
+        </div>
+        <div th:replace="~{recurring/fragments :: preview}"></div>
+      </fieldset>
+      <fieldset class="form-section">
+        <legend th:text="#{recurring.section.invoice}">Rechnung</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="customerReference" th:text="#{recurring.customerReference}">Standard-Kundenreferenz</label>
+            <input type="text" id="customerReference" name="customerReference" maxlength="200"
+                   th:value="${planForm.customerReference}">
+            <span class="hint" th:text="#{recurring.customerReference.hint}">Optional.</span>
+            <span class="field-error" th:errors="${planForm.customerReference}"></span>
+          </div>
+          <div class="field own-row">
+            <label for="paymentDays" th:text="#{invoice.paymentDays}">Zahlungsziel (Tage)</label>
+            <input type="text" id="paymentDays" name="paymentDays" inputmode="numeric" th:value="${planForm.paymentDays}">
+            <span class="hint" th:text="#{invoice.paymentDays.hint}">leer = Standard</span>
+            <span class="field-error" th:errors="${planForm.paymentDays}"></span>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <section class="card">
+      <h2 th:text="#{invoice.items}">Positionen</h2>
+      <div th:replace="~{recurring/fragments :: items}"></div>
+      <div class="actions add-row">
+        <button type="button" th:if="${catalogChoices.matches > 0}" data-open-dialog="catalog-dialog" aria-keyshortcuts="Alt+K"
+                th:title="#{invoice.item.catalogShortcut}" th:text="#{invoice.item.addCatalog}">Aus Katalog einfügen</button>
+        <button type="button" class="link" th:hx-post="@{/recurring/items/add}" hx-include="#plan-form"
+                hx-target="#items" hx-swap="outerHTML" th:text="#{invoice.item.addFreeText}">Freitext-Position einfügen</button>
+      </div>
+      <dialog id="catalog-dialog" class="catalog-dialog" aria-labelledby="catalog-dialog-title"
+              th:attr="data-added=#{invoice.item.catalogAdded}" th:if="${catalogChoices.matches > 0}">
+        <div class="catalog-dialog-body">
+          <div class="catalog-dialog-head">
+            <h2 id="catalog-dialog-title" th:text="#{invoice.item.catalogTitle}">Leistung einfügen</h2>
+            <button type="button" class="link" data-close-dialog th:text="#{dialog.close}">Schließen</button>
+          </div>
+          <label for="catalog-query" class="visually-hidden" th:text="#{invoice.item.catalogSearch}">Leistung suchen</label>
+          <input type="search" id="catalog-query" name="catalogQuery" autocomplete="off" data-catalog-search
+                 th:placeholder="#{invoice.item.catalogSearch}"
+                 th:hx-post="@{/recurring/catalog/search}" hx-trigger="input changed delay:200ms, search"
+                 hx-include="closest form" hx-target="#catalog-results" hx-swap="outerHTML">
+          <p class="hint" th:text="#{invoice.item.catalogKeys}">Mit den Pfeiltasten wählen, Enter fügt ein.</p>
+          <p class="hint catalog-added" id="catalog-added" aria-live="polite"></p>
+          <div class="catalog-scroll">
+            <div th:replace="~{fragments/catalog-results :: results(false)}"></div>
+          </div>
+        </div>
+      </dialog>
+      <div class="discount-row">
+        <label for="discountValue" th:text="#{invoice.totalDiscount}">Gesamtrabatt</label>
+        <input type="text" id="discountValue" name="discountValue" inputmode="decimal" class="num"
+               th:value="${planForm.discountValue}">
+        <select name="discountType" th:attr="aria-label=#{invoice.discountType}">
+          <option value="PERCENT" th:selected="${planForm.discountType != 'AMOUNT'}" th:text="#{invoice.discountType.percent}">Prozent</option>
+          <option value="AMOUNT" th:selected="${planForm.discountType == 'AMOUNT'}" th:text="#{invoice.discountType.amount}">Betrag in €</option>
+        </select>
+      </div>
+      <p class="hint" th:text="#{invoice.totalDiscount.hint}">leer = Rabatt des Kunden</p>
+      <span class="field-error" th:errors="${planForm.discountValue}"></span>
+      <p class="hint" th:text="#{recurring.taxHint}">Steuersatz und Kategorie kommen aus dem Steuerprofil des Zeitraums.</p>
+    </section>
+
+    <details class="card collapsible" th:attr="open=${error == 'text.error.unknownPlaceholder'} ? 'open' : null">
+      <summary>
+        <h2 th:text="#{invoice.texts}">Texte</h2>
+        <span class="hint" th:text="#{invoice.texts.summary}">Kopf- und Fußtext, vorbelegt mit dem Standard.</span>
+      </summary>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="headerText" th:text="#{invoice.headerText}">Kopftext</label>
+          <textarea id="headerText" name="headerText" rows="8" maxlength="4000" th:text="${planForm.headerText}"></textarea>
+          <span class="field-error" th:errors="${planForm.headerText}"></span>
+        </div>
+        <div class="field wide">
+          <label for="footerText" th:text="#{invoice.footerText}">Fußtext</label>
+          <textarea id="footerText" name="footerText" rows="14" maxlength="4000" th:text="${planForm.footerText}"></textarea>
+          <span class="field-error" th:errors="${planForm.footerText}"></span>
+        </div>
+      </div>
+      <div th:replace="~{fragments/format-help :: help}"></div>
+      <p class="hint" th:text="#{invoice.texts.hint}">Platzhalter werden beim Finalisieren ersetzt.</p>
+    </details>
+
+    <div class="actions form-end">
+      <button type="submit" th:text="#{recurring.save}">Speichern</button>
+    </div>
+  </form>
+</main>
+</body>
+</html>

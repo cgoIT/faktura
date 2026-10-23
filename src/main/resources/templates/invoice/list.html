@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'invoices')}">
+<head>
+  <title th:text="#{invoice.title} + ' – Faktura'">Rechnungen</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{invoice.title}">Rechnungen</h1>
+  <p class="lead" th:text="#{invoice.lead}">Entwürfe und Rechnungen</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <form class="toolbar" method="get" th:action="@{/invoices}" th:attr="hx-get=@{/invoices}"
+          hx-target="#invoice-rows" hx-swap="outerHTML" hx-trigger="input changed delay:300ms from:#q, change from:#status, submit"
+          hx-push-url="false">
+      <label class="visually-hidden" for="q" th:text="#{list.search}">Suchen</label>
+      <input type="search" id="q" name="q" th:value="${q}" th:placeholder="#{invoice.search}" autocomplete="off">
+      <label class="visually-hidden" for="status" th:text="#{list.status}">Status</label>
+      <select id="status" name="status">
+        <option value="all" th:selected="${status == 'all'}" th:text="#{invoice.status.all}">Alle</option>
+        <option value="draft" th:selected="${status == 'draft'}" th:text="#{invoice.status.DRAFT}">Entwurf</option>
+        <option value="final" th:selected="${status == 'final'}" th:text="#{invoice.status.FINAL}">Finalisiert</option>
+        <option value="cancelled" th:selected="${status == 'cancelled'}" th:text="#{invoice.status.CANCELLED}">Storniert</option>
+        <option value="open" th:selected="${status == 'open'}" th:text="#{invoice.filter.open}">Offen</option>
+        <option value="partial" th:selected="${status == 'partial'}" th:text="#{payment.state.PARTIALLY_PAID}">Teilbezahlt</option>
+        <option value="paid" th:selected="${status == 'paid'}" th:text="#{payment.state.PAID}">Bezahlt</option>
+        <option value="overdue" th:selected="${status == 'overdue'}" th:text="#{invoice.filter.overdue}">Überfällig</option>
+        <option value="suggested" th:selected="${status == 'suggested'}" th:text="#{invoice.filter.suggested}">Mahnung vorgeschlagen</option>
+      </select>
+      <button type="submit" class="secondary" th:text="#{list.searchButton}">Suchen</button>
+      <a class="button" th:href="@{/invoices/new}" th:text="#{invoice.new}">Neue Rechnung</a>
+    </form>
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{invoice.number}">Nummer</th>
+          <th th:text="#{invoice.customer}">Kunde</th>
+          <th th:text="#{invoice.subject}">Betreff</th>
+          <th th:text="#{invoice.issueDate}">Datum</th>
+          <th th:text="#{invoice.dueDate}">Fällig</th>
+          <th class="num" th:text="#{invoice.amount}">Betrag</th>
+          <th class="num" th:text="#{payment.open}">Offen</th>
+          <th th:text="#{list.status}">Status</th>
+        </tr>
+        </thead>
+        <tbody id="invoice-rows" th:fragment="rows">
+        <tr th:each="row : ${invoices}">
+          <td class="mono"><a th:href="@{/invoices/{id}(id=${row.id})}"
+                              th:text="${row.number != null} ? ${row.number} : #{invoice.status.DRAFT}"
+                              th:attr="title=${row.customerName}">RE202600001</a></td>
+          <td th:text="${row.customerName}">Muster GmbH</td>
+          <td th:text="${row.subject} ?: '—'">Wartung Webseite</td>
+          <td th:text="${#temporals.format(row.issueDate, 'dd.MM.yyyy')}">20.10.2026</td>
+          <td th:text="${row.dueDate != null and row.status.name() != 'DRAFT'} ? ${#temporals.format(row.dueDate, 'dd.MM.yyyy')} : '—'">—</td>
+          <td class="num" th:text="${@money.format(row.grossTotalCents)}">485,45 €</td>
+          <td class="num" th:text="${row.balance != null and row.balance.state.name() != 'CANCELLED'} ? ${@money.format(row.balance.openCents)} : '—'">0,00 €</td>
+          <td><span class="badge" th:classappend="${row.status.name() != 'DRAFT'} ? 'current'"
+                    th:text="#{'invoice.status.' + ${row.status}}">Entwurf</span>
+            <span class="badge" th:if="${row.balance != null and row.balance.state.name() == 'PAID'}" th:text="#{payment.state.PAID}">Bezahlt</span>
+            <span class="badge" th:if="${row.balance != null and row.balance.state.name() == 'PARTIALLY_PAID'}" th:text="#{payment.state.PARTIALLY_PAID}">Teilbezahlt</span>
+            <span class="badge overdue" th:if="${row.balance != null and row.balance.overdue}"
+                  th:text="#{payment.overdueDays(${row.balance.daysOverdue})}">Überfällig</span>
+            <span class="badge suggested" th:if="${row.dunningSuggested}" th:text="#{invoice.dunningSuggested}">Mahnung vorgeschlagen</span></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(invoices)}"><td colspan="8" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="hint" th:text="#{invoice.list.hint}">Entwürfe haben noch keine Nummer.</p>
+</main>
+</body>
+</html>

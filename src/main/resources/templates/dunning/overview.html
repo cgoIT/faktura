@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'dunning')}">
+<head>
+  <title th:text="#{dunning.title} + ' – Faktura'">Mahnwesen</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{dunning.title}">Mahnwesen</h1>
+  <p class="lead" th:text="#{dunning.lead}">Vorschläge für überfällige Rechnungen.</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+
+  <section class="card">
+    <h2 th:text="#{dunning.suggestions}">Vorgeschlagene Mahnungen</h2>
+    <p class="hint" th:if="${#lists.isEmpty(suggestions)}" th:text="#{dunning.suggestions.none}">Keine Mahnung fällig.</p>
+    <div class="table-scroll" th:unless="${#lists.isEmpty(suggestions)}">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{invoice.number}">Nummer</th>
+          <th th:text="#{invoice.customer}">Kunde</th>
+          <th th:text="#{invoice.dueDate}">Fällig</th>
+          <th class="num" th:text="#{dunning.daysOverdue}">Tage überfällig</th>
+          <th th:text="#{dunning.level}">Stufe</th>
+          <th class="num" th:text="#{payment.open}">Offen</th>
+          <th class="num" th:text="#{dunning.fee}">Gebühr</th>
+          <th class="num" th:text="#{dunning.interest}">Zinsen</th>
+          <th class="num" th:text="#{dunning.total}">Forderung</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${suggestions}">
+          <td class="mono"><a th:href="@{/invoices/{id}(id=${row.invoiceId})}" th:text="${row.invoiceNumber}">RE202600001</a></td>
+          <td th:text="${row.customerName}">Muster GmbH</td>
+          <td th:text="${#temporals.format(row.dueDate, 'dd.MM.yyyy')}">03.11.2026</td>
+          <td class="num" th:text="${row.daysOverdue}">12</td>
+          <td th:text="${row.level.name}">Zahlungserinnerung</td>
+          <td class="num" th:text="${@money.format(row.amounts.openCents)}">0,00 €</td>
+          <td class="num" th:text="${row.amounts.feeCents != 0} ? ${@money.format(row.amounts.feeCents)} : '—'">—</td>
+          <td class="num" th:text="${row.amounts.interestCents != 0} ? ${@money.format(row.amounts.interestCents)} : '—'">—</td>
+          <td class="num" th:text="${@money.format(row.amounts.totalCents)}">0,00 €</td>
+          <td class="row-actions">
+            <a class="button secondary" target="_blank"
+               th:href="@{/dunning/preview.pdf(invoiceId=${row.invoiceId},levelId=${row.level.id})}"
+               th:text="#{dunning.preview}">Vorschau</a>
+            <button type="button" th:attr="hx-get=@{/dunning/confirm(invoiceId=${row.invoiceId},levelId=${row.level.id})}"
+                    hx-target="#dunning-dialog" hx-swap="innerHTML" th:text="#{dunning.create}">Mahnung erstellen</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 th:text="#{dunning.created}">Erstellte Mahnungen</h2>
+    <p class="toolbar">
+      <a class="button secondary" th:classappend="${!onlyOpen} ? 'active'" th:href="@{/dunning}"
+         th:attr="aria-current=${!onlyOpen} ? 'true' : null" th:text="#{dunning.show.all}">Alle</a>
+      <a class="button secondary" th:classappend="${onlyOpen} ? 'active'" th:href="@{/dunning(show='open')}"
+         th:attr="aria-current=${onlyOpen} ? 'true' : null" th:text="#{dunning.show.open}">Nur offene</a>
+    </p>
+    <p class="hint" th:if="${#lists.isEmpty(letters)}" th:text="#{dunning.created.none}">Noch keine Mahnung erstellt.</p>
+    <div class="table-scroll" th:unless="${#lists.isEmpty(letters)}">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{dunning.number}">Mahnnummer</th>
+          <th th:text="#{dunning.level}">Stufe</th>
+          <th th:text="#{invoice.number}">Rechnung</th>
+          <th th:text="#{invoice.customer}">Kunde</th>
+          <th th:text="#{payment.date}">Datum</th>
+          <th class="num" th:text="#{dunning.total}">Forderung</th>
+          <th th:text="#{dunning.newDueDate}">Neue Frist</th>
+          <th th:text="#{dunning.invoiceState}">Rechnung</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${letters}" th:classappend="${row.settled} ? 'settled'">
+          <td class="mono" th:text="${row.dunning.number}">MA202600001</td>
+          <td th:text="${row.dunning.levelName}">1. Mahnung</td>
+          <td class="mono"><a th:href="@{/invoices/{id}(id=${row.dunning.invoiceId})}" th:text="${row.invoiceNumber}">RE202600001</a></td>
+          <td th:text="${row.customerName}">Muster GmbH</td>
+          <td th:text="${#temporals.format(row.dunning.date, 'dd.MM.yyyy')}">20.10.2026</td>
+          <td class="num" th:text="${@money.format(row.dunning.totalCents)}">0,00 €</td>
+          <td th:text="${#temporals.format(row.dunning.newDueDate, 'dd.MM.yyyy')}">27.10.2026</td>
+          <td th:replace="~{dunning/state :: badge(${row.balance})}"></td>
+          <td><a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
+                 th:text="#{invoice.pdf}">PDF öffnen</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" th:text="#{dunning.hint}">Die Mahnungen werden nicht automatisch versendet.</p>
+  </section>
+  <dialog id="dunning-dialog" class="review-dialog" data-htmx-dialog aria-labelledby="dunning-title"></dialog>
+</main>
+</body>
+</html>

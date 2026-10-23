@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Collapsed by default: the markup rules and the placeholders that document texts may contain. -->
+<details class="collapsible format-info" th:fragment="info(placeholders)">
+  <summary th:text="#{format.info.title}">Informationen zu Formatierung und Platzhaltern</summary>
+  <div th:replace="~{fragments/format-help :: help}"></div>
+  <p class="hint"><strong th:text="#{text.placeholders}">Platzhalter:</strong></p>
+  <ul class="placeholder-list">
+    <li th:each="placeholder : ${placeholders}">
+      <code th:text="'{' + ${placeholder.key()} + '}'">{anrede}</code>
+      <span th:text="#{'text.placeholder.' + ${placeholder.key()}}">Anrede</span>
+    </li>
+  </ul>
+</details>
+</body>
+</html>

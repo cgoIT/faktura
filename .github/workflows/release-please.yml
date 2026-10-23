@@ -1,0 +1,39 @@
+name: Release
+
+# Release Please keeps a release pull request open, derived from the Conventional Commits on main.
+# Merging that pull request creates the tag and the GitHub release; the image is then built and published by the
+# job below. (A release created with GITHUB_TOKEN does not trigger other workflows, hence the direct call.)
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish-image:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}

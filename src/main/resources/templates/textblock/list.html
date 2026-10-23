@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{text.title} + ' – Faktura'">Textvorlagen</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{text.lead}">Kopf- und Fußtexte für Belege.</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('texts')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div class="toolbar">
+    <a class="button" th:href="@{/text-templates/new}" th:text="#{text.new}">Neue Textvorlage</a>
+  </div>
+
+  <section class="card" th:each="group : ${ {'HEADER', 'FOOTER'} }">
+    <h2 th:text="#{'text.group.' + ${group}}">Kopftexte</h2>
+    <div th:replace="~{textblock/table :: table(${group == 'HEADER'} ? ${headers} : ${footers})}"></div>
+  </section>
+</main>
+</body>
+</html>

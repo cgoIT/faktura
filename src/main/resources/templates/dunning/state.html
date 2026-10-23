@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Payment state of the invoice behind a dunning letter, as a badge with the open amount where it matters. */-->
+<span th:fragment="badge(balance)" th:if="${balance != null}">
+  <span class="badge" th:classappend="${balance.state.name() == 'PAID'} ? 'current'"
+        th:text="#{'payment.state.' + ${balance.state}}">Offen</span>
+  <span class="badge overdue" th:if="${balance.overdue}" th:text="#{payment.overdueDays(${balance.daysOverdue})}">Überfällig</span>
+  <span class="hint" th:if="${balance.state.name() == 'PARTIALLY_PAID' or balance.state.name() == 'OPEN'}"
+        th:text="#{dunning.stillOpen(${@money.format(balance.openCents)})}">noch 15,00 € offen</span>
+</span>
+</body>
+</html>

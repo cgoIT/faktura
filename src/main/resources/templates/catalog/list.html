@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'catalog')}">
+<head>
+  <title th:text="#{catalog.title} + ' – Faktura'">Leistungskatalog</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{catalog.title}">Leistungskatalog</h1>
+  <p class="lead" th:text="#{catalog.lead}">Vorlagen für Positionen</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <form class="toolbar" method="get" th:action="@{/catalog}" hx-target="#catalog-rows" hx-swap="outerHTML"
+          hx-trigger="input changed delay:300ms from:#q, change from:#status, submit" hx-push-url="false"
+          th:attr="hx-get=@{/catalog}">
+      <label class="visually-hidden" for="q" th:text="#{list.search}">Suchen</label>
+      <input type="search" id="q" name="q" th:value="${q}" th:placeholder="#{list.search}" autocomplete="off">
+      <label class="visually-hidden" for="status" th:text="#{list.status}">Status</label>
+      <select id="status" name="status">
+        <option value="active" th:selected="${status == 'active'}" th:text="#{catalog.status.active}">Aktive</option>
+        <option value="all" th:selected="${status == 'all'}" th:text="#{catalog.status.all}">Alle</option>
+      </select>
+      <button type="submit" class="secondary" th:text="#{list.searchButton}">Suchen</button>
+      <a class="button" th:href="@{/catalog/new}" th:text="#{catalog.new}">Neue Leistung</a>
+    </form>
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{catalog.number}">Nummer</th>
+          <th th:text="#{catalog.name}">Bezeichnung</th>
+          <th th:text="#{catalog.unit}">Einheit</th>
+          <th class="num" th:text="#{catalog.price}">Preis netto</th>
+          <th th:text="#{catalog.taxCategory}">Steuer</th>
+          <th th:text="#{list.status}">Status</th>
+        </tr>
+        </thead>
+        <tbody id="catalog-rows" th:fragment="rows">
+        <tr th:each="item : ${items}">
+          <td class="mono" th:text="${item.number}">ART0001</td>
+          <td><a th:href="@{/catalog/{id}(id=${item.id})}" th:text="${item.name}">Webentwicklung</a></td>
+          <td th:text="${item.unitName}">Stunde</td>
+          <td class="num" th:text="${@money.format(item.unitPriceCents)}">85,00 €</td>
+          <td th:text="${item.taxCategory != null} ? ${item.taxCategory} + ' – ' + #{'tax.category.' + ${item.taxCategory}} : #{catalog.taxFromProfile}">Profil</td>
+          <td><span class="badge" th:classappend="${item.active} ? 'current'"
+                    th:text="${item.active} ? #{catalog.active} : #{catalog.inactive}">Aktiv</span></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(items)}"><td colspan="6" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p><a th:href="@{/units}" th:text="#{catalog.manageUnits}">Einheiten verwalten</a></p>
+</main>
+</body>
+</html>

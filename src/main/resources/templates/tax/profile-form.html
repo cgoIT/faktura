@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{company.tab.taxProfiles} + ' – Faktura'">Steuerprofile</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <div th:replace="~{fragments/settings-tabs :: tabs('tax')}"></div>
+  <h2 th:text="#{tax.new}">Neues Steuerprofil</h2>
+  <p class="lead"><a th:href="@{/company/tax-profiles}" th:text="#{tax.back}">Zurück zu den Steuerprofilen</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post" th:action="@{/company/tax-profiles}" th:object="${taxProfileForm}">
+    <div class="notice error" role="alert" th:if="${#fields.hasGlobalErrors()}">
+      <span th:each="error : ${#fields.globalErrors()}" th:text="${error}"></span>
+    </div>
+    <div class="form-section">
+    <div class="form-grid">
+      <div class="field wide" role="radiogroup" aria-labelledby="regime-label">
+        <span class="field-label" id="regime-label" th:text="#{tax.regime}">Besteuerung</span>
+        <div class="radio-group">
+          <label th:each="regime : ${regimes}">
+            <input type="radio" name="regime" th:value="${regime}" th:checked="${regime == taxProfileForm.regime}"
+                   th:attr="hx-get=@{/company/tax-profiles/preview}" hx-target="#tax-preview" hx-swap="innerHTML"
+                   hx-include="this">
+            <span th:text="#{'tax.regime.' + ${regime}}"></span>
+          </label>
+        </div>
+        <span class="field-error" th:errors="*{regime}"></span>
+      </div>
+      <div class="field own-row">
+        <label for="validFrom" th:text="#{tax.validFromLabel}">Gültig für Leistungen ab</label>
+        <input type="date" id="validFrom" th:field="*{validFrom}">
+        <span class="field-error" th:errors="*{validFrom}"></span>
+      </div>
+    </div>
+    </div>
+    <fieldset class="form-section">
+    <legend th:text="#{tax.preview}">So wirkt sich das aus</legend>
+    <div id="tax-preview" aria-live="polite">
+      <div class="preview" th:fragment="preview">
+        <dl>
+          <dt th:text="#{tax.preview.net}">Nettobetrag</dt>
+          <dd th:text="${@money.format(preview.netCents)}">1.000,00 €</dd>
+          <dt th:text="#{tax.preview.tax(${preview.defaults.rateBp / 100})}">Umsatzsteuer</dt>
+          <dd th:text="${@money.format(preview.taxCents)}">0,00 €</dd>
+          <dt th:text="#{tax.preview.gross}">Gesamtbetrag</dt>
+          <dd th:text="${@money.format(preview.grossCents)}">1.000,00 €</dd>
+          <dt th:text="#{tax.preview.category}">Steuerkategorie</dt>
+          <dd th:text="${preview.defaults.category}">E</dd>
+        </dl>
+        <p class="hint" th:if="${preview.defaults.exemptionText != null and !preview.defaults.exemptionText.isBlank()}"
+           th:text="${preview.defaults.exemptionText}"></p>
+      </div>
+    </div>
+    </fieldset>
+    <p class="hint" th:text="#{tax.snapshotHint}">Finalisierte Rechnungen behalten ihr Steuerprofil als Kopie.</p>
+    <div class="actions">
+      <button type="submit" th:text="#{tax.save}">Steuerprofil speichern</button>
+      <a class="button secondary" th:href="@{/company/tax-profiles}" th:text="#{invoice.review.cancel}">Abbrechen</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

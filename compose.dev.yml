@@ -1,0 +1,17 @@
+# Mail catcher for the development profile (docs/betrieb.md is for production, this file is not).
+# The profile dev starts it by itself (spring-boot-docker-compose); by hand:  docker compose -f compose.dev.yml up -d
+# faktura (profile dev) sends to localhost:10025; read the mails at http://localhost:10081. Mailpit keeps them in
+# memory and delivers nothing to the outside.
+services:
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "127.0.0.1:10025:1025"   # SMTP
+      - "127.0.0.1:10081:8025"   # web interface
+    environment:
+      MP_MAX_MESSAGES: 500
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

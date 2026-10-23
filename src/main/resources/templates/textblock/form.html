@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{text.title} + ' – Faktura'">Textvorlagen</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <div th:replace="~{fragments/settings-tabs :: tabs('texts')}"></div>
+  <h2 th:text="${template == null} ? #{text.new} : #{text.editTitle}">Textvorlage</h2>
+  <p class="lead"><a th:href="@{/text-templates}" th:text="#{text.back}">Zurück zu den Textvorlagen</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post" th:object="${textTemplateForm}"
+        th:action="${template == null} ? @{/text-templates} : @{/text-templates/{id}(id=${template.id})}">
+    <div class="form-grid">
+      <div class="field">
+        <label for="scope" th:text="#{text.scope}">Dokumenttyp</label>
+        <select id="scope" name="scope" th:disabled="${template != null}">
+          <option th:each="scope : ${scopes}" th:value="${scope}" th:text="#{'text.scope.' + ${scope}}"
+                  th:selected="${scope == textTemplateForm.scope}">Rechnung</option>
+        </select>
+        <input type="hidden" name="scope" th:if="${template != null}" th:value="${textTemplateForm.scope}">
+      </div>
+      <div class="field">
+        <label for="kind" th:text="#{text.kind}">Position</label>
+        <select id="kind" name="kind" th:disabled="${template != null}">
+          <option th:each="kind : ${kinds}" th:value="${kind}" th:text="#{'text.kind.' + ${kind}}"
+                  th:selected="${kind == textTemplateForm.kind}">Kopftext</option>
+        </select>
+        <input type="hidden" name="kind" th:if="${template != null}" th:value="${textTemplateForm.kind}">
+      </div>
+      <div class="field wide">
+        <label for="name" th:text="#{text.name}">Name</label>
+        <input type="text" id="name" name="name" maxlength="100" required th:value="${textTemplateForm.name}">
+      </div>
+      <div class="field wide">
+        <label for="body" th:text="#{text.body}">Text</label>
+ <div th:replace="~{fragments/format-bar :: bar('body')}"></div>
+        <textarea id="body" name="body" rows="12" maxlength="4000" required th:text="${textTemplateForm.body}"></textarea>
+        <div th:replace="~{fragments/format-help :: help}"></div>
+        <span class="hint" th:text="#{text.placeholders}">Platzhalter:</span>
+        <ul class="placeholder-list">
+          <li th:each="placeholder : ${placeholders}">
+            <code th:text="'{' + ${placeholder.key()} + '}'">{anrede}</code>
+            <span th:text="#{'text.placeholder.' + ${placeholder.key()}}">Anrede</span>
+          </li>
+        </ul>
+      </div>
+      <div class="field wide">
+        <label class="check">
+          <input type="checkbox" name="makeDefault" value="true" th:checked="${textTemplateForm.makeDefault}">
+          <span th:text="#{text.makeDefault}">Als Standard für neue Belege verwenden</span>
+        </label>
+      </div>
+    </div>
+    <div class="actions form-end">
+      <button type="submit" th:text="#{text.save}">Speichern</button>
+    </div>
+  </form>
+  <form class="card" method="post" th:if="${template != null}"
+        th:action="@{/text-templates/{id}/delete(id=${template.id})}">
+    <p th:text="#{text.delete.hint}">Bestehende Belege behalten ihren Text.</p>
+    <button type="submit" class="danger" th:text="#{text.delete}">Löschen</button>
+  </form>
+</main>
+</body>
+</html>

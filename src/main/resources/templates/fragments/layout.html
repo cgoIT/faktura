@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, content, active)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:replace="${title}">Faktura</title>
+  <!--/* CSRF token for htmx requests (app.js sends it in a header) and htmx settings that a strict CSP needs: no eval, no inline style element. */-->
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+  <meta name="htmx-config" content='{"allowEval":false,"includeIndicatorStyles":false}'>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
+  <script th:src="@{/js/htmx.min.js}" defer></script>
+  <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+  <div>
+    <a class="brand" th:href="@{/}" th:attr="aria-label=#{nav.home}"><span class="brand-mark"></span><span>Faktura</span></a>
+    <nav class="nav" th:aria-label="#{nav.label}">
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'invoices'} ? 'active'" th:href="@{/invoices}"
+         th:text="#{nav.invoices}">Rechnungen</a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'offers'} ? 'active'" th:href="@{/offers}"
+         th:text="#{nav.offers}">Angebote</a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'customers'} ? 'active'" th:href="@{/customers}"
+         th:text="#{nav.customers}">Kunden</a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'catalog'} ? 'active'" th:href="@{/catalog}"
+         th:text="#{nav.catalog}">Leistungen</a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'recurring'} ? 'active'" th:href="@{/recurring}">
+        <span th:text="#{nav.recurring}">Wiedervorlagen</span>
+        <span class="nav-badge" th:if="${pendingRecurring != null and pendingRecurring > 0}" th:text="${pendingRecurring}"
+              th:attr="aria-label=#{recurring.badge(${pendingRecurring})}">2</span>
+      </a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'dunning'} ? 'active'" th:href="@{/dunning}"
+         th:text="#{nav.dunning}">Mahnwesen</a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'export'} ? 'active'" th:href="@{/export}"
+         th:text="#{nav.export}">Export</a>
+      <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'settings'} ? 'active'" th:href="@{/company}"
+         th:text="#{nav.settings}">Einstellungen</a>
+      <a class="nav-item" th:if="${securityMode != null and securityMode != 'NONE' and currentUserAdmin}"
+         th:classappend="${active == 'users'} ? 'active'" th:href="@{/settings/users}" th:text="#{user.tab}">Benutzer</a>
+    </nav>
+  </div>
+  <div class="sidebar-bottom">
+  <div class="sidebar-profile" th:if="${currentTaxProfile != null and !adminOnly}">
+    <span class="label" th:text="#{nav.taxProfile}">Steuerprofil</span>
+    <strong th:text="#{'tax.regime.' + ${currentTaxProfile.regime}}">Kleinunternehmer</strong>
+    <span th:if="${currentTaxProfile.exemptionText != null}" th:text="${currentTaxProfile.exemptionText}"></span>
+  </div>
+  <div class="sidebar-user" th:if="${securityMode != null and securityMode != 'NONE'}">
+    <span class="label" th:text="#{nav.signedInAs}">Angemeldet als</span>
+    <strong th:text="${currentUser}">anna</strong>
+    <a th:if="${securityMode == 'FORM' or (securityMode == 'PROXY_HEADER_ADMIN_FORM' and currentUserAdmin)}"
+       th:href="@{/account/password}" th:text="#{nav.changePassword}">Passwort ändern</a>
+    <form th:if="${securityMode == 'FORM'}" method="post" th:action="@{/logout}">
+      <button type="submit" class="secondary" th:text="#{nav.logout}">Abmelden</button>
+    </form>
+    <form th:if="${securityMode == 'PROXY_HEADER_ADMIN_FORM' and currentUserAdmin}" method="post" th:action="@{/logout}">
+      <button type="submit" class="secondary" th:text="#{nav.adminModeEnd}">Admin-Modus beenden</button>
+    </form>
+    <a th:if="${securityMode == 'PROXY_HEADER_ADMIN_FORM' and !currentUserAdmin}" th:href="@{/login}"
+       th:text="#{nav.adminMode}">Admin-Modus</a>
+  </div>
+  <p class="sidebar-disclaimer" th:text="#{app.disclaimer}">Ohne Gewähr, keine Steuer- oder Rechtsberatung.</p>
+  </div>
+</aside>
+<main th:replace="${content}">
+</main>
+<!--/* One dialog for all confirmations and short messages; app.js fills it. Never use window.confirm or alert. */-->
+<dialog id="message-dialog" class="message-dialog" aria-labelledby="message-dialog-text">
+  <form method="dialog">
+    <p id="message-dialog-text" class="message-text"></p>
+    <div class="actions">
+      <button type="submit" value="cancel" class="secondary" id="message-cancel" th:text="#{dialog.cancel}">Abbrechen</button>
+      <button type="submit" value="ok" id="message-ok" th:attr="data-ok-text=#{dialog.ok},data-close-text=#{dialog.close}"
+              th:text="#{dialog.ok}">OK</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

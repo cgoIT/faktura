@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'home')}">
+<head>
+  <title th:text="#{home.title} + ' – Faktura'">Start</title>
+</head>
+<body>
+<main class="wide">
+  <div class="page-head">
+    <h1 th:text="#{home.title}">Start</h1>
+    <div class="actions">
+      <a class="button secondary" th:href="@{/customers/new}" th:text="#{customer.new}">Neuer Kunde</a>
+      <a class="button" th:href="@{/invoices/new}" th:text="#{invoice.new}">Neue Rechnung</a>
+    </div>
+  </div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+
+  <div class="notice error" role="alert" th:if="${exportOpen > 0}" th:text="#{home.exportOpen(${exportOpen})}">Export offen</div>
+
+  <th:block th:unless="${setupComplete}">
+    <div th:replace="~{fragments/setup :: setup(false)}"></div>
+  </th:block>
+
+  <section class="tile-group">
+    <h2 class="tile-group-title" th:text="#{home.group.invoices}">Rechnungen</h2>
+    <div class="tiles">
+      <a class="tile" th:href="@{/invoices(status='draft')}">
+        <span class="tile-label" th:text="#{home.tile.drafts}">Entwürfe</span>
+        <strong class="tile-value" th:text="${draftCount}">3</strong>
+        <span class="tile-note" th:text="#{home.tile.drafts.note}">noch ohne Nummer</span>
+      </a>
+      <a class="tile" th:href="@{/invoices(status='final')}">
+        <span class="tile-label" th:text="#{home.tile.issued(${year})}">Rechnungen 2026</span>
+        <strong class="tile-value" th:text="${@money.format(issuedCents)}">0,00 €</strong>
+        <span class="tile-note" th:text="#{home.tile.issued.note(${issuedCount})}">0 Rechnungen</span>
+      </a>
+      <a class="tile" th:href="@{/invoices(status='overdue')}">
+        <span class="tile-label" th:text="#{home.tile.overdue}">Überfällig</span>
+        <strong class="tile-value" th:text="${@money.format(overdueCents)}">0,00 €</strong>
+        <span class="tile-note" th:text="#{home.tile.overdue.note(${overdueCount})}">0 Rechnungen offen</span>
+      </a>
+      <a class="tile" th:href="@{/invoices}">
+        <span class="tile-label" th:text="#{home.tile.cancellations}">Stornos</span>
+        <strong class="tile-value" th:text="${cancellationCount}">0</strong>
+        <span class="tile-note" th:text="#{home.tile.cancellations.note}">Storno-Belege</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="tile-group">
+    <h2 class="tile-group-title" th:text="#{home.group.tasks}">Aufgaben</h2>
+    <div class="tiles">
+      <a class="tile" th:href="@{/dunning}">
+        <span class="tile-label" th:text="#{home.tile.dunning}">Mahnungen</span>
+        <strong class="tile-value" th:text="${suggestionCount}">0</strong>
+        <span class="tile-note" th:text="#{home.tile.dunning.note}">vorgeschlagen</span>
+      </a>
+      <a class="tile" th:href="@{/recurring}">
+        <span class="tile-label" th:text="#{home.tile.recurring}">Zur Freigabe</span>
+        <strong class="tile-value" th:text="${pendingRecurring}">0</strong>
+        <span class="tile-note" th:text="#{home.tile.recurring.note}">Entwürfe aus Wiedervorlagen</span>
+      </a>
+      <a class="tile" th:href="@{/offers}">
+        <span class="tile-label" th:text="#{home.tile.offers}">Angebote</span>
+        <strong class="tile-value" th:text="${openOfferCount}">0</strong>
+        <span class="tile-note" th:text="#{home.tile.offers.note(${expiringOfferCount}, ${expiringDays})}">0 laufen in 7 Tagen ab</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2 th:text="#{home.latest}">Zuletzt</h2>
+      <a th:href="@{/invoices}" th:text="#{home.latest.all}">Alle Rechnungen</a>
+    </div>
+    <p class="hint" th:if="${#lists.isEmpty(latest)}" th:text="#{home.latest.none}">Noch keine Rechnungen.</p>
+    <div class="table-scroll" th:unless="${#lists.isEmpty(latest)}">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{invoice.number}">Nummer</th>
+          <th th:text="#{invoice.customer}">Kunde</th>
+          <th th:text="#{invoice.issueDate}">Datum</th>
+          <th class="num" th:text="#{invoice.amount}">Betrag</th>
+          <th th:text="#{list.status}">Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${latest}">
+          <td class="mono"><a th:href="@{/invoices/{id}(id=${row.id})}"
+                              th:text="${row.number != null} ? ${row.number} : #{invoice.status.DRAFT}">RE202600001</a></td>
+          <td th:text="${row.customerName}">Muster GmbH</td>
+          <td th:text="${#temporals.format(row.issueDate, 'dd.MM.yyyy')}">20.10.2026</td>
+          <td class="num" th:text="${@money.format(row.grossTotalCents)}">485,45 €</td>
+          <td><span class="badge" th:classappend="${row.status.name() != 'DRAFT'} ? 'current'"
+                    th:text="#{'invoice.status.' + ${row.status}}">Entwurf</span></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <th:block th:if="${setupComplete}">
+    <div th:replace="~{fragments/setup :: setup(true)}"></div>
+  </th:block>
+
+</main>
+</body>
+</html>

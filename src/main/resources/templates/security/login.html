@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="#{login.title} + ' – Faktura'">Anmelden – Faktura</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
+</head>
+<body class="login">
+<main class="login-box">
+  <h1><span class="brand-mark"></span> Faktura</h1>
+  <div class="notice error" role="alert" th:if="${param.error != null}" th:text="#{login.error}">Anmeldung fehlgeschlagen.</div>
+  <div class="notice success" role="status" th:if="${param.logout != null}" th:text="#{login.loggedOut}">Du bist abgemeldet.</div>
+  <p class="hint" th:if="${securityMode == 'PROXY_HEADER_ADMIN_FORM'}" th:text="#{login.adminHint}">Admin-Modus.</p>
+  <form method="post" th:action="@{/login}" class="card stack">
+    <div class="field">
+      <label for="username" th:text="#{login.username}">Benutzername</label>
+      <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+    </div>
+    <div class="field">
+      <label for="password" th:text="#{login.password}">Passwort</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+    </div>
+    <div class="actions">
+      <button type="submit" th:text="#{login.submit}">Anmelden</button>
+      <a class="button secondary" th:if="${securityMode == 'PROXY_HEADER_ADMIN_FORM'}" th:href="@{/}"
+         th:text="#{login.back}">Zurück</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

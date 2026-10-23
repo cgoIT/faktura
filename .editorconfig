@@ -1,0 +1,42 @@
+# Wird von IntelliJ IDEA beim Öffnen des Projekts gelesen (Settings > Editor > Code Style > "Enable EditorConfig support").
+# Die Regeln zum Schreiben von Code (var, Leerzeilen, Javadoc) stehen in docs/codestil.md.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,html,xml,json,css}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.java]
+max_line_length = 120
+
+# Imports: zuerst statische, Leerzeile, dann der Rest; nie Stern-Imports
+ij_java_imports_layout = $*,|,*
+ij_java_class_count_to_use_import_on_demand = 999
+ij_java_names_count_to_use_import_on_demand = 999
+
+# Verkettete Aufrufe: ab zwei Aufrufen jeder in einer eigenen Zeile, der erste bleibt beim Empfänger
+ij_java_method_call_chain_wrap = split_into_lines
+ij_java_wrap_first_method_in_call_chain = false
+
+# Boolesche Ausdrücke: Operator am Zeilenanfang
+ij_java_binary_operation_wrap = normal
+ij_java_binary_operation_sign_on_next_line = true
+
+# Leerzeilen: höchstens eine
+ij_java_keep_blank_lines_in_code = 1
+ij_java_keep_blank_lines_in_declarations = 1
+ij_java_keep_blank_lines_before_right_brace = 0
+
+# Javadoc: Ein-Zeilen-Kommentare werden beim Formatieren dreizeilig
+ij_java_doc_do_not_wrap_if_one_line = false
+ij_java_doc_enable_leading_asterisks = true

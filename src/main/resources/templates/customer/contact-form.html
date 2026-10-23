@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'customers')}">
+<head>
+  <title th:text="#{contact.title} + ' – Faktura'">Ansprechpartner</title>
+</head>
+<body>
+<main>
+  <h1 th:text="${contact == null} ? #{contact.new} : #{contact.edit}">Ansprechpartner</h1>
+  <p class="lead">
+    <a th:href="@{/customers/{id}(id=${customer.id})}" th:text="#{contact.back(${customer.name})}">Zurück zum Kunden</a>
+  </p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post"
+        th:action="${contact == null} ? @{/customers/{id}/contacts(id=${customer.id})} : @{/customers/{id}/contacts/{contactId}(id=${customer.id},contactId=${contact.id})}">
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field own-row">
+          <label for="salutation" th:text="#{contact.salutation}">Anrede</label>
+          <select id="salutation" name="salutation">
+            <option value="" th:text="#{contact.salutation.none}">–</option>
+            <option value="MR" th:selected="${contactForm.salutation == 'MR'}" th:text="#{contact.salutation.MR}">Herr</option>
+            <option value="MS" th:selected="${contactForm.salutation == 'MS'}" th:text="#{contact.salutation.MS}">Frau</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="firstName" th:text="#{contact.firstName}">Vorname</label>
+          <input type="text" id="firstName" name="firstName" required maxlength="100" th:value="${contactForm.firstName}" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="lastName" th:text="#{contact.lastName}">Nachname</label>
+          <input type="text" id="lastName" name="lastName" required maxlength="100" th:value="${contactForm.lastName}" autocomplete="off">
+        </div>
+        <div class="field own-row">
+          <label for="role" th:text="#{contact.role}">Funktion</label>
+          <input type="text" id="role" name="role" maxlength="100" th:value="${contactForm.role}" autocomplete="off">
+        </div>
+      </div>
+    </div>
+    <fieldset class="form-section">
+      <legend th:text="#{contact.details}">Kontaktdaten</legend>
+      <div class="form-grid">
+        <div class="field own-row">
+          <label for="email" th:text="#{contact.email}">E-Mail</label>
+          <input type="email" id="email" name="email" maxlength="200" th:value="${contactForm.email}" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="phone" th:text="#{contact.phone}">Telefon</label>
+          <input type="text" id="phone" name="phone" maxlength="50" th:value="${contactForm.phone}" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="mobile" th:text="#{contact.mobile}">Mobil</label>
+          <input type="text" id="mobile" name="mobile" maxlength="50" th:value="${contactForm.mobile}" autocomplete="off">
+        </div>
+      </div>
+    </fieldset>
+    <div class="actions">
+      <button type="submit" th:text="#{contact.save}">Speichern</button>
+      <a class="button secondary" th:href="@{/customers/{id}(id=${customer.id})}" th:text="#{invoice.review.cancel}">Abbrechen</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

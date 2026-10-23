@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, ${offer} ? 'offers' : 'invoices')}">
+<head>
+  <title th:text="(${offer} ? #{offer.title} : #{invoice.title}) + ' – Faktura'">Rechnungen</title>
+</head>
+<body>
+<main class="wide">
+  <p class="lead"><a th:href="@{${base}}" th:text="${offer} ? #{offer.back} : #{invoice.back}">Zurück zu den Rechnungen</a></p>
+  <h1>
+    <span th:text="${invoice.number != null} ? ${invoice.number} : (${offer} ? #{offer.viewTitle} : #{invoice.viewTitle})">Rechnung</span>
+    <span class="badge current"
+          th:text="${invoice.cancelled} ? #{invoice.status.CANCELLED} : #{'invoice.status.' + ${invoice.status}}">Finalisiert</span>
+  </h1>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <p class="hint" th:text="${offer} ? #{offer.locked} : #{invoice.locked}">Diese Rechnung ist gesperrt.</p>
+    <p th:if="${invoice.cancelled}">
+      <span th:text="#{invoice.cancelledBy}">Storniert durch Beleg</span>
+      <a th:href="@{${base + '/{id}'}(id=${invoice.cancelledById})}" th:text="#{invoice.open}">Öffnen</a>
+    </p>
+    <p th:if="${invoice.refDocumentId != null}">
+      <span th:text="#{invoice.cancelsInvoice}">Storniert die Rechnung</span>
+      <a th:href="@{${base + '/{id}'}(id=${invoice.refDocumentId})}" th:text="#{invoice.open}">Öffnen</a>
+    </p>
+    <p><a class="button" th:href="@{${base + '/{id}/pdf'}(id=${invoice.id})}" target="_blank" th:text="#{invoice.pdf}">PDF öffnen</a></p>
+    <dl class="preview">
+      <dt th:text="#{invoice.customer}">Kunde</dt>
+      <dd th:text="${invoice.recipientName} ?: '–'">Muster GmbH</dd>
+      <dt th:text="${offer} ? #{offer.issueDate} : #{invoice.issueDate}">Datum</dt>
+      <dd th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}">20.10.2026</dd>
+      <dt th:text="${offer} ? #{offer.validUntil} : #{invoice.dueDate}">Fällig</dt>
+      <dd th:text="${offer} ? (${invoice.validUntil != null} ? ${#temporals.format(invoice.validUntil, 'dd.MM.yyyy')} : '–') : (${invoice.dueDate != null} ? ${#temporals.format(invoice.dueDate, 'dd.MM.yyyy')} : '–')">03.11.2026</dd>
+      <dt th:text="#{invoice.subject}">Betreff</dt>
+      <dd th:text="${invoice.subject}">Betreff</dd>
+      <dt th:if="${invoice.customerReference != null}" th:text="#{invoice.customerReference}">Kundenreferenz</dt>
+      <dd th:if="${invoice.customerReference != null}" th:text="${invoice.customerReference}">PO-1</dd>
+    </dl>
+    <div class="table-scroll">
+      <table class="items">
+        <thead>
+        <tr>
+          <th th:text="#{invoice.item.description}">Beschreibung</th>
+          <th class="num" th:text="#{invoice.item.quantity}">Menge</th>
+          <th th:text="#{invoice.item.unit}">Einheit</th>
+          <th class="num" th:text="#{invoice.item.price}">Einzelpreis</th>
+          <th class="num" th:text="#{invoice.item.discount}">Rabatt %</th>
+          <th class="num" th:text="#{invoice.item.total}">Summe</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${invoice.items}">
+          <td class="pre" th:text="${item.description}">Webentwicklung</td>
+          <td class="num" th:text="${@money.quantity(item.quantityThousandths)}">6</td>
+          <td th:text="${item.unitLabel()}">Stunde</td>
+          <td class="num" th:text="${@money.format(item.unitPriceCents)}">85,00 €</td>
+          <td class="num" th:text="${@money.percent(item.discountBp)}">10 %</td>
+          <td class="num" th:text="${@money.format(item.lineTotalCents)}">459,00 €</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="totals">
+      <div class="totals-row" th:if="${invoice.shipping.cents != 0}">
+        <span th:text="${invoice.shipping.name} ?: #{invoice.shipping}">Versandkosten</span>
+        <span th:text="${@money.format(invoice.shipping.cents)}">4,95 €</span></div>
+      <div class="totals-row"><span th:text="#{invoice.net}">Netto</span><span th:text="${@money.format(invoice.netTotalCents)}">0,00 €</span></div>
+      <div class="totals-row" th:each="total : ${invoice.taxTotals}" th:if="${total.rateBp > 0}">
+        <span th:text="#{invoice.taxAt(${@money.percent(total.rateBp)})}">USt 19 %</span>
+        <span th:text="${@money.format(total.taxCents)}">0,00 €</span></div>
+      <div class="totals-row grand"><span th:text="#{invoice.total}">Gesamtbetrag</span>
+        <span th:text="${@money.format(invoice.grossTotalCents)}">0,00 €</span></div>
+    </div>
+  </section>
+
+  <div th:replace="~{invoice/payments :: panel}"></div>
+  <th:block th:if="${offer}">
+    <div th:replace="~{offer/panel :: panel}"></div>
+  </th:block>
+
+  <section class="card" th:if="${invoice.status.name() == 'FINAL'}">
+    <h2 th:text="#{mail.title}">E-Mail</h2>
+    <div hx-trigger="load" hx-swap="outerHTML"
+         th:attr="hx-get=@{/mail/panel(type='DOCUMENT',id=${invoice.id})}"></div>
+  </section>
+
+  <div th:if="${invoice.type.name() == 'INVOICE'}" hx-trigger="load" th:attr="hx-get=@{/dunning/by-invoice/{id}(id=${invoice.id})}"
+       hx-swap="outerHTML"></div>
+
+  <form class="card" method="post" th:if="${invoice.status.name() == 'FINAL' and invoice.type.name() == 'INVOICE' and !invoice.cancelled}"
+        th:action="@{${base + '/{id}/cancel'}(id=${invoice.id})}"
+        th:attr="data-confirm=#{invoice.cancel.confirm}">
+    <p th:text="#{invoice.cancel.hint}">Stornieren erzeugt einen Storno-Beleg.</p>
+    <button type="submit" class="danger" th:text="#{invoice.cancel}">Rechnung stornieren</button>
+  </form>
+</main>
+</body>
+</html>

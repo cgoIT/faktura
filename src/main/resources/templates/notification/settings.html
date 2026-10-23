@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{notification.title} + ' – Faktura'">Benachrichtigungen</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{notification.lead}">Hinweise per E-Mail an Sie selbst.</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('notification')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div th:object="${notificationForm}">
+    <div class="notice error" role="alert" th:if="${#fields.hasGlobalErrors()}">
+      <span th:each="message : ${#fields.globalErrors()}" th:text="${message}">Fehler</span>
+    </div>
+  </div>
+  <div class="notice" role="status" th:unless="${mailStatus.available}">
+    <span th:text="#{notification.mailOff}">Der Mailversand ist nicht eingerichtet.</span>
+    <span th:text="#{${mailStatus.reasonKey}}">Grund</span>
+  </div>
+  <div class="notice error" role="alert" th:if="${paused}" th:text="#{notification.paused}">Pausiert.</div>
+
+  <form class="card" method="post" th:action="@{/settings/notifications}" th:object="${notificationForm}">
+    <fieldset class="form-section">
+      <legend th:text="#{notification.section.what}">Worüber informiert werden soll</legend>
+      <div class="form-grid">
+        <div class="field wide">
+          <label class="check">
+            <input type="checkbox" name="draftEnabled" value="true" th:checked="*{draftEnabled}">
+            <span th:text="#{notification.draft}">Neue Entwürfe aus Wiedervorlagen</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="planErrorEnabled" value="true" th:checked="*{planErrorEnabled}">
+            <span th:text="#{notification.planError}">Fehler in Wiedervorlagen</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="overdueEnabled" value="true" th:checked="*{overdueEnabled}">
+            <span th:text="#{notification.overdue}">Überfällige Rechnungen</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="dunningEnabled" value="true" th:checked="*{dunningEnabled}">
+            <span th:text="#{notification.dunning}">Mahnung fällig</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="offerEnabled" value="true" th:checked="*{offerEnabled}">
+            <span th:text="#{notification.offer}">Angebot läuft bald ab</span>
+          </label>
+          <span class="hint" th:text="#{notification.once}">Alles in einer Mail pro Tag; ohne Neuigkeiten gibt es keine Mail.</span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend th:text="#{notification.section.where}">Empfänger und Zeit</legend>
+      <div class="form-grid">
+        <div class="field">
+          <label for="recipient" th:text="#{notification.recipient}">Empfänger</label>
+          <input type="email" id="recipient" th:field="*{recipient}" maxlength="254" autocomplete="email"
+                 th:placeholder="${fallbackRecipient}">
+          <span class="hint" th:text="#{notification.recipient.hint}">Leer: die E-Mail-Adresse des Unternehmens. Die Mails gehen nie an Kunden.</span>
+          <span class="field-error" th:errors="*{recipient}"></span>
+        </div>
+        <div class="field">
+          <label for="sendTime" th:text="#{notification.sendTime}">Uhrzeit</label>
+          <input type="time" id="sendTime" th:field="*{sendTime}" th:placeholder="${defaultSendTime}">
+          <span class="hint" th:text="#{notification.sendTime.hint(${defaultSendTime})}">Leer: 08:00.</span>
+          <span class="field-error" th:errors="*{sendTime}"></span>
+        </div>
+      </div>
+    </fieldset>
+    <p class="hint" th:unless="${baseUrlSet}" th:text="#{notification.noBaseUrl}">Ohne BASE_URL enthält die Mail keinen Link.</p>
+    <p class="hint" th:if="${lastRunDate != null}" th:text="#{notification.lastRun(${#temporals.format(lastRunDate, 'dd.MM.yyyy')})}">Zuletzt geprüft am 23.10.2026.</p>
+    <p class="hint" th:if="${templateId != null}">
+      <a th:href="@{/mail-templates/{id}(id=${templateId})}" th:text="#{notification.editTemplate}">Text der Mail bearbeiten</a>
+    </p>
+    <div class="actions form-end">
+      <button type="submit" th:text="#{notification.save}">Speichern</button>
+    </div>
+  </form>
+
+  <section class="card">
+    <h2 th:text="#{notification.try.title}">Ausprobieren</h2>
+    <p class="hint" th:text="#{notification.try.hint}">Beides geht nur an den Empfänger oben, nie an Kunden. Gespeicherte Einstellungen gelten.</p>
+    <div class="actions">
+      <form method="post" th:action="@{/settings/notifications/check}">
+        <button type="submit" class="secondary" th:text="#{notification.check}">Jetzt prüfen</button>
+      </form>
+      <form method="post" th:action="@{/settings/notifications/test}">
+        <button type="submit" class="secondary" th:text="#{notification.test}">Testmail senden</button>
+      </form>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{dunning.levels.title} + ' – Faktura'">Mahnstufen</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{dunning.levels.lead}">Mahnstufen</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('dunning')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <div class="toolbar">
+    <a class="button" th:href="@{/dunning/levels/new}" th:text="#{dunning.level.new}">Neue Stufe</a>
+  </div>
+
+  <section class="card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+        <tr>
+          <th th:text="#{dunning.level.number}">Stufe</th>
+          <th th:text="#{dunning.level.name}">Name</th>
+          <th class="num" th:text="#{dunning.level.daysAfterDue}">Tage nach Fälligkeit</th>
+          <th class="num" th:text="#{dunning.level.newDueDays}">Neue Frist in Tagen</th>
+          <th class="num" th:text="#{dunning.level.fee}">Mahngebühr (€)</th>
+          <th class="num" th:text="#{dunning.level.interest}">Verzugszins (% pro Jahr)</th>
+          <th th:text="#{list.status}">Status</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="level : ${levels}">
+          <td th:text="${level.level}">1</td>
+          <td><a th:href="@{/dunning/levels/{id}(id=${level.id})}" th:text="${level.name}">Zahlungserinnerung</a></td>
+          <td class="num" th:text="${level.daysAfterDue}">7</td>
+          <td class="num" th:text="${level.newDueDays}">7</td>
+          <td class="num" th:text="${level.fee}">0,00</td>
+          <td class="num" th:text="${level.interest}">0</td>
+          <td>
+            <span class="badge current" th:if="${level.active}" th:text="#{dunning.level.status.active}">aktiv</span>
+            <span class="badge" th:unless="${level.active}" th:text="#{dunning.level.status.inactive}">ausgeschaltet</span>
+          </td>
+          <td class="row-actions icons">
+            <a class="icon-button" th:href="@{/dunning/levels/{id}(id=${level.id})}"
+               th:attr="aria-label=#{text.edit}, title=#{text.edit}"><svg th:replace="~{fragments/icons :: edit}"></svg></a>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(levels)}"><td colspan="8" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

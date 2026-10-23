@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Preview of a mail: subject, HTML part in a sandboxed frame, plain text part and the placeholder values. */-->
+<div th:fragment="preview">
+  <div class="notice error" role="alert" th:if="${error != null}" th:text="#{${error}}"></div>
+  <th:block th:if="${preview != null}">
+    <dl class="preview">
+      <dt th:text="#{mail.template.subject}">Betreff</dt>
+      <dd th:text="${preview.subject}">Rechnung RE202600001</dd>
+    </dl>
+    <h3 th:text="#{mail.preview.html}">HTML-Ansicht</h3>
+    <iframe class="mail-frame" sandbox th:attr="srcdoc=${preview.html},title=#{mail.preview.html}"></iframe>
+    <details class="collapsible">
+      <summary th:text="#{mail.preview.text}">Textfassung</summary>
+      <pre class="mail-text" th:text="${preview.text}">Text</pre>
+    </details>
+    <details class="collapsible" th:if="${values != null and !values.isEmpty()}">
+      <summary th:text="#{mail.preview.values}">Eingesetzte Platzhalter</summary>
+      <table>
+        <tbody>
+        <tr th:each="entry : ${values}">
+          <td><code th:text="'{' + ${entry.key} + '}'">{kunde}</code></td>
+          <td th:text="${entry.value}">Muster GmbH</td>
+        </tr>
+        </tbody>
+      </table>
+    </details>
+  </th:block>
+</div>
+</body>
+</html>

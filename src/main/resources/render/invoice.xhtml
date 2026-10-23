@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="${model.number} ?: #{render.draft}">Rechnung</title>
+  <style th:utext="${css}"></style>
+</head>
+<body>
+<div th:replace="~{parts :: footer(${model.sender}, ${model.account}, ${ibanDisplay})}"></div>
+
+<div class="sidetext" th:if="${sideText}" th:text="${sideText}">Ich bedanke mich für Ihren Auftrag</div>
+<div class="watermark" th:if="${model.draft}" th:text="#{render.draft}">ENTWURF</div>
+
+<div th:replace="~{parts :: letterhead(${model.sender}, ${logo})}"></div>
+
+<div class="return-line" th:text="${returnLine}">Firma – Straße – Ort</div>
+<table class="address-row">
+  <tr>
+    <td th:replace="~{parts :: addressCell(${model.recipient}, ${countryName})}"></td>
+    <td class="info">
+      <table>
+        <tr><td class="label" th:text="${model.kind.name() == 'OFFER'} ? #{render.dateOffer} : #{render.date}">Datum</td><td th:text="${#temporals.format(model.issueDate, 'dd.MM.yyyy')}">02.10.2026</td></tr>
+        <tr><td class="label" th:text="${model.kind.name() == 'CANCELLATION'} ? #{render.numberCancellation} : (${model.kind.name() == 'OFFER'} ? #{render.numberOffer} : #{render.number})">Rechnungsnummer</td><td th:text="${model.number} ?: '–'">RE1</td></tr>
+        <tr th:if="${model.validUntil}"><td class="label" th:text="#{render.validUntil}">Gültig bis</td><td th:text="${#temporals.format(model.validUntil, 'dd.MM.yyyy')}">02.11.2026</td></tr>
+        <tr><td class="label" th:text="#{render.customerNumber}">Kundennummer</td><td th:text="${model.customerNumber} ?: '–'">KD1</td></tr>
+        <tr th:if="${model.customerReference}"><td class="label" th:text="#{render.customerReference}">Ihre Referenz</td><td th:text="${model.customerReference}">PO-1</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table class="title-row">
+  <tr>
+    <td class="title" th:text="${model.kind.name() == 'CANCELLATION'} ? #{render.titleCancellation} : (${model.kind.name() == 'OFFER'} ? #{render.titleOffer} : #{render.title})">RECHNUNG</td>
+    <td class="pageno"><span></span></td>
+  </tr>
+</table>
+
+<p th:if="${model.serviceFrom}" th:text="#{render.servicePeriod(${#temporals.format(model.serviceFrom, 'dd.MM.yyyy')}, ${#temporals.format(model.serviceTo, 'dd.MM.yyyy')})}">Leistungszeitraum</p>
+<div class="rich" th:if="${model.headerText}" th:utext="${headerHtml}">Einleitung</div>
+<p class="pre" th:if="${cancellationText}" th:text="${cancellationText}">Storno</p>
+
+<table class="items">
+  <thead>
+  <tr>
+    <th class="pos" th:text="#{render.pos}">Pos</th>
+    <th class="desc" th:text="#{render.description}">Bezeichnung</th>
+    <th class="num qty" style="text-align: right" th:text="#{render.quantity}">Menge</th>
+    <th class="num disc" style="text-align: right" th:text="#{render.discount}">Rabatt</th>
+    <th class="num tax" style="text-align: right" th:if="${showTax}" th:text="#{render.taxRate}">USt.</th>
+    <th class="num price" style="text-align: right" th:text="#{render.unitPrice}">Einzelpreis</th>
+    <th class="num sum" style="text-align: right" th:text="#{render.lineTotal}">Gesamtpreis</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="item : ${items}">
+    <td class="pos" th:text="${item.position}">1</td>
+    <td class="desc">
+      <div class="item-title" th:text="${item.title}">Titel</div>
+      <div class="item-text pre muted" th:if="${item.text}" th:text="${item.text}">Beschreibung</div>
+    </td>
+    <td class="num" th:text="${money.quantity(item.quantityThousandths)} + (${item.unitName} ? ' ' + ${item.unitName} : '')">3 Std</td>
+    <td class="num" th:text="${item.discountBp != 0} ? ${money.percent(item.discountBp)} : ''">10 %</td>
+    <td class="num" th:if="${showTax}" th:text="${money.percent(item.taxRateBp)}">19 %</td>
+    <td class="num" th:text="${money.format(item.unitPriceCents)}">25,00 €</td>
+    <td class="num" th:text="${money.format(item.lineTotalCents)}">75,00 €</td>
+  </tr>
+  </tbody>
+</table>
+<div class="items-end"></div>
+
+<table class="totals">
+  <tr th:if="${showSubtotal}">
+    <td class="spacer"></td><td class="label" th:text="#{render.subtotal}">Zwischensumme</td>
+    <td class="value" th:text="${money.format(model.subtotalCents)}">0,00 €</td>
+  </tr>
+  <tr th:if="${model.discountCents != 0}">
+    <td class="spacer"></td><td class="label" th:text="#{render.totalDiscount}">Gesamtrabatt</td>
+    <td class="value" th:text="${money.format(-model.discountCents)}">0,00 €</td>
+  </tr>
+  <tr th:if="${model.shippingCents != 0}">
+    <td class="spacer"></td><td class="label" th:text="${model.shippingName} ?: #{render.shipping}">Versandkosten</td>
+    <td class="value" th:text="${money.format(model.shippingCents)}">0,00 €</td>
+  </tr>
+  <tr th:if="${showTax}">
+    <td class="spacer"></td><td class="label" th:text="#{render.net}">Netto</td>
+    <td class="value" th:text="${money.format(model.netCents)}">0,00 €</td>
+  </tr>
+  <tr th:each="line : ${model.taxLines}">
+    <td class="spacer"></td><td class="label" th:text="#{render.tax(${money.percent(line.rateBp)})}">Umsatzsteuer 19 %</td>
+    <td class="value" th:text="${money.format(line.taxCents)}">0,00 €</td>
+  </tr>
+  <tr class="grand">
+    <td class="spacer" style="border: none"></td>
+    <td class="label" th:text="${model.kind.name() == 'OFFER'} ? (${showTax} ? #{render.totalGrossOffer} : #{render.totalOffer}) : (${showTax} ? #{render.totalGross} : #{render.total})">Rechnungsbetrag</td>
+    <td class="value" th:text="${money.format(model.grossCents)}">0,00 €</td>
+  </tr>
+</table>
+
+<div class="closing">
+  <p th:if="${model.exemptionText}" th:text="${model.exemptionText}">Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>
+  <p th:if="${model.noticeText}" th:text="${model.noticeText}">Hinweis</p>
+
+  <table class="payment" th:if="${model.footerText != null or girocode != null}">
+    <tr>
+      <td>
+        <div class="rich" th:if="${model.footerText}" th:utext="${footerHtml}">Schlusstext</div>
+      </td>
+      <td class="qr" th:if="${girocode}">
+        <div class="qr-label" th:text="#{render.girocode}">Girocode</div>
+        <img th:src="${girocode}" alt="" src="" />
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

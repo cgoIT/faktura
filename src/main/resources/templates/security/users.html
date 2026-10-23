@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'users')}">
+<head>
+  <title th:text="#{user.title} + ' – Faktura'">Benutzer</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{user.title}">Benutzer</h1>
+  <p class="lead" th:text="${passwords} ? #{user.lead} : #{user.leadProxy}">Benutzer</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <div class="toolbar" th:if="${passwords}">
+      <a class="button" th:href="@{/settings/users/new}" th:text="#{user.new}">Neuer Benutzer</a>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{user.username}">Benutzername</th>
+        <th th:text="#{user.displayName}">Name</th>
+        <th th:text="#{user.admin}">Administrator</th>
+        <th th:text="#{user.active}">Aktiv</th>
+        <th th:text="#{user.lastLogin}">Letzte Anmeldung</th>
+        <th th:if="${passwords}" th:text="#{user.password}">Passwort</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="row : ${users}" th:with="user=${row.user}">
+        <td th:text="${user.username}">anna</td>
+        <td th:text="${user.displayName}">Anna Beispiel</td>
+        <td>
+          <form method="post" th:action="@{/settings/users/{id}/admin(id=${user.id})}">
+            <input type="hidden" name="admin" th:value="${!user.admin}">
+            <button type="submit" class="secondary" th:disabled="${row.lastAdmin}" th:attr="title=${row.lastAdmin} ? #{user.error.lastAdmin} : null"
+                  th:text="${user.admin} ? #{user.admin.revoke} : #{user.admin.grant}">Ändern</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" th:action="@{/settings/users/{id}/active(id=${user.id})}">
+            <input type="hidden" name="active" th:value="${!user.active}">
+            <button type="submit" class="secondary" th:disabled="${row.lastAdmin}" th:attr="title=${row.lastAdmin} ? #{user.error.lastAdmin} : null"
+                  th:text="${user.active} ? #{user.deactivate} : #{user.activate}">Ändern</button>
+          </form>
+        </td>
+        <td th:text="${row.lastLogin} ?: '–'">–</td>
+        <td th:if="${passwords}">
+          <button type="button" class="secondary" th:attr="data-modal-open='password-dialog-' + ${user.id}"
+                  th:text="#{user.passwordSet}">Passwort setzen</button>
+          <dialog class="message-dialog" th:id="'password-dialog-' + ${user.id}"
+                  th:attr="aria-labelledby='password-title-' + ${user.id}">
+            <form method="post" class="stack" th:action="@{/settings/users/{id}/password(id=${user.id})}">
+              <h2 th:id="'password-title-' + ${user.id}" th:text="#{user.passwordDialog.title(${user.username})}">Passwort setzen</h2>
+              <div class="field">
+                <label th:for="'password-' + ${user.id}" th:text="#{user.newPassword}">Neues Passwort</label>
+                <input type="password" th:id="'password-' + ${user.id}" name="password" required autocomplete="new-password"
+                       th:attr="minlength=${minPasswordLength}">
+                <span class="hint" th:text="#{user.password.hint(${minPasswordLength})}">Mindestens 12 Zeichen.</span>
+              </div>
+              <div class="field">
+                <label th:for="'repeat-' + ${user.id}" th:text="#{user.passwordRepeat}">Neues Passwort wiederholen</label>
+                <input type="password" th:id="'repeat-' + ${user.id}" name="passwordRepeat" required autocomplete="new-password"
+                       th:attr="minlength=${minPasswordLength}">
+              </div>
+              <div class="actions">
+                <button type="button" class="secondary" data-modal-close th:text="#{dialog.cancel}">Abbrechen</button>
+                <button type="submit" th:text="#{user.passwordSet}">Passwort setzen</button>
+              </div>
+            </form>
+          </dialog>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

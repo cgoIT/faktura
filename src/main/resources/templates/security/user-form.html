@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'users')}">
+<head>
+  <title th:text="#{user.new} + ' – Faktura'">Neuer Benutzer</title>
+</head>
+<body>
+<main>
+  <h1 th:text="#{user.new}">Neuer Benutzer</h1>
+  <p class="lead"><a th:href="@{/settings/users}" th:text="#{user.back}">Zurück zu den Benutzern</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post" th:action="@{/settings/users}">
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field">
+          <label for="username" th:text="#{user.username}">Benutzername</label>
+          <input type="text" id="username" name="username" required maxlength="100" autocomplete="off"
+                 th:value="${username}">
+        </div>
+        <div class="field">
+          <label for="displayName" th:text="#{user.displayName}">Name</label>
+          <input type="text" id="displayName" name="displayName" maxlength="200" th:value="${displayName}">
+        </div>
+        <div class="field">
+          <label for="password" th:text="#{user.password}">Passwort</label>
+          <input type="password" id="password" name="password" required autocomplete="new-password"
+                 th:attr="minlength=${minPasswordLength}">
+          <span class="hint" th:text="#{user.password.hint(${minPasswordLength})}">Mindestens 12 Zeichen.</span>
+        </div>
+        <div class="field">
+          <label for="passwordRepeat" th:text="#{user.passwordRepeat}">Passwort wiederholen</label>
+          <input type="password" id="passwordRepeat" name="passwordRepeat" required autocomplete="new-password"
+                 th:attr="minlength=${minPasswordLength}">
+        </div>
+        <div class="field own-row">
+          <label><input type="checkbox" name="admin" value="true" th:checked="${admin}"> <span th:text="#{user.admin}">Administrator</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" th:text="#{user.create}">Benutzer anlegen</button>
+      <a class="button secondary" th:href="@{/settings/users}" th:text="#{dialog.cancel}">Abbrechen</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

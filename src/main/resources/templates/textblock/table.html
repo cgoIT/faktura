@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div class="table-scroll" th:fragment="table(rows)">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{text.name}">Name</th>
+        <th th:text="#{text.scope}">Dokumenttyp</th>
+        <th th:text="#{text.body}">Text</th>
+        <th></th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="template : ${rows}">
+        <td><a th:href="@{/text-templates/{id}(id=${template.id})}" th:text="${template.name}">Standard</a></td>
+        <td th:text="#{'text.scope.' + ${template.scope}}">Rechnung</td>
+        <td class="pre muted" th:text="${#strings.abbreviate(template.body, 90)}">Text</td>
+        <td><span class="badge current" th:if="${template.isDefault}"
+                  th:text="#{text.default.for(#{'text.scope.plural.' + ${template.scope}})}">Standard für Rechnungen</span></td>
+        <td class="row-actions icons">
+          <a class="icon-button" th:href="@{/text-templates/{id}(id=${template.id})}"
+             th:attr="aria-label=#{text.edit}, title=#{text.edit}"><svg th:replace="~{fragments/icons :: edit}"></svg></a>
+          <form method="post" th:action="@{/text-templates/{id}/delete(id=${template.id})}"
+                th:attr="data-confirm=#{text.delete.confirm}">
+            <button type="submit" class="icon-button danger" th:attr="aria-label=#{text.delete}, title=#{text.delete}"><svg th:replace="~{fragments/icons :: trash}"></svg></button>
+          </form>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(rows)}"><td colspan="5" class="empty" th:text="#{list.empty}">Keine Treffer.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

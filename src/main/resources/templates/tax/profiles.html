@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'settings')}">
+<head>
+  <title th:text="#{company.tab.taxProfiles} + ' – Faktura'">Steuerprofile</title>
+</head>
+<body>
+<main class="wide form-width">
+  <h1 th:text="#{settings.title}">Einstellungen</h1>
+  <p class="lead" th:text="#{tax.lead}">Steuerprofile</p>
+  <div th:replace="~{fragments/settings-tabs :: tabs('tax')}"></div>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+
+  <section class="card" th:if="${companyMissing}">
+    <p th:text="#{tax.error.noCompany}">Zuerst die Stammdaten erfassen.</p>
+    <a class="button" th:href="@{/company}" th:text="#{company.tab.master}">Stammdaten</a>
+  </section>
+
+  <section class="card" th:unless="${companyMissing}">
+    <div class="section-head">
+      <h2 th:text="#{tax.profiles}">Besteuerung im Zeitverlauf</h2>
+      <a class="button" th:href="@{/company/tax-profiles/new}" th:text="#{tax.new}">Neues Steuerprofil</a>
+    </div>
+    <p class="hint" th:if="${profiles.isEmpty()}" th:text="#{tax.none}">Noch kein Steuerprofil.</p>
+    <table th:unless="${profiles.isEmpty()}">
+      <thead>
+      <tr>
+        <th th:text="#{tax.regime}">Besteuerung</th>
+        <th th:text="#{tax.validFrom}">Gültig ab</th>
+        <th th:text="#{tax.validTo}">Gültig bis</th>
+        <th th:text="#{tax.allowedCategories}">Erlaubte Steuerkategorien</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="profile : ${profiles}">
+        <td th:text="#{'tax.regime.' + ${profile.regime}}">Kleinunternehmer</td>
+        <td th:text="${#temporals.format(profile.validFrom, 'dd.MM.yyyy')}">01.01.2026</td>
+        <td th:text="${profile.validTo != null} ? ${#temporals.format(profile.validTo, 'dd.MM.yyyy')} : '–'">–</td>
+        <td th:text="${profile.allowedCategories.isEmpty()} ? #{tax.allowedCategories.all} : ${#strings.listJoin(profile.allowedCategories, ', ')}">E</td>
+        <td>
+          <span class="badge current" th:if="${profile.isValidOn(today)}" th:text="#{tax.current}">Aktuell gültig</span>
+          <span class="badge" th:unless="${profile.isValidOn(today)}"
+                th:text="${profile.validTo != null} ? #{tax.ended} : #{tax.upcoming}">Beendet</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <details class="card collapsible" th:unless="${companyMissing}" th:attr="open=${error != null} ? 'open' : null">
+    <summary>
+      <h2 th:text="#{tax.reasons}">Befreiungsgründe</h2>
+    </summary>
+  <form method="post" th:action="@{/company/tax-profiles/reasons}">
+    <p class="hint" th:text="#{tax.reasons.lead}">Hinweis</p>
+    <div class="form-grid">
+      <div class="field wide" th:each="entry : ${reasons}">
+        <label th:for="${'reason-' + entry.key}" th:text="#{'tax.category.' + ${entry.key}} + ' (' + ${entry.key} + ')'">Steuerbefreit</label>
+        <input type="text" th:id="${'reason-' + entry.key}" th:name="${'reason.' + entry.key}" th:value="${entry.value}"
+               maxlength="500" autocomplete="off">
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" th:text="#{tax.reasons.save}">Befreiungsgründe speichern</button>
+    </div>
+  </form>
+  </details>
+
+</main>
+</body>
+</html>

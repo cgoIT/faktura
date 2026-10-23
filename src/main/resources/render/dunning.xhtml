@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="${model.number} ?: #{render.draft}">Mahnung</title>
+  <style th:utext="${css}"></style>
+</head>
+<body>
+<div th:replace="~{parts :: footer(${model.sender}, ${model.account}, ${ibanDisplay})}"></div>
+
+<div class="watermark" th:if="${model.draft}" th:text="#{render.draft}">ENTWURF</div>
+
+<div th:replace="~{parts :: letterhead(${model.sender}, ${logo})}"></div>
+
+<div class="return-line" th:text="${returnLine}">Firma – Straße – Ort</div>
+<table class="address-row">
+  <tr>
+    <td th:replace="~{parts :: addressCell(${model.recipient}, ${countryName})}"></td>
+    <td class="info">
+      <table>
+        <tr><td class="label" th:text="#{render.dunning.date}">Datum</td><td th:text="${#temporals.format(model.date, 'dd.MM.yyyy')}">02.10.2026</td></tr>
+        <tr><td class="label" th:text="#{render.dunning.number}">Mahnnummer</td><td th:text="${model.number} ?: '–'">MA1</td></tr>
+        <tr><td class="label" th:text="#{render.customerNumber}">Kundennummer</td><td th:text="${model.customerNumber} ?: '–'">KD1</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table class="title-row">
+  <tr>
+    <td class="title" th:text="${model.levelName}">Zahlungserinnerung</td>
+    <td class="pageno"><span></span></td>
+  </tr>
+</table>
+
+<div class="rich" th:if="${model.headerText}" th:utext="${headerHtml}">Einleitung</div>
+
+<table class="claim">
+  <tr>
+    <td class="label" th:text="#{render.dunning.invoice(${model.invoiceNumber}, ${#temporals.format(model.invoiceDate, 'dd.MM.yyyy')})}">Rechnung RE1 vom 01.01.2027</td>
+    <td class="value" th:text="${money.format(model.invoiceGrossCents)}">0,00 €</td>
+  </tr>
+  <tr th:if="${model.paidCents != 0}">
+    <td class="label" th:text="#{render.dunning.paid}">Bereits gezahlt</td>
+    <td class="value" th:text="${money.format(-model.paidCents)}">0,00 €</td>
+  </tr>
+  <tr>
+    <td class="label" th:text="#{render.dunning.open(${#temporals.format(model.invoiceDueDate, 'dd.MM.yyyy')})}">Offener Betrag</td>
+    <td class="value" th:text="${money.format(model.openCents)}">0,00 €</td>
+  </tr>
+  <tr th:if="${model.feeCents != 0}">
+    <td class="label" th:text="#{render.dunning.fee}">Mahngebühr</td>
+    <td class="value" th:text="${money.format(model.feeCents)}">0,00 €</td>
+  </tr>
+  <tr th:if="${model.interestCents != 0}">
+    <td class="label" th:text="#{render.dunning.interest}">Verzugszinsen</td>
+    <td class="value" th:text="${money.format(model.interestCents)}">0,00 €</td>
+  </tr>
+  <tr class="grand">
+    <td class="label" th:text="#{render.dunning.total(${#temporals.format(model.newDueDate, 'dd.MM.yyyy')})}">Gesamtforderung</td>
+    <td class="value" th:text="${money.format(model.totalCents)}">0,00 €</td>
+  </tr>
+</table>
+
+<div class="closing">
+  <table class="payment" th:if="${model.footerText != null or girocode != null}">
+    <tr>
+      <td>
+        <div class="rich" th:if="${model.footerText}" th:utext="${footerHtml}">Schlusstext</div>
+      </td>
+      <td class="qr" th:if="${girocode}">
+        <div class="qr-label" th:text="#{render.girocode}">Girocode</div>
+        <img th:src="${girocode}" alt="" src="" />
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>
