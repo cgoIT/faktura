@@ -6,6 +6,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # 3.53.x finds no native library in the Alpaquita container image ("Linux-Musl"); raise the version only after
+      # the "image" job of the CI passes with it
+      - dependency-name: "org.xerial:sqlite-jdbc"
     groups:
       spring:
         patterns: ["org.springframework*"]
