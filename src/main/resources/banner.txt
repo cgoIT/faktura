@@ -4,5 +4,5 @@
 |  _|| (_| ||   < | |_ | |_| || |   | (_| |
 |_|   \__,_||_|\_\ \__| \__,_||_|    \__,_|
 
-  Rechnungen, Angebote, Mahnwesen, ZUGFeRD  |  Spring Boot ${spring-boot.version}
-  faktura${application.formatted-version}  |  Ohne Gewaehr - Betrieb auf eigenes Risiko
+  :: faktura ::  ${application.version:dev}        (Spring Boot ${spring-boot.version})
+  Rechnungen, Angebote, Mahnwesen, ZUGFeRD  |  Ohne Gewaehr - Betrieb auf eigenes Risiko

@@ -147,6 +147,8 @@ Verhalten:
 
 ### Logs
 
+Beim Start schreibt faktura den Banner mit der Version und danach den Block „Effective configuration“ ins Log (`docker compose logs faktura`): Version, Port, Datenbank, Archiv-, Export- und Backup-Pfad, Anmeldemodus, Mail, Hinweis-Mail, Wiedervorlagen-Job, Logo. Damit lässt sich prüfen, ob die `.env` ankommt. Passwörter, Benutzernamen und Mail-Zugangsdaten stehen nie darin; bei abgeschalteter Anmeldung oder unvollständiger Mail-Konfiguration erscheint eine Zeile `WARNING`.
+
 Auf Standardausgabe (`docker compose logs faktura`). Kundendaten, Beträge und Dateiinhalte werden nicht protokolliert; Meldungen
 nennen Nummern, Zähler und Fehlerklassen. Beim Weitergeben von Logs trotzdem kurz prüfen.
 
