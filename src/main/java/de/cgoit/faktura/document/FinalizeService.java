@@ -144,7 +144,7 @@ public class FinalizeService {
         var prepared = prepare(header);
 
         var calculationItems = draftItems.stream()
-                .map(FinalizeService::toCalculationItem)
+                .map(InvoiceItemInfo::toCalculationItem)
                 .toList();
 
         invoices.requireTaxRules(prepared.profile(), calculationItems, header.shipping());
@@ -430,11 +430,6 @@ public class FinalizeService {
         return new InvoiceItemInfo(null, item.position(), item.description(), -item.quantityThousandths(),
                 item.unitCode(), item.unitName(), item.unitNamePlural(), item.unitUneceCode(), item.unitPriceCents(), item.discountBp(),
                 item.taxCategory(), item.taxRateBp(), -item.lineTotalCents(), item.catalogItemId());
-    }
-
-    private static CalculationItem toCalculationItem(InvoiceItemInfo item) {
-        return new CalculationItem(item.quantityThousandths(), item.unitPriceCents(), item.discountBp(),
-                item.taxCategory(), item.taxRateBp());
     }
 
     /**

@@ -1,6 +1,7 @@
 package de.cgoit.faktura.recurring.web;
 
 import static de.cgoit.faktura.shared.Texts.blankToNull;
+import static de.cgoit.faktura.shared.Texts.isBlank;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -108,19 +109,19 @@ public record PlanForm(
 
         var lead = errors.parse("leadDays", () -> integer(leadDays, "recurring.error.leadDays", 0), 0);
         var days = errors.parse("paymentDays",
-                () -> blank(paymentDays) ? null : integer(paymentDays, "validation.paymentDays", 0), null);
+                () -> isBlank(paymentDays) ? null : integer(paymentDays, "validation.paymentDays", 0), null);
         var totalDiscount = errors.parse("totalDiscount", this::discount, null);
 
         errors.throwIfAny();
 
-        return new PlanInput(blank(customerId) ? null : customerId, name == null ? null : name.strip(),
+        return new PlanInput(isBlank(customerId) ? null : customerId, name == null ? null : name.strip(),
                 interval, anchorDate, endDate, lead, status == null ? RecurringStatus.ACTIVE : status, days,
                 blankToNull(subject), blankToNull(headerText), blankToNull(footerText), totalDiscount,
-                blank(contactId) ? null : contactId, inputs, blankToNull(customerReference));
+                isBlank(contactId) ? null : contactId, inputs, blankToNull(customerReference));
     }
 
     private static int integer(String text, String errorKey, int fallback) {
-        if (blank(text)) {
+        if (isBlank(text)) {
             return fallback;
         }
 
@@ -132,17 +133,13 @@ public record PlanForm(
     }
 
     private TotalDiscount discount() {
-        if (blank(discountValue)) {
+        if (isBlank(discountValue)) {
             return null;
         }
 
         return "AMOUNT".equals(discountType)
                 ? TotalDiscount.amount(DecimalInput.parseCents(discountValue))
                 : TotalDiscount.percent(DecimalInput.parseBasisPoints(discountValue));
-    }
-
-    private static boolean blank(String value) {
-        return value == null || value.isBlank();
     }
 
     /**

@@ -11,6 +11,13 @@ public final class Texts {
     }
 
     /**
+     * Tells whether the text is {@code null} or blank.
+     */
+    public static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    /**
      * Returns the stripped text, or {@code null} if it is {@code null} or blank.
      */
     public static String blankToNull(String value) {

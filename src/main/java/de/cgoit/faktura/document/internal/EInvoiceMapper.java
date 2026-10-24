@@ -1,6 +1,7 @@
 package de.cgoit.faktura.document.internal;
 
 import static de.cgoit.faktura.shared.Texts.blankToNull;
+import static de.cgoit.faktura.shared.Texts.isBlank;
 
 import java.util.List;
 
@@ -139,9 +140,5 @@ public class EInvoiceMapper {
 
     private String country(String country) {
         return isBlank(country) ? properties.defaultCountry() : country;
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.isBlank();
     }
 }
