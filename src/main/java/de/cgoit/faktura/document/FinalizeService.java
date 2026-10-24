@@ -417,13 +417,7 @@ public class FinalizeService {
      * part of the document id appended, so two different numbers never end up on the same path.
      */
     private static String archivePath(Header header, String number, String extension) {
-        var safeNumber = number.replaceAll("[^A-Za-z0-9._-]", "_");
-
-        if (!safeNumber.equals(number)) {
-            safeNumber = safeNumber + "-" + header.id().substring(0, 8);
-        }
-
-        return header.issueDate().getYear() + "/" + safeNumber + "." + extension;
+        return header.issueDate().getYear() + "/" + ArchiveService.fileName(number, header.id()) + "." + extension;
     }
 
     private static InvoiceItemInfo negate(InvoiceItemInfo item) {

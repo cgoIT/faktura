@@ -43,6 +43,8 @@ spring:
           writetimeout: 20000
 server:
   port: ${SERVER_PORT:8090}
+  # loopback only, so that a start without Docker is not reachable from the network; the image sets 0.0.0.0
+  address: ${SERVER_ADDRESS:127.0.0.1}
   servlet:
     session:
       # the session exists in mode FORM only; set the cookie secure (SERVER_SERVLET_SESSION_COOKIE_SECURE=true) behind TLS

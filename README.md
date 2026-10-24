@@ -73,7 +73,7 @@ Danach erreichbar unter <http://127.0.0.1:8080> (Port nur an localhost gebunden;
 Aus dem Quelltext:
 
 ```bash
-./mvnw spring-boot:run     # http://localhost:8090, Datenbank ./data/faktura.db (SQLite)
+./mvnw spring-boot:run     # http://localhost:8090 (nur an 127.0.0.1 gebunden, SERVER_ADDRESS ändert das), Datenbank ./data/faktura.db (SQLite)
 ```
 
 Zum Ausprobieren mit erfundenen Testdaten und Mail-Catcher (nichts verlässt den Rechner; setzt die Datenbank `./data/dev.db` bei jedem Start zurück):

@@ -90,6 +90,17 @@ public class ArchiveService {
         return file;
     }
 
+    /**
+     * Turns a document number into a safe file name without extension. Characters outside {@code A-Z a-z 0-9 . _ -}
+     * and a leading dot become {@code _}; then a part of the owner id is appended, so two different numbers never
+     * share a path.
+     */
+    public static String fileName(String number, String ownerId) {
+        var safe = number.replaceAll("[^A-Za-z0-9._-]|^\\.", "_");
+
+        return safe.equals(number) ? safe : safe + "-" + ownerId.substring(0, 8);
+    }
+
     @Transactional(readOnly = true)
     public Optional<ArchivedFile> findById(String id) {
         return files.findById(id);

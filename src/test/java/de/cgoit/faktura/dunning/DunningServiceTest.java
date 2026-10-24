@@ -224,6 +224,23 @@ class DunningServiceTest {
     }
 
     @Test
+    void numbersWithUnsafePathCharactersAreArchivedUnderASafePath() {
+        jdbc.sql("UPDATE number_pattern SET pattern = 'MA {jahr}/{#####}' WHERE scope = 'DUNNING'").update();
+
+        try {
+            var dunning = dunnings.create(invoice(30).id(), levelId(1));
+            var path = archive.findByOwner(ArchiveOwnerType.DUNNING, dunning.id()).getFirst().path();
+
+            assertThat(dunning.number()).isEqualTo("MA " + TODAY.getYear() + "/00001");
+            assertThat(path).startsWith("dunning/" + TODAY.getYear() + "/MA_" + TODAY.getYear() + "_00001-")
+                    .endsWith(".pdf");
+            assertThat(dunnings.findPdf(dunning.id())).isPresent();
+        } finally {
+            jdbc.sql("UPDATE number_pattern SET pattern = 'MA{jahr}{#####}' WHERE scope = 'DUNNING'").update();
+        }
+    }
+
+    @Test
     void numbersAreGapFreeAndALevelIsIssuedOnlyOnce() {
         var first = invoice(30);
         var second = invoice(31);

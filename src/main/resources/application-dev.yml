@@ -34,6 +34,11 @@ spring:
       cache:
         period: 0
 
+# all interfaces, so that a proxy in Docker reaches the application on the host; the header mode below refuses
+# every address outside trusted-proxies
+server:
+  address: ${SERVER_ADDRESS:0.0.0.0}
+
 faktura:
   archive:
     path: ./data/dev-archive

@@ -193,7 +193,7 @@ public class DunningService {
 
         dunnings.insert(dunning, Instant.now(clock).toString());
         archive.store(ArchiveOwnerType.DUNNING, id, ArchiveFileType.PDF,
-                "dunning/" + plan.today().getYear() + "/" + number + ".pdf", pdf);
+                "dunning/" + plan.today().getYear() + "/" + ArchiveService.fileName(number, id) + ".pdf", pdf);
         audit.record(AuditObjectType.DUNNING, id, AuditAction.DUNNING_CREATE,
                 Map.of("number", number, "invoiceNumber", plan.basis().number(), "level",
                         String.valueOf(plan.level().level())));

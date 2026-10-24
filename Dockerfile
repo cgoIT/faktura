@@ -20,6 +20,7 @@ FROM bellsoft/liberica-runtime-container:jre-25-glibc
 # FAKTURA_CONTAINER makes the application refuse the dev profile (it would reset the database)
 ENV FAKTURA_CONTAINER=true \
     SERVER_PORT=8080 \
+    SERVER_ADDRESS=0.0.0.0 \
     DB_URL=jdbc:sqlite:/data/faktura.db \
     ARCHIVE_PATH=/data/archive \
     BACKUP_PATH=/data/backup \
