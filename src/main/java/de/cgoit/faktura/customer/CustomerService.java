@@ -1,5 +1,8 @@
 package de.cgoit.faktura.customer;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+import static de.cgoit.faktura.shared.Texts.contains;
+
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
@@ -254,13 +257,5 @@ public class CustomerService {
         if (email != null && !EMAIL.matcher(email).matches()) {
             throw new RuleViolationException("validation.email", field);
         }
-    }
-
-    private static boolean contains(String value, String needle) {
-        return value != null && value.toLowerCase(Locale.GERMAN).contains(needle);
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 }

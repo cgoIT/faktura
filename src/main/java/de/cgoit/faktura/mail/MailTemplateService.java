@@ -1,5 +1,7 @@
 package de.cgoit.faktura.mail;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -117,10 +119,6 @@ public class MailTemplateService {
             templates.clearDefault(input.scope());
             templates.markDefault(id);
         }
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 
     private MailTemplateInput validated(MailTemplateInput input) {

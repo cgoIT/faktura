@@ -28,13 +28,6 @@ public enum SecurityMode {
     PROXY_HEADER_ADMIN_FORM;
 
     /**
-     * Tells whether the username may come from the proxy header.
-     */
-    public boolean usesHeader() {
-        return this == PROXY_HEADER || this == PROXY_HEADER_ADMIN_FORM;
-    }
-
-    /**
      * Tells whether the sign-in form exists and accounts can have passwords.
      */
     public boolean usesForm() {

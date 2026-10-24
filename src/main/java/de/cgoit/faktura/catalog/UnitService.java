@@ -1,5 +1,7 @@
 package de.cgoit.faktura.catalog;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -96,10 +98,6 @@ public class UnitService {
         validator.check(values);
 
         return new UnitInfo(id, values.code(), values.name(), values.namePlural(), values.uneceCode());
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 
     private void requireUniqueCode(UnitInfo unit) {

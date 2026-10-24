@@ -15,11 +15,11 @@ import de.cgoit.faktura.recurring.RecurringPlanService;
 import de.cgoit.faktura.recurring.RecurringStatus;
 import de.cgoit.faktura.recurring.internal.RecurringProperties;
 import de.cgoit.faktura.shared.DecimalInput;
+import de.cgoit.faktura.shared.FormErrors;
 import de.cgoit.faktura.shared.RuleViolationException;
 import de.cgoit.faktura.textblock.TextKind;
 import de.cgoit.faktura.textblock.TextScope;
 import de.cgoit.faktura.textblock.TextTemplateService;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -240,7 +240,7 @@ public class RecurringController {
                 plans.update(existing.id(), input, form.requireVersion());
             }
         } catch (RuleViolationException e) {
-            model.addAttribute("error", reject(e, result));
+            model.addAttribute("error", FormErrors.reject(e, result, PlanFields::formField, FORM_ERROR));
 
             return form(model, form, existing);
         }
@@ -248,34 +248,6 @@ public class RecurringController {
         redirect.addFlashAttribute("message", "recurring.saved");
 
         return "redirect:/recurring";
-    }
-
-    /**
-     * Puts every violation at its field of the form. Returns the key of the notice above the form: the first violation
-     * without a field of its own, else the general hint to check the marked fields.
-     */
-    private static String reject(RuleViolationException e, BindingResult result) {
-        String notice = null;
-
-        for (var violation : e.violations()) {
-            var field = PlanFields.formField(violation.field());
-
-            if (field == null || !rejectValue(result, field, violation.key())) {
-                notice = notice != null ? notice : violation.key();
-            }
-        }
-
-        return notice != null ? notice : FORM_ERROR;
-    }
-
-    private static boolean rejectValue(BindingResult result, String field, String key) {
-        try {
-            result.rejectValue(field, key);
-
-            return true;
-        } catch (InvalidPropertyException e) {
-            return false;
-        }
     }
 
     private PlanInfo find(String id) {

@@ -1,5 +1,7 @@
 package de.cgoit.faktura.security;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
@@ -227,9 +229,5 @@ public class UserService {
     private static UserInfo toInfo(Row row) {
         return new UserInfo(row.id(), row.username(), row.displayName(), row.admin(), row.active(), row.lastLogin(),
                 row.passwordHash() != null);
-    }
-
-    private static String blankToNull(String text) {
-        return text == null || text.isBlank() ? null : text.strip();
     }
 }

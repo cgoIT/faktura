@@ -1,5 +1,7 @@
 package de.cgoit.faktura.document;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -136,10 +138,6 @@ public class PaymentService {
 
     private static boolean isFinalInvoice(DocumentRepository.Header header) {
         return header.type() == DocumentType.INVOICE && header.status() == DocumentStatus.FINAL;
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 
 }

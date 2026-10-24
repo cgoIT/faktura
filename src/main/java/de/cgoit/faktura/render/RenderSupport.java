@@ -1,5 +1,7 @@
 package de.cgoit.faktura.render;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.awt.Color;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_Profile;
@@ -217,9 +219,5 @@ final class RenderSupport {
         }
 
         return String.join(separator, parts);
-    }
-
-    static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 }

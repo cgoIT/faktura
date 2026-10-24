@@ -1,5 +1,7 @@
 package de.cgoit.faktura.recurring.web;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import de.cgoit.faktura.recurring.PlanItemInput;
 import de.cgoit.faktura.shared.DecimalInput;
 import de.cgoit.faktura.shared.ParseErrors;
@@ -46,10 +48,6 @@ public record PlanItemForm(
 
     private static int percent(String text) {
         return text == null || text.isBlank() ? 0 : DecimalInput.parseBasisPoints(text);
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 
     /**

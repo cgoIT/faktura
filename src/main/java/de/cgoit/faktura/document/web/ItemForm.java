@@ -1,5 +1,7 @@
 package de.cgoit.faktura.document.web;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import de.cgoit.faktura.document.InvoiceItemInfo;
 import de.cgoit.faktura.document.InvoiceItemInput;
 import de.cgoit.faktura.shared.DecimalInput;
@@ -52,10 +54,6 @@ public record ItemForm(
 
     private static int percent(String text) {
         return text == null || text.isBlank() ? 0 : DecimalInput.parseBasisPoints(text);
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 
     /**

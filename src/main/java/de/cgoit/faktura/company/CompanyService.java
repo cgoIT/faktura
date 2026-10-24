@@ -1,5 +1,7 @@
 package de.cgoit.faktura.company;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
@@ -141,9 +143,5 @@ public class CompanyService {
         return new CompanyInfo(id, c.name(), c.owner(), c.street(), c.zip(), c.city(), c.country(), c.email(),
                 c.phone(), c.taxNumber(), c.vatId(), c.iban(), c.bic(), c.bankName(), c.paymentDays(),
                 c.offerValidDays());
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 }
