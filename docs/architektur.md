@@ -94,7 +94,7 @@ Schreibzugriff auf den Beleg; nur Zahlungen, Mahnungen und Storno entstehen als 
   gehört (Seitenrand rechts 10 mm, `body` mit 10 mm Rand). Tabellen brauchen `-fs-table-paginate: paginate`, damit der Kopf auf
   Folgeseiten wiederkehrt. Bilder müssen deckend sein (PDF/A-1): Logo und Girocode werden als opakes PNG eingebettet.
 - Test: `InvoiceRendererTest` (1 und 40 Positionen: Seitenzahl, Fußzeile und „Seite x von y“ je Seite, kein Überlagern, Schriften eingebettet).
-- Archiv: `faktura.archive.path` (`ARCHIVE_PATH`), Dateien als `<Jahr>/<Nummer>.pdf`; eine Datei entsteht zuerst in `.staging`, wird nach
+- Archiv: `faktura.archive.path` (`ARCHIVE_PATH`), Dateien als `<Jahr>/<Nummer>.pdf` (Mahnungen `dunning/<Jahr>/<Nummer>.pdf`; Zeichen außer `A-Z a-z 0-9 . _ -` werden zu `_`, dann hängt ein Teil der ID an, `ArchiveService.fileName`); eine Datei entsteht zuerst in `.staging`, wird nach
   dem Commit verschoben, bei Rollback gelöscht; beim Start räumt `ArchiveService.recoverStaged` auf. Logo: `faktura.render.logo-path`
   (`LOGO_PATH`), sonst Platzhalter. Texte der Vorlage unter `faktura.render.*`.
 

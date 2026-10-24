@@ -100,6 +100,17 @@ class ArchiveServiceTest {
     }
 
     @Test
+    void fileNamesKeepSafeNumbersAndMakeOthersSafeAndDistinct() {
+        var ownerId = "0123456789abcdef";
+
+        assertThat(ArchiveService.fileName("RE202600001", ownerId)).isEqualTo("RE202600001");
+        assertThat(ArchiveService.fileName("RE 2026/1", ownerId)).isEqualTo("RE_2026_1-01234567");
+        assertThat(ArchiveService.fileName("RE_2026_1", ownerId)).isEqualTo("RE_2026_1");
+        assertThat(ArchiveService.fileName(".RE1", ownerId)).isEqualTo("_RE1-01234567");
+        assertThat(ArchiveService.fileName("ÄÖ..", ownerId)).isEqualTo("__..-01234567");
+    }
+
+    @Test
     void stagedFileWithCommittedRowIsCompletedOnRead() throws IOException {
         var path = "2099/" + UUID.randomUUID() + ".pdf";
         var file = transaction.execute(status ->
