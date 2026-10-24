@@ -131,6 +131,9 @@ Funktion mit Tabellentests (Monatsende, Schaltjahr, Quartal/Jahr mit beliebigem 
 - `tax` hängt von `company` ab (Firma für das Steuerprofil), deshalb liegt die Seite „Steuerprofile“ in `tax.web`
   (`/company/tax-profiles`) und nicht in `company.web`; so entsteht kein Modulzyklus.
 - `application.yml` mit Umgebungsvariablen für Datenbank, Archivpfad und Port. Fristen, Sätze, Gebühren in der Datenbank.
+- **Bindung:** `server.address` ist standardmäßig `127.0.0.1` (`SERVER_ADDRESS`), damit ein Start ohne Docker im Modus `NONE` nicht aus dem Netz erreichbar ist.
+  Das Image setzt `SERVER_ADDRESS=0.0.0.0` (sonst erreicht die Port-Weiterleitung von Docker die Anwendung nicht), das Profil `dev` ebenfalls, damit ein Proxy in Docker
+  die Anwendung auf dem Host erreicht; dort lehnt der Header-Modus jede Adresse außerhalb von `trusted-proxies` ab. `StartupSummary` nennt Adresse und Port.
 - **Backup:** Datenbank (SQLite-Datei per `VACUUM INTO` oder `.backup`, nicht mit laufendem Schreiber kopieren) und das
   Archiv-Verzeichnis zusammen sichern. Aufbewahrungsfristen beachten (Belege sind aufbewahrungspflichtig). Runbook:
   `docs/betrieb.md`. Umsetzung: `BackupService` (Modul `archive`) schreibt mit `VACUUM INTO` eine konsistente Datenbank-Sicherung, spiegelt das

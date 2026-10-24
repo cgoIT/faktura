@@ -48,7 +48,7 @@ public class StartupSummary {
         lines.add("version        " + version() + ", Java " + System.getProperty("java.version")
                 + ", time zone " + ZoneId.systemDefault());
         lines.add("profiles       " + profiles());
-        lines.add("port           " + value("server.port", "?"));
+        lines.add("address        " + value("server.address", "all interfaces") + ", port " + value("server.port", "?"));
         lines.add("database       " + database(value("spring.datasource.url", "")));
         lines.add("archive        " + resolved(value("faktura.archive.path", "")));
         lines.add("export folder  " + (blank("faktura.archive.export-path") ? "off"

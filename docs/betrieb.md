@@ -15,6 +15,9 @@ lokale `.env` (nicht ins Repository).
   Authentik, oder ein Reverse Proxy mit Basic-Auth/SSO) *alle* Zugriffe schützt und der Port nicht erreichbar ist. Steht kein solcher Proxy
   davor, **`SECURITY_MODE=FORM` verwenden** (Benutzername und Passwort, mindestens 12 Zeichen) und die Anwendung nur über HTTPS erreichbar machen.
 - Die Anwendung gehört nie ungeschützt ins Internet.
+- **Ohne Docker** (`java -jar`, `./mvnw spring-boot:run`) hört die Anwendung nur auf `127.0.0.1` und ist vom Netz aus nicht erreichbar. Läuft der
+  Reverse Proxy auf einem anderen Rechner, `SERVER_ADDRESS` auf die Adresse des internen Netzes setzen (oder `0.0.0.0`) und den Port per Firewall
+  auf den Proxy beschränken. Im Container setzt das Image `SERVER_ADDRESS=0.0.0.0`; dort begrenzt die Port-Bindung in `docker-compose.yml` den Zugriff.
 - **Personendaten:** Datenbank, Archiv, Backups, CSV-Exporte und Mails enthalten Kundendaten (Name, Anschrift, E-Mail, Beträge). Backups
   verschlüsseln (z. B. verschlüsselte Platte oder Offsite-Ziel), Zugriff begrenzen, Löschfristen und Auskunftspflichten (DSGVO) beachten. Aufbewahrungspflichtige
   Belege dürfen nicht vorzeitig gelöscht werden (siehe „Aufbewahrungsfristen“).
@@ -54,6 +57,7 @@ docker compose ps                 # Status "healthy" nach etwa einer Minute
 | Variable | Standard im Image | Bedeutung |
 | --- | --- | --- |
 | `SERVER_PORT` | `8080` | Port im Container |
+| `SERVER_ADDRESS` | `0.0.0.0` | Adresse, auf der die Anwendung hört; ohne Image ist der Standard `127.0.0.1` |
 | `DB_URL` | `jdbc:sqlite:/data/faktura.db` | SQLite-Datei oder `jdbc:postgresql://…` |
 | `DB_USER`, `DB_PASSWORD` | leer | nur für PostgreSQL |
 | `DB_POOL_SIZE` | `1` | bei SQLite 1 lassen (ein Schreiber), bei PostgreSQL erhöhen |
@@ -248,7 +252,8 @@ Standardmäßig hat faktura keine eigene Anmeldung (`SECURITY_MODE=NONE`); der S
 fremden Seiten schützen CSRF-Token und Content-Security-Policy in jedem Modus. Die Modi sind unter „Anmeldung und Benutzer“ beschrieben.
 Bei `NONE` gilt:
 
-- Die Anwendung hängt nur im internen Netz bzw. an `127.0.0.1`; nur Pangolin erreicht sie.
+- Die Anwendung hängt nur im internen Netz bzw. an `127.0.0.1`; nur Pangolin erreicht sie. Ohne Docker hört sie standardmäßig nur auf
+  `127.0.0.1` (`SERVER_ADDRESS`).
 - In Pangolin eine Ressource für `https://<faktura-hostname>` anlegen, Ziel `http://<docker-host>:8080`, und die Authentifizierung
   über Authentik (SSO/OIDC) für die **ganze** Ressource aktivieren, ohne Ausnahmen für Pfade. Der Health-Check läuft im
   Container, braucht also keine Freigabe nach außen.
