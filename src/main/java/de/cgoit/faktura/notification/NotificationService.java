@@ -1,5 +1,7 @@
 package de.cgoit.faktura.notification;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -311,9 +313,5 @@ public class NotificationService {
 
     private static LocalDate today(LocalDateTime now) {
         return now.toLocalDate();
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 }

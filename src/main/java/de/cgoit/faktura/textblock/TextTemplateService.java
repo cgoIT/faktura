@@ -1,5 +1,7 @@
 package de.cgoit.faktura.textblock;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Locale;
@@ -168,10 +170,6 @@ public class TextTemplateService {
             templates.clearDefault(input.scope(), input.kind());
             templates.markDefault(id);
         }
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 
     private TextTemplateInput validated(TextTemplateInput input) {

@@ -1,5 +1,7 @@
 package de.cgoit.faktura.recurring;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -359,10 +361,6 @@ public class RecurringPlanService {
 
         return new PlanItemInput(item.description(), item.quantityThousandths(), blankToNull(item.unitCode()),
                 item.unitPriceCents(), item.discountBp(), blankToNull(item.taxCategory()), item.catalogItemId());
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 
     private void validateItems(List<PlanItemInput> items) {

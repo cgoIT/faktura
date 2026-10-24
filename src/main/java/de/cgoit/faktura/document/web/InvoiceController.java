@@ -31,6 +31,7 @@ import de.cgoit.faktura.document.PaymentState;
 import de.cgoit.faktura.render.RichText;
 import de.cgoit.faktura.shared.DecimalInput;
 import de.cgoit.faktura.shared.FieldViolation;
+import de.cgoit.faktura.shared.FormErrors;
 import de.cgoit.faktura.shared.RuleViolationException;
 import de.cgoit.faktura.tax.TaxProfileService;
 import de.cgoit.faktura.textblock.TextKind;
@@ -38,7 +39,6 @@ import de.cgoit.faktura.textblock.TextScope;
 import de.cgoit.faktura.textblock.TextTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -250,7 +250,7 @@ public class InvoiceController {
 
             invoices.updateDraft(id, form.toInput(), form.requireVersion());
         } catch (RuleViolationException e) {
-            model.addAttribute("error", reject(e, result));
+            model.addAttribute("error", FormErrors.reject(e, result, InvoiceFields::formField, FORM_ERROR));
 
             return editor(model, form, existing);
         }
@@ -605,37 +605,9 @@ public class InvoiceController {
 
             return "redirect:" + base() + "/" + saved.id();
         } catch (RuleViolationException e) {
-            model.addAttribute("error", reject(e, result));
+            model.addAttribute("error", FormErrors.reject(e, result, InvoiceFields::formField, FORM_ERROR));
 
             return editor(model, form, existing);
-        }
-    }
-
-    /**
-     * Puts every violation at its field of the form. Returns the key of the notice above the form: the first violation
-     * without a field of its own, else the general hint to check the marked fields.
-     */
-    private static String reject(RuleViolationException e, BindingResult result) {
-        String notice = null;
-
-        for (var violation : e.violations()) {
-            var field = InvoiceFields.formField(violation.field());
-
-            if (field == null || !rejectValue(result, field, violation.key())) {
-                notice = notice != null ? notice : violation.key();
-            }
-        }
-
-        return notice != null ? notice : FORM_ERROR;
-    }
-
-    private static boolean rejectValue(BindingResult result, String field, String key) {
-        try {
-            result.rejectValue(field, key);
-
-            return true;
-        } catch (InvalidPropertyException e) {
-            return false;
         }
     }
 

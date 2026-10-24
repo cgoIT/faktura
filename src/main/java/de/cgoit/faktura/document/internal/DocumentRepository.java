@@ -203,12 +203,9 @@ public class DocumentRepository {
                 .optional();
     }
 
-    public void insertDraft(String id, DocumentType type, DraftValues values, Calculation calculation) {
-        insertDraft(id, type, null, values, calculation);
-    }
-
     /**
-     * Inserts a draft that refers to another document (the cancelled invoice of a cancellation).
+     * Inserts a draft. It may refer to another document: the cancelled invoice of a cancellation or the offer of an
+     * invoice; {@code refDocumentId} is {@code null} otherwise.
      */
     public void insertDraft(String id, DocumentType type, String refDocumentId, DraftValues values,
             Calculation calculation) {

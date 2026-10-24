@@ -1,5 +1,8 @@
 package de.cgoit.faktura.catalog;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+import static de.cgoit.faktura.shared.Texts.contains;
+
 import java.text.Collator;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -184,13 +187,5 @@ public class CatalogService {
         }
 
         return name.contains(needle) ? 1 : 2;
-    }
-
-    private static boolean contains(String value, String needle) {
-        return value != null && value.toLowerCase(Locale.GERMAN).contains(needle);
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 }

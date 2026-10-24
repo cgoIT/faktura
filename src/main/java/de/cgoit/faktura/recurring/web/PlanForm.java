@@ -1,5 +1,7 @@
 package de.cgoit.faktura.recurring.web;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,10 +143,6 @@ public record PlanForm(
 
     private static boolean blank(String value) {
         return value == null || value.isBlank();
-    }
-
-    private static String blankToNull(String value) {
-        return blank(value) ? null : value;
     }
 
     /**

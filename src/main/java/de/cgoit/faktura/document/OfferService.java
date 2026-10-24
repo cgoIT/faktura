@@ -1,5 +1,7 @@
 package de.cgoit.faktura.document;
 
+import static de.cgoit.faktura.shared.Texts.contains;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -225,9 +227,5 @@ public class OfferService {
                 OfferStateCalculator.state(header.status(), header.validUntil(), offerEvents, today), header.number(),
                 header.customerId(), customerName, header.subject(), header.issueDate(), header.validUntil(),
                 header.grossTotalCents());
-    }
-
-    private static boolean contains(String value, String needle) {
-        return value != null && value.toLowerCase(Locale.GERMAN).contains(needle);
     }
 }

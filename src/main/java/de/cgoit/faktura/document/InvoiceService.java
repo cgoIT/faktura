@@ -1,5 +1,8 @@
 package de.cgoit.faktura.document;
 
+import static de.cgoit.faktura.shared.Texts.blankToNull;
+import static de.cgoit.faktura.shared.Texts.contains;
+
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -227,7 +230,7 @@ public class InvoiceService {
      */
     @Transactional
     public InvoiceInfo createDraft(InvoiceInput input) {
-        return createDraft(DocumentType.INVOICE, input);
+        return createDraft(DocumentType.INVOICE, input, null);
     }
 
     /**
@@ -238,7 +241,7 @@ public class InvoiceService {
      */
     @Transactional
     public InvoiceInfo createOfferDraft(InvoiceInput input) {
-        return createDraft(DocumentType.OFFER, input);
+        return createDraft(DocumentType.OFFER, input, null);
     }
 
     /**
@@ -254,10 +257,6 @@ public class InvoiceService {
                 .orElseThrow(() -> new RuleViolationException("invoice.error.unknown"));
 
         return createDraft(DocumentType.INVOICE, input, offerId);
-    }
-
-    private InvoiceInfo createDraft(DocumentType type, InvoiceInput input) {
-        return createDraft(type, input, null);
     }
 
     private InvoiceInfo createDraft(DocumentType type, InvoiceInput input, String refDocumentId) {
@@ -372,15 +371,6 @@ public class InvoiceService {
 
         taxProfiles.findValidOn(day)
                 .ifPresent(profile -> requireTaxRules(profile, calculationItems, shipping));
-    }
-
-    /**
-     * Checks the items against the given tax profile, see {@link #requireTaxRules(LocalDate, List, ShippingCharge)}.
-     *
-     * @throws RuleViolationException if an item violates the profile
-     */
-    void requireTaxRules(TaxProfileInfo profile, List<CalculationItem> calculationItems) {
-        requireTaxRules(profile, calculationItems, ShippingCharge.none());
     }
 
     /**
@@ -743,14 +733,6 @@ public class InvoiceService {
     private static CalculationItem toCalculationItem(InvoiceItemInfo item) {
         return new CalculationItem(item.quantityThousandths(), item.unitPriceCents(), item.discountBp(),
                 item.taxCategory(), item.taxRateBp());
-    }
-
-    private static boolean contains(String value, String needle) {
-        return value != null && value.toLowerCase(Locale.GERMAN).contains(needle);
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 
     record Prepared(DraftValues values, Calculation calculation, List<InvoiceItemInfo> items) {
