@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/cgoIT/faktura/compare/v0.2.0...v0.2.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **ci:** use a lower-case image name for signing and attestation ([9dd9abf](https://github.com/cgoIT/faktura/commit/9dd9abf18c37a7957066bd640a08d064c6e7cf6e))
+* create the directory of the SQLite database at startup ([91a692c](https://github.com/cgoIT/faktura/commit/91a692cad565551927763ae8331fd779bf9524ee))
+
 ## [0.2.0](https://github.com/cgoIT/faktura/compare/v0.1.0...v0.2.0) (2026-10-23)
 
 
