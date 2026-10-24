@@ -1,5 +1,7 @@
 package de.cgoit.faktura.document.web;
 
+import static de.cgoit.faktura.shared.Texts.isBlank;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -145,8 +147,8 @@ public record InvoiceForm(
                 ? null
                 : new ShippingCharge(shippingName, shippingCents, shippingTaxCategory, shippingRate);
 
-        return new InvoiceInput(blank(customerId) ? null : customerId, issueDate, serviceFrom, serviceTo, days,
-                subject, headerText, footerText, discount, inputItems, blank(contactId) ? null : contactId,
+        return new InvoiceInput(isBlank(customerId) ? null : customerId, issueDate, serviceFrom, serviceTo, days,
+                subject, headerText, footerText, discount, inputItems, isBlank(contactId) ? null : contactId,
                 customerReference, shipping, validUntil);
     }
 
@@ -165,7 +167,7 @@ public record InvoiceForm(
     }
 
     private Integer days() {
-        if (blank(paymentDays)) {
+        if (isBlank(paymentDays)) {
             return null;
         }
 
@@ -177,25 +179,21 @@ public record InvoiceForm(
     }
 
     private long shippingCents() {
-        return blank(shippingAmount) ? 0 : DecimalInput.parseCents(shippingAmount);
+        return isBlank(shippingAmount) ? 0 : DecimalInput.parseCents(shippingAmount);
     }
 
     private int shippingRate() {
-        return blank(shippingTaxRate) ? 0 : DecimalInput.parseBasisPoints(shippingTaxRate);
+        return isBlank(shippingTaxRate) ? 0 : DecimalInput.parseBasisPoints(shippingTaxRate);
     }
 
     private TotalDiscount discount() {
-        if (blank(discountValue)) {
+        if (isBlank(discountValue)) {
             return null;
         }
 
         return "AMOUNT".equals(discountType)
                 ? TotalDiscount.amount(DecimalInput.parseCents(discountValue))
                 : TotalDiscount.percent(DecimalInput.parseBasisPoints(discountValue));
-    }
-
-    private static boolean blank(String value) {
-        return value == null || value.isBlank();
     }
 
     /**

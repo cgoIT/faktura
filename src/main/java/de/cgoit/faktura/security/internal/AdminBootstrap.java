@@ -1,5 +1,7 @@
 package de.cgoit.faktura.security.internal;
 
+import static de.cgoit.faktura.shared.Texts.isBlank;
+
 import de.cgoit.faktura.security.UserInput;
 import de.cgoit.faktura.security.UserService;
 import de.cgoit.faktura.shared.RuleViolationException;
@@ -40,7 +42,7 @@ class AdminBootstrap implements ApplicationRunner {
             return;
         }
 
-        if (blank(properties.adminUser()) || blank(properties.adminPassword())) {
+        if (isBlank(properties.adminUser()) || isBlank(properties.adminPassword())) {
             throw new IllegalStateException("No user exists. Set SECURITY_ADMIN_USER and SECURITY_ADMIN_PASSWORD "
                     + "for the first start in mode FORM.");
         }
@@ -61,7 +63,7 @@ class AdminBootstrap implements ApplicationRunner {
      * without password (a proxy user) cannot be the administrator.
      */
     private void ensureFormAdministrator() {
-        if (blank(properties.adminUser()) || blank(properties.adminPassword())) {
+        if (isBlank(properties.adminUser()) || isBlank(properties.adminPassword())) {
             throw new IllegalStateException("Mode PROXY_HEADER_ADMIN_FORM needs SECURITY_ADMIN_USER and "
                     + "SECURITY_ADMIN_PASSWORD for the administrator who signs in with a password.");
         }
@@ -85,9 +87,5 @@ class AdminBootstrap implements ApplicationRunner {
         }
 
         LOG.info("Created the administrator for mode PROXY_HEADER_ADMIN_FORM");
-    }
-
-    private static boolean blank(String text) {
-        return text == null || text.isBlank();
     }
 }

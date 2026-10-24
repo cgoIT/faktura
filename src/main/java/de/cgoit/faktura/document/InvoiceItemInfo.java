@@ -35,6 +35,10 @@ public record InvoiceItemInfo(
         return plural ? unitNamePlural : unitName;
     }
 
+    CalculationItem toCalculationItem() {
+        return new CalculationItem(quantityThousandths, unitPriceCents, discountBp, taxCategory, taxRateBp);
+    }
+
     /**
      * Hides the free text from logs.
      */

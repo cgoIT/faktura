@@ -168,7 +168,7 @@ public class InvoiceService {
                         .map(InvoiceService::defaultDiscount)
                         .orElse(TotalDiscount.none());
         var calculationItems = input.items().stream()
-                .map(InvoiceService::toCalculationItem)
+                .map(InvoiceItemInput::toCalculationItem)
                 .toList();
 
         var day = input.serviceFrom() != null ? input.serviceFrom() : input.issueDate();
@@ -282,7 +282,7 @@ public class InvoiceService {
      * @throws RuleViolationException if the invoice is unknown, not a draft, or the input is invalid
      */
     @Transactional
-    public InvoiceInfo updateDraft(String id, InvoiceInput input) {
+    InvoiceInfo updateDraft(String id, InvoiceInput input) {
         return updateDraft(id, input, requireDraft(id).version());
     }
 
@@ -483,7 +483,7 @@ public class InvoiceService {
         var discount = totalDiscount(input, customer);
         var itemInfos = validatedItems(input.items());
         var calculationItems = itemInfos.stream()
-                .map(InvoiceService::toCalculationItem)
+                .map(InvoiceItemInfo::toCalculationItem)
                 .toList();
 
         var shipping = validatedShipping(input.shipping(), from != null ? from : input.issueDate());
@@ -691,7 +691,7 @@ public class InvoiceService {
                 throw new RuleViolationException("invoice.error.unit", path + "unitCode");
             }
 
-            var lineTotal = InvoiceCalculator.lineTotal(toCalculationItem(input));
+            var lineTotal = InvoiceCalculator.lineTotal(input.toCalculationItem());
 
             result.add(new InvoiceItemInfo(null, result.size() + 1, input.description(), input.quantityThousandths(),
                     unit == null ? null : unit.code(), unit == null ? null : unit.name(),
@@ -723,16 +723,6 @@ public class InvoiceService {
                 header.recipientSnapshot() == null ? null : codec.recipient(header.recipientSnapshot()).name(),
                 header.contactId(), header.createdBy(), header.version(), header.customerReference(),
                 header.shipping(), header.validUntil());
-    }
-
-    private static CalculationItem toCalculationItem(InvoiceItemInput item) {
-        return new CalculationItem(item.quantityThousandths(), item.unitPriceCents(), item.discountBp(),
-                item.taxCategory(), item.taxRateBp());
-    }
-
-    private static CalculationItem toCalculationItem(InvoiceItemInfo item) {
-        return new CalculationItem(item.quantityThousandths(), item.unitPriceCents(), item.discountBp(),
-                item.taxCategory(), item.taxRateBp());
     }
 
     record Prepared(DraftValues values, Calculation calculation, List<InvoiceItemInfo> items) {

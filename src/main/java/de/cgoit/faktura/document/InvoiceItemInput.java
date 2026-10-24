@@ -31,6 +31,10 @@ public record InvoiceItemInput(
         int taxRateBp,
         String catalogItemId) {
 
+    CalculationItem toCalculationItem() {
+        return new CalculationItem(quantityThousandths, unitPriceCents, discountBp, taxCategory, taxRateBp);
+    }
+
     /**
      * Hides the free text from logs.
      */
