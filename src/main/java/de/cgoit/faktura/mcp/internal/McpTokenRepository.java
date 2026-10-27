@@ -49,6 +49,13 @@ public class McpTokenRepository {
                 .update();
     }
 
+    public Optional<Row> findById(String id) {
+        return jdbc.sql(SELECT + " WHERE id = :id")
+                .param("id", id)
+                .query(McpTokenRepository::map)
+                .optional();
+    }
+
     public List<Row> findAll() {
         return jdbc.sql(SELECT + " ORDER BY created_at DESC")
                 .query(McpTokenRepository::map)
@@ -61,7 +68,10 @@ public class McpTokenRepository {
      * @param today ISO date of today; the token is valid through its {@code expires_on}
      */
     public Optional<Row> findValid(String tokenHash, String today) {
-        return jdbc.sql(SELECT + " WHERE token_hash = :hash AND revoked_at IS NULL AND (expires_on IS NULL OR expires_on >= :today)")
+        return jdbc.sql(SELECT + """
+                         WHERE token_hash = :hash AND revoked_at IS NULL
+                               AND (expires_on IS NULL OR expires_on >= :today)
+                        """)
                 .param("hash", tokenHash)
                 .param("today", today)
                 .query(McpTokenRepository::map)

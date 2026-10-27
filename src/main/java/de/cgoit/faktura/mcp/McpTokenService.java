@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -105,13 +106,11 @@ public class McpTokenService {
         var expiresOn = validityDays == null ? null : LocalDate.now(clock).plusDays(validityDays);
 
         tokens.insert(id, cleanName, TokenHashes.sha256Hex(token), token.substring(0, PREFIX_LENGTH), scope.name(),
-                expiresOn == null ? null : expiresOn.toString(), currentUser.username(), Instant.now(clock).toString());
+                expiresOn == null ? null : expiresOn.toString(), currentUser.username(), now());
         audit.record(AuditObjectType.MCP_TOKEN, id, AuditAction.MCP_TOKEN_CREATE,
                 Map.of("scope", scope.name(), "expiresOn", expiresOn == null ? "unlimited" : expiresOn.toString()));
 
-        var created = tokens.findAll().stream()
-                .filter(row -> row.id().equals(id))
-                .findFirst()
+        var created = tokens.findById(id)
                 .orElseThrow();
 
         return new CreatedMcpToken(toInfo(created), token);
@@ -124,20 +123,31 @@ public class McpTokenService {
      */
     @Transactional
     public void revoke(String id) {
-        if (!tokens.revoke(id, Instant.now(clock).toString())) {
+        if (!tokens.revoke(id, now())) {
             throw new RuleViolationException("mcp.token.error.unknown");
         }
 
         audit.record(AuditObjectType.MCP_TOKEN, id, AuditAction.MCP_TOKEN_REVOKE, Map.of());
     }
 
+    /**
+     * Current time with whole seconds, so stored times have one fixed width and compare correctly as text.
+     */
+    private String now() {
+        return Instant.now(clock)
+                .truncatedTo(ChronoUnit.SECONDS)
+                .toString();
+    }
+
     private McpTokenInfo toInfo(McpTokenRepository.Row row) {
         var expiresOn = row.expiresOn() == null ? null : LocalDate.parse(row.expiresOn());
-        var status = row.revokedAt() != null
-                ? McpTokenStatus.REVOKED
-                : expiresOn != null && expiresOn.isBefore(LocalDate.now(clock))
-                        ? McpTokenStatus.EXPIRED
-                        : McpTokenStatus.ACTIVE;
+        var status = McpTokenStatus.ACTIVE;
+
+        if (row.revokedAt() != null) {
+            status = McpTokenStatus.REVOKED;
+        } else if (expiresOn != null && expiresOn.isBefore(LocalDate.now(clock))) {
+            status = McpTokenStatus.EXPIRED;
+        }
 
         return new McpTokenInfo(row.id(), row.name(), row.tokenPrefix(), McpScope.valueOf(row.scope()), expiresOn,
                 status, row.revokedAt(), row.createdBy(), row.createdAt(), row.lastUsedAt());

@@ -112,7 +112,8 @@ class McpController {
      * The scope the filter granted; without a recognizable authority a request may only read.
      */
     private static McpScope scopeOf(Authentication authentication) {
-        return authentication.getAuthorities().stream()
+        return authentication.getAuthorities()
+                .stream()
                 .anyMatch(authority -> authority.getAuthority().equals("SCOPE_" + McpScope.DRAFT.name()))
                 ? McpScope.DRAFT
                 : McpScope.READ;

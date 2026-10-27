@@ -146,7 +146,8 @@ faktura:
   # MCP server for AI assistants (POST /mcp): read access and draft creation, nothing irreversible. Off by default.
   mcp:
     enabled: ${MCP_ENABLED:false}
-    # bearer token, at least 32 characters; the module refuses to start without it
+    # optional emergency token with read access only (at least 32 characters, else the module refuses to start);
+    # normal access uses the tokens an administrator manages in the application
     token: ${MCP_TOKEN:}
     # header that may carry the bare token (without "Bearer "), for clients that only send a plain header value;
     # Claude Desktop only accepts header names Anthropic knows, e.g. X-API-Key

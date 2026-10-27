@@ -1,10 +1,10 @@
 package de.cgoit.faktura.mcp.internal;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.security.MessageDigest;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -86,7 +86,7 @@ class BearerTokenFilter extends OncePerRequestFilter {
     }
 
     private void markUsed(String id) {
-        var now = Instant.now(clock);
+        var now = Instant.now(clock).truncatedTo(ChronoUnit.SECONDS);
 
         try {
             tokens.touch(id, now.toString(), now.minus(1, ChronoUnit.MINUTES).toString());

@@ -15,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 /**
- * Separate filter chain for {@code /mcp}: stateless, no CSRF (there is no browser session to forge) and only the
+ * Separate filter chain for {@code /mcp}: stateless, no CSRF (there is no browser session to forge) and only
  * a valid token lets a request in. The chain of the web interface is not touched. A token in the environment, if
  * set, must be long enough or the application does not start.
  */
