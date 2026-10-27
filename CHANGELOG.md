@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/cgoIT/faktura/compare/v0.5.0...v0.6.0) (2026-10-27)
+
+
+### Features
+
+* write rolling log files to the data volume ([f8241ab](https://github.com/cgoIT/faktura/commit/f8241abee92afa7dd38b6f5f247e0dee8acd6da6))
+
 ## [0.5.0](https://github.com/cgoIT/faktura/compare/v0.4.0...v0.5.0) (2026-10-27)
 
 
