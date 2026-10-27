@@ -62,3 +62,6 @@ faktura:
     max-failures: 5
     admin-user: ${SECURITY_ADMIN_USER:admin}
     admin-password: ${SECURITY_ADMIN_PASSWORD:anmeldung}
+  mcp:
+    enabled: ${MCP_ENABLED:true}
+    token: ${MCP_TOKEN:919baef9794d9be556e6e4c4b734c022b7e333f9c8ba745229c56dc63c9fb441}

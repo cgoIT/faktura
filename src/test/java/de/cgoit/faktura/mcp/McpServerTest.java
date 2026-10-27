@@ -104,6 +104,16 @@ class McpServerTest {
     }
 
     @Test
+    void theTokenAlsoWorksAsAPlainHeaderValue() throws Exception {
+        mvc.perform(post("/mcp").header("X-MCP-Token", TOKEN).contentType(MediaType.APPLICATION_JSON)
+                .content(rpc("ping", "{}")))
+                .andExpect(status().isOk());
+        mvc.perform(post("/mcp").header("X-MCP-Token", "wrong").contentType(MediaType.APPLICATION_JSON)
+                .content(rpc("ping", "{}")))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void initializeAnswersWithTheRequestedProtocolVersion() throws Exception {
         call("initialize", "{\"protocolVersion\":\"2025-03-26\"}")
                 .andExpect(status().isOk())

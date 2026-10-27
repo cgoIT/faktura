@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Lets a request through as the actor {@value #ACTOR} when it carries the configured bearer token. Both sides are
+ * Lets a request through as the actor {@value #ACTOR} when it carries the configured token as bearer token or in the header {@value #TOKEN_HEADER}. Both sides are
  * hashed before the comparison, so it takes the same time whatever the token looks like.
  */
 class BearerTokenFilter extends OncePerRequestFilter {
@@ -24,6 +24,9 @@ class BearerTokenFilter extends OncePerRequestFilter {
     static final String ACTOR = "mcp";
 
     private static final String PREFIX = "Bearer ";
+
+    // for clients that can only send a plain header value (the connector dialog of Claude Desktop)
+    static final String TOKEN_HEADER = "X-MCP-Token";
 
     private final byte[] expected;
 
@@ -35,9 +38,11 @@ class BearerTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         var header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        var given = header != null && header.regionMatches(true, 0, PREFIX, 0, PREFIX.length())
+                ? header.substring(PREFIX.length())
+                : request.getHeader(TOKEN_HEADER);
 
-        if (header != null && header.regionMatches(true, 0, PREFIX, 0, PREFIX.length())
-                && MessageDigest.isEqual(expected, sha256(header.substring(PREFIX.length()).strip()))) {
+        if (given != null && MessageDigest.isEqual(expected, sha256(given.strip()))) {
             var context = SecurityContextHolder.createEmptyContext();
 
             context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(ACTOR, null, List.of()));
