@@ -60,7 +60,7 @@ public class McpTools {
     private static final String DRAFT_SCHEMA = """
             {"type":"object","required":["customerId","items"],"properties":{
               "customerId":{"type":"string","description":"Customer id from search_customers"},
-              "subject":{"type":"string","description":"Internal designation of the document (not printed on it; the web form calls it 'Interne Bezeichnung'), optional"},
+              "subject":{"type":"string","description":"Internal designation or note of the document, not printed on it (the web form calls it 'Interne Bezeichnung'); use it for an 'internal note' (interne Bemerkung), optional"},
               "paymentDays":{"type":"integer","minimum":0,"maximum":365,"description":"Payment term in days; default is the customer's or the company's term"},
               "totalDiscountPercent":{"type":"string","description":"Discount on the whole document in percent, e.g. 5; optional"},
               "customerReference":{"type":"string","description":"Reference of the customer, optional"},

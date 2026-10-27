@@ -118,7 +118,8 @@ class McpServerTest {
         call("initialize", "{\"protocolVersion\":\"2025-03-26\"}")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.protocolVersion").value("2025-03-26"))
-                .andExpect(jsonPath("$.result.serverInfo.name").value("faktura"));
+                .andExpect(jsonPath("$.result.serverInfo.name").value("faktura"))
+                .andExpect(jsonPath("$.result.instructions").isNotEmpty());
     }
 
     @Test

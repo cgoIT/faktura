@@ -26,6 +26,14 @@ class McpController {
 
     private static final List<String> VERSIONS = List.of("2025-06-18", "2025-03-26", "2024-11-05");
 
+    // shown to the assistant at the start of a session; keeps it from silently dropping what the user asked for
+    private static final String INSTRUCTIONS = """
+            faktura creates invoice and offer drafts and reads open items. A person finalizes, sends and books in the \
+            web interface. Before creating a draft, check that every detail the user named has a matching parameter \
+            of the tool ('subject' is the internal designation or note). If something has no parameter, or you are \
+            unsure which parameter is meant, ask the user first and create the draft only after the answer; never \
+            drop a detail silently. Search the customer and the catalog entries first and ask when several match.""";
+
     private final McpTools tools;
 
     McpController(McpTools tools) {
@@ -104,7 +112,8 @@ class McpController {
 
         return Map.of("protocolVersion", version,
                 "capabilities", Map.of("tools", Map.of("listChanged", false)),
-                "serverInfo", Map.of("name", "faktura", "version", "1"));
+                "serverInfo", Map.of("name", "faktura", "version", "1"),
+                "instructions", INSTRUCTIONS);
     }
 
     private static Map<String, Object> result(Object id, Object result) {
