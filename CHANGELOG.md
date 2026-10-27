@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.5.0](https://github.com/cgoIT/faktura/compare/v0.4.0...v0.5.0) (2026-10-27)
+
+
+### Features
+
+* accept the MCP token in the X-MCP-Token header ([6e1046d](https://github.com/cgoIT/faktura/commit/6e1046d082b2d8efc92690e21a2c13ce621a4d3f))
+* add MCP server for reading data and creating drafts ([60f0ac5](https://github.com/cgoIT/faktura/commit/60f0ac580cbb6867dfab16c6431292cc8f1aa7ec))
+* copy button for the new MCP token and connection steps for Claude Desktop and Claude Code ([58a1079](https://github.com/cgoIT/faktura/commit/58a1079312cb7f258238beeec78ea23aecec53cd))
+* let MCP drafts set payment term and total discount ([4ed963d](https://github.com/cgoIT/faktura/commit/4ed963db1e56f0cee9009398a16bffdd42bf00d4))
+* make the MCP token header name configurable ([86a3a32](https://github.com/cgoIT/faktura/commit/86a3a32544060815ee517aa34a2aa56b67fbbdd4))
+* manage MCP tokens in the web interface (expiry, revoke, scope) ([1ff40cb](https://github.com/cgoIT/faktura/commit/1ff40cbc0b513690619c3cd7df4107bda0ab016a))
+* MCP server for AI assistants with admin-managed tokens ([ad16639](https://github.com/cgoIT/faktura/commit/ad1663929833fe499a1367a167b155511bed6ac5))
+* refuse MCP without a sign-in mode ([4b49a8c](https://github.com/cgoIT/faktura/commit/4b49a8ce2b570864505ec309d60a858d388dd192))
+* show a short confirmation next to each copy button ([c01b068](https://github.com/cgoIT/faktura/commit/c01b0680a07fdf00d035c38415b0a3083963ccd5))
+* tell the assistant to ask when a requested detail has no tool parameter ([c256335](https://github.com/cgoIT/faktura/commit/c256335bb748bce47ba9c4116cead07364c94fa5))
+* token list with a collapsible guide, separate create form, unlimited tokens ([55e03e2](https://github.com/cgoIT/faktura/commit/55e03e28ee7c6df2e352724027ca2d2fc55fa8ce))
+
+
+### Bug Fixes
+
+* review findings for the MCP branch (dev base-url, access tests, fixed-width times, style) ([9d0e096](https://github.com/cgoIT/faktura/commit/9d0e096244b4080b368b67121a5be748e6555546))
+
 ## [0.4.0](https://github.com/cgoIT/faktura/compare/v0.3.0...v0.4.0) (2026-10-27)
 
 
