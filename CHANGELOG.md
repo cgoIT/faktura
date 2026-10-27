@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/cgoIT/faktura/compare/v0.2.1...v0.3.0) (2026-10-27)
+
+
+### Features
+
+* add favicon, logo mark and PWA manifest, write the name in lower case ([3056ee2](https://github.com/cgoIT/faktura/commit/3056ee29695f0b9efcdcdd69d4d49c416bd92ef7))
+
 ## [0.2.1](https://github.com/cgoIT/faktura/compare/v0.2.0...v0.2.1) (2026-10-24)
 
 
