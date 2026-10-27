@@ -54,6 +54,7 @@ nie über fremde Repositories oder Tabellen.
 | `shared` (offen) | Geld- und Datumshilfen, gemeinsame Typen, Eingabeprüfung (`InputValidator`, `FieldViolation`), Länderliste (`Countries`) |
 | `security` | Zuschaltbare Anmeldung (`NONE`, `FORM`, `PROXY_HEADER`, `PROXY_HEADER_ADMIN_FORM`), Benutzerverwaltung (`app_user`, nur für Administratoren), CSRF-Schutz, Sicherheits-Header und CSP; liefert den Akteur über die Schnittstelle `shared.CurrentUser`, damit Fachmodule nicht von `security` abhängen |
 | `export` | CSV-Export der Rechnungen und Zahlungen eines Jahres (`CsvWriter`, `AccountingCsvExporter` in `internal`, Seite in `export.web`); liest nur über `document.AccountingExportService`, schreibt nichts |
+| `mcp` | MCP-Server (JSON-RPC über `POST /mcp`, zustandslos, ohne zusätzliche Bibliothek): `McpController` in `mcp.web`, die Werkzeuge `McpTools` und eine eigene Filterkette mit Bearer-Token (`McpSecurityConfiguration`, `BearerTokenFilter`) in `mcp.internal`. Ruft nur öffentliche Dienste von `customer`, `catalog`, `document`, `dunning`, `textblock` auf; niemand hängt von ihm ab. Schreibt nur Entwürfe (Akteur `mcp`). Aus, solange `faktura.mcp.enabled` fehlt. Tests: `McpServerTest`, `McpSourceTest` (kein Werkzeug finalisiert, storniert, bucht, sendet oder löscht) |
 
 ## Querschnittsthemen
 

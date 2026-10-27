@@ -81,6 +81,7 @@ docker compose ps                 # Status "healthy" nach etwa einer Minute
 | `MAIL_FROM` | leer | Absenderadresse; leer: E-Mail-Adresse des Unternehmens |
 | `MAIL_REPLY_TO`, `MAIL_BCC` | leer | optionale Antwortadresse und optionale Blindkopie jeder Mail an dich selbst |
 | `MAIL_MAX_ATTACHMENT_BYTES` | `10485760` | größere PDFs werden nicht gesendet |
+| `MCP_ENABLED`, `MCP_TOKEN` | `false`, leer | MCP-Server für KI-Assistenten einschalten und sein Token (mindestens 32 Zeichen), siehe „KI-Assistenten anbinden“ |
 | `BASE_URL` | leer | Adresse, unter der du faktura erreichst (z. B. `https://faktura.example.org/`), für den Link in der Hinweis-Mail; leer: Mail ohne Link |
 | `NOTIFICATION_ENABLED` | `true` | Prüfung der Hinweis-Mail ein/aus (die Kategorien selbst sind bis zum Einschalten in der Oberfläche aus) |
 | `NOTIFICATION_POLL_INTERVAL` | `PT5M` | wie oft geprüft wird, ob die tägliche Mail fällig ist |
@@ -344,6 +345,20 @@ automatisiert (Neuaufbau und Datenübernahme per Skript). Beim Backup mit Postgr
 Unter „Export“ in der Navigation lassen sich je Jahr zwei CSV-Dateien laden (Rechnungen und Stornos nach Rechnungsdatum, Zahlungen nach Zahlungsdatum).
 Die Dateien entstehen beim Abruf aus der Datenbank, es liegt nichts auf dem Server. Sie enthalten Kundendaten und Verwendungszwecke: sicher aufbewahren und
 nur an den Steuerberater geben. Der Export ersetzt weder das Backup noch das Archiv.
+
+## KI-Assistenten anbinden (MCP)
+
+faktura kann einem KI-Assistenten (z. B. Claude) über das Model Context Protocol Werkzeuge anbieten: Kunden und Katalog suchen, offene und überfällige Rechnungen,
+Mahnvorschläge und ablaufende Angebote lesen sowie **Rechnungs- und Angebotsentwürfe anlegen**. Finalisieren, Stornieren, Zahlungen buchen, Mails senden und
+Löschen gibt es dort nicht; das bleibt dir im Prüfdialog vorbehalten. Entwürfe tragen als Ersteller `mcp`.
+
+- Standardmäßig aus. Einschalten: `MCP_ENABLED=true` und `MCP_TOKEN` mit mindestens 32 zufälligen Zeichen (z. B. `openssl rand -hex 32`). Ohne brauchbaren Token startet faktura nicht.
+- Der Endpunkt ist `POST /mcp` mit dem Header `Authorization: Bearer <token>`. Er hat eine eigene Anmeldung und ist vom Anmeldemodus (`security`) unabhängig.
+- Beispiel Claude Code: `claude mcp add --transport http faktura http://localhost:8090/mcp --header "Authorization: Bearer <token>"`.
+- **Hinter Pangolin und Authentik** kann ein MCP-Client die Anmeldung nicht durchlaufen. Dafür braucht `/mcp` eine eigene Ressource oder eine Ausnahme, die nur am Token hängt.
+  Das ist ein bewusst geöffneter Zugang: Token geheim halten und bei Verdacht ändern.
+- **Datenschutz:** Was die Werkzeuge zurückgeben (Kundenname, Ort, Rechnungsnummern, Beträge), geht an das Modell des Assistenten. Bankdaten, Telefonnummern und Notizen
+  werden nicht geliefert. Parameter und Ergebnisse werden nicht geloggt.
 
 ## Aufbewahrungsfristen
 

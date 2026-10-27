@@ -143,6 +143,12 @@ faktura:
   # Address of the application as the operator reaches it, for the link in the notification mail. Empty: no link.
   base-url: ${BASE_URL:}
 
+  # MCP server for AI assistants (POST /mcp): read access and draft creation, nothing irreversible. Off by default.
+  mcp:
+    enabled: ${MCP_ENABLED:false}
+    # bearer token, at least 32 characters; the module refuses to start without it
+    token: ${MCP_TOKEN:}
+
   # Daily notification mail to the operator (never to customers). Which categories are reported, to whom and at what
   # time is set in the application (Einstellungen, Benachrichtigungen); every category is off until switched on.
   offer:
