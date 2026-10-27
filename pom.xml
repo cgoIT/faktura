@@ -41,6 +41,9 @@
     <openhtmltopdf.version>1.1.97</openhtmltopdf.version>
     <mustang.version>2.26.0</mustang.version>
     <zxing.version>3.5.4</zxing.version>
+    <!-- Test output goes to target/surefire-reports; show it again with -Dmaven.test.redirectTestOutputToFile=false -->
+    <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+    <argLine>--enable-native-access=ALL-UNNAMED -XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
   </properties>
 
   <dependencyManagement>

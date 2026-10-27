@@ -25,7 +25,7 @@ ENV FAKTURA_CONTAINER=true \
     ARCHIVE_PATH=/data/archive \
     BACKUP_PATH=/data/backup \
     TZ=Europe/Berlin \
-    JAVA_TOOL_OPTIONS="-Duser.timezone=Europe/Berlin -Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=75 --enable-native-access=ALL-UNNAMED"
+    JAVA_TOOL_OPTIONS="-Duser.timezone=Europe/Berlin -Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError --enable-native-access=ALL-UNNAMED"
 
 RUN addgroup -S -g 10001 faktura \
     && adduser -S -u 10001 -G faktura -h /app faktura \
