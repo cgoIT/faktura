@@ -21,7 +21,6 @@ import de.cgoit.faktura.customer.CustomerService;
 import de.cgoit.faktura.customer.CustomerStatus;
 import de.cgoit.faktura.document.DocumentStatus;
 import de.cgoit.faktura.document.DocumentType;
-import de.cgoit.faktura.document.InvoiceInfo;
 import de.cgoit.faktura.document.InvoiceInput;
 import de.cgoit.faktura.document.InvoiceItemInput;
 import de.cgoit.faktura.document.InvoiceService;
@@ -166,7 +165,8 @@ public class McpTools {
 
     private Page<CustomerRow> searchCustomers(Query query) {
         return page(customers.search(query.query(), CustomerStatus.ACTIVE), customer ->
-                new CustomerRow(customer.id(), customer.number(), customer.name(), customer.zip(), customer.city()));
+                new CustomerRow(customer.id(), customer.number(), customer.name(), customer.zip(), customer.city(),
+                        link("customers", customer.id())));
     }
 
     private Page<CatalogRow> searchCatalog(Query query) {
@@ -185,7 +185,8 @@ public class McpTools {
 
         return page(rows, row -> new InvoiceRow(row.id(), row.number(), row.customerName(), row.subject(),
                 row.issueDate().toString(), row.dueDate().toString(), euros(row.grossTotalCents()),
-                euros(row.balance().openCents()), row.balance().overdue(), row.balance().daysOverdue()));
+                euros(row.balance().openCents()), row.balance().overdue(), row.balance().daysOverdue(),
+                link("invoices", row.id())));
     }
 
     private InvoiceDetail invoice(Id id) {
@@ -206,18 +207,20 @@ public class McpTools {
         return new InvoiceDetail(info.id(), info.number(), info.type().name(), info.status().name(), name,
                 iso(info.issueDate()), iso(info.serviceFrom()), iso(info.serviceTo()), iso(info.dueDate()),
                 info.subject(), items, euros(info.netTotalCents()), euros(info.taxTotalCents()),
-                euros(info.grossTotalCents()));
+                euros(info.grossTotalCents()),
+                link(info.type() == DocumentType.OFFER ? "offers" : "invoices", info.id()));
     }
 
     private Page<DunningRow> dunningSuggestions() {
         return page(dunning.suggestions(), suggestion -> new DunningRow(suggestion.invoiceId(),
                 suggestion.invoiceNumber(), suggestion.customerName(), iso(suggestion.dueDate()),
-                suggestion.daysOverdue(), suggestion.level().name(), euros(suggestion.amounts().totalCents())));
+                suggestion.daysOverdue(), suggestion.level().name(), euros(suggestion.amounts().totalCents()),
+                link("invoices", suggestion.invoiceId())));
     }
 
     private Page<OfferRow> expiringOffers() {
         return page(offers.expiringSoon(), offer -> new OfferRow(offer.id(), offer.number(), offer.customerName(),
-                offer.state().name(), iso(offer.validUntil()), euros(offer.grossTotalCents())));
+                offer.state().name(), iso(offer.validUntil()), euros(offer.grossTotalCents()), link("offers", offer.id())));
     }
 
     private DraftResult draft(DocumentType type, Draft draft) {
@@ -245,7 +248,7 @@ public class McpTools {
 
         return new DraftResult(info.id(), type.name(), euros(info.netTotalCents()), euros(info.grossTotalCents()),
                 iso(offer ? info.validUntil() : info.dueDate()), blankToNull(draft.totalDiscountPercent()),
-                link(info, offer));
+                link(offer ? "offers" : "invoices", info.id()));
     }
 
     /**
@@ -270,8 +273,11 @@ public class McpTools {
                 base.taxRateBp(), base.catalogItemId());
     }
 
-    private String link(InvoiceInfo info, boolean offer) {
-        return baseUrl.isEmpty() ? null : baseUrl + (offer ? "/offers/" : "/invoices/") + info.id();
+    /**
+     * Address of an item in the web interface, {@code null} without a configured base URL.
+     */
+    private String link(String path, String id) {
+        return baseUrl.isEmpty() ? null : baseUrl + "/" + path + "/" + id;
     }
 
     private <A> A arguments(Map<String, Object> arguments, Class<A> type) {
@@ -374,14 +380,16 @@ public class McpTools {
     record Page<R>(int total, List<R> rows) {
     }
 
-    record CustomerRow(String id, String number, String name, String zip, String city) {
+    record CustomerRow(String id, String number, String name, String zip, String city,
+            String link) {
     }
 
     record CatalogRow(String id, String number, String name, String unit, String unitPriceEur, String taxCategory) {
     }
 
     record InvoiceRow(String id, String number, String customer, String subject, String issueDate, String dueDate,
-            String grossEur, String openEur, boolean overdue, long daysOverdue) {
+            String grossEur, String openEur, boolean overdue, long daysOverdue,
+            String link) {
     }
 
     record ItemRow(int position, String description, String quantity, String unit, String unitPriceEur,
@@ -390,14 +398,15 @@ public class McpTools {
 
     record InvoiceDetail(String id, String number, String type, String status, String customer, String issueDate,
             String serviceFrom, String serviceTo, String dueDate, String subject, List<ItemRow> items, String netEur,
-            String taxEur, String grossEur) {
+            String taxEur, String grossEur, String link) {
     }
 
     record DunningRow(String invoiceId, String invoiceNumber, String customer, String dueDate, long daysOverdue,
-            String level, String claimEur) {
+            String level, String claimEur, String link) {
     }
 
-    record OfferRow(String id, String number, String customer, String state, String validUntil, String grossEur) {
+    record OfferRow(String id, String number, String customer, String state, String validUntil, String grossEur,
+            String link) {
     }
 
     record DraftResult(String id, String type, String netEur, String grossEur, String dueDate, String totalDiscountPercent,

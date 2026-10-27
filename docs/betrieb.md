@@ -85,7 +85,7 @@ docker compose ps                 # Status "healthy" nach etwa einer Minute
 | `MAIL_REPLY_TO`, `MAIL_BCC` | leer | optionale Antwortadresse und optionale Blindkopie jeder Mail an dich selbst |
 | `MAIL_MAX_ATTACHMENT_BYTES` | `10485760` | größere PDFs werden nicht gesendet |
 | `MCP_ENABLED`, `MCP_TOKEN`, `MCP_TOKEN_HEADER` | `false`, leer, `X-API-Key` | MCP-Server für KI-Assistenten einschalten, optionaler Notzugang zum Lesen (mindestens 32 Zeichen; Tokens verwaltet der Administrator in der Oberfläche) und der Name des Headers, der den Token ohne `Bearer` trägt (Claude Desktop akzeptiert nur Namen, die Anthropic kennt), siehe „KI-Assistenten anbinden“ |
-| `BASE_URL` | leer | Adresse, unter der du faktura erreichst (z. B. `https://faktura.example.org/`), für den Link in der Hinweis-Mail; leer: Mail ohne Link |
+| `BASE_URL` | leer | Adresse, unter der du faktura erreichst (z. B. `https://faktura.example.org/`), für den Link in der Hinweis-Mail und die Links (`link`) in den Ergebnissen des MCP-Servers; leer: Mail ohne Link, MCP-Ergebnisse mit `link: null` |
 | `NOTIFICATION_ENABLED` | `true` | Prüfung der Hinweis-Mail ein/aus (die Kategorien selbst sind bis zum Einschalten in der Oberfläche aus) |
 | `NOTIFICATION_POLL_INTERVAL` | `PT5M` | wie oft geprüft wird, ob die tägliche Mail fällig ist |
 

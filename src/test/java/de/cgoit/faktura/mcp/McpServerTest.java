@@ -38,7 +38,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @SqliteTest
 @TestPropertySource(properties = {
-        "faktura.mcp.enabled=true", "faktura.security.mode=FORM", "faktura.security.admin-user=boss",
+        "faktura.mcp.enabled=true", "faktura.base-url=https://faktura.example.org/", "faktura.security.mode=FORM", "faktura.security.admin-user=boss",
         "faktura.security.admin-password=correct horse battery",
         "faktura.mcp.token=0123456789abcdef0123456789abcdef-test" })
 class McpServerTest {
@@ -328,6 +328,20 @@ class McpServerTest {
 
         assertThat(text(result, "$.rows[0].openEur")).isEqualTo("100.00");
         assertThat(text(result, "$.rows[0].overdue")).isEqualTo("true");
+        assertThat(text(result, "$.rows[0].link")).isEqualTo("https://faktura.example.org/invoices/d1");
+        assertThat(text(tool("get_invoice", "{\"id\":\"d1\"}"), "$.link"))
+                .isEqualTo("https://faktura.example.org/invoices/d1");
+    }
+
+    @Test
+    void customersAndDraftsCarryALinkToTheWebInterface() throws Exception {
+        var customers = tool("search_customers", "{\"query\":\"müller\"}");
+        var offer = tool("create_offer_draft", """
+                {"customerId":"%s","items":[{"description":"Anfahrt","unitPrice":"40"}]}
+                """.formatted(customerId));
+
+        assertThat(text(customers, "$.rows[0].link")).isEqualTo("https://faktura.example.org/customers/" + customerId);
+        assertThat(text(offer, "$.link")).isEqualTo("https://faktura.example.org/offers/" + text(offer, "$.id"));
     }
 
     private ResultActions call(String method, String params) throws Exception {
