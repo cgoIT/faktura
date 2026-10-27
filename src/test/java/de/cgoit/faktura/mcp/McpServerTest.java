@@ -2,6 +2,8 @@ package de.cgoit.faktura.mcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,7 +34,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 /**
  * The MCP endpoint: only the bearer token lets a request in, the tools read and create drafts, and a draft is
- * recorded with the actor {@code mcp}.
+ * recorded with the actor {@code mcp:<token name>}.
  */
 @SqliteTest
 @TestPropertySource(properties = {
@@ -40,7 +42,7 @@ import org.springframework.web.context.WebApplicationContext;
         "faktura.mcp.token=0123456789abcdef0123456789abcdef-test" })
 class McpServerTest {
 
-    private static final String TOKEN = "0123456789abcdef0123456789abcdef-test";
+    private static final String EMERGENCY = "0123456789abcdef0123456789abcdef-test";
     private static final String HOUR = "00000000-0000-0000-0000-000000000001";
 
     @Autowired
@@ -58,8 +60,12 @@ class McpServerTest {
     @Autowired
     private InvoiceService invoices;
 
+    @Autowired
+    private McpTokenService tokenService;
+
     private MockMvc mvc;
     private String customerId;
+    private String token;
 
     @BeforeEach
     void setUp() {
@@ -79,6 +85,7 @@ class McpServerTest {
         customerId = customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null, null, null, null,
                 null)).id();
         catalog.create(new CatalogItemInput("Webseiten-Programmierung", null, HOUR, 8500, null));
+        token = tokenService.create("Test", McpScope.DRAFT, 90).token();
     }
 
     @AfterEach
@@ -92,6 +99,7 @@ class McpServerTest {
         jdbc.sql("DELETE FROM tax_profile").update();
         jdbc.sql("DELETE FROM company").update();
         jdbc.sql("DELETE FROM number_sequence").update();
+        jdbc.sql("DELETE FROM mcp_token").update();
     }
 
     @Test
@@ -105,12 +113,78 @@ class McpServerTest {
 
     @Test
     void theTokenAlsoWorksAsAPlainHeaderValue() throws Exception {
-        mvc.perform(post("/mcp").header("X-API-Key", TOKEN).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/mcp").header("X-API-Key", token).contentType(MediaType.APPLICATION_JSON)
                 .content(rpc("ping", "{}")))
                 .andExpect(status().isOk());
         mvc.perform(post("/mcp").header("X-API-Key", "wrong").contentType(MediaType.APPLICATION_JSON)
                 .content(rpc("ping", "{}")))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void aRevokedTokenStopsWorkingAtOnce() throws Exception {
+        call("ping", "{}").andExpect(status().isOk());
+
+        tokenService.revoke(tokenService.list().getFirst().id());
+
+        call("ping", "{}").andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void anExpiredTokenIsRefusedButTheLastDayStillCounts() throws Exception {
+        jdbc.sql("UPDATE mcp_token SET expires_on = :day")
+                .param("day", LocalDate.now().toString())
+                .update();
+        call("ping", "{}").andExpect(status().isOk());
+
+        jdbc.sql("UPDATE mcp_token SET expires_on = :day")
+                .param("day", LocalDate.now().minusDays(1).toString())
+                .update();
+        call("ping", "{}").andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void aReadTokenSeesNoDraftToolAndCannotCreateADraft() throws Exception {
+        var read = tokenService.create("Reader", McpScope.READ, 30).token();
+
+        mvc.perform(post("/mcp").header("Authorization", "Bearer " + read).contentType(MediaType.APPLICATION_JSON)
+                .content(rpc("tools/list", "{}")))
+                .andExpect(jsonPath("$.result.tools[*].name").value(not(hasItem("create_invoice_draft"))));
+        var arguments = """
+                {"name":"create_invoice_draft","arguments":{"customerId":"%s",
+                 "items":[{"description":"Anfahrt","unitPrice":"40"}]}}
+                """.formatted(customerId);
+
+        mvc.perform(post("/mcp").header("Authorization", "Bearer " + read).contentType(MediaType.APPLICATION_JSON)
+                .content(rpc("tools/call", arguments)))
+                .andExpect(jsonPath("$.result.isError").value(true));
+
+        assertThat(invoices.list("", DocumentStatus.DRAFT)).isEmpty();
+    }
+
+    @Test
+    void theTokenFromTheEnvironmentOnlyReads() throws Exception {
+        mvc.perform(post("/mcp").header("Authorization", "Bearer " + EMERGENCY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(rpc("tools/list", "{}")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.tools[*].name").value(not(hasItem("create_offer_draft"))));
+    }
+
+    @Test
+    void aUseIsRecordedAtMostOncePerMinute() throws Exception {
+        call("ping", "{}");
+
+        var first = jdbc.sql("SELECT last_used_at FROM mcp_token")
+                .query(String.class)
+                .single();
+
+        call("ping", "{}");
+
+        assertThat(first).isNotNull();
+        assertThat(jdbc.sql("SELECT last_used_at FROM mcp_token")
+                .query(String.class)
+                .single()).isEqualTo(first);
     }
 
     @Test
@@ -124,14 +198,14 @@ class McpServerTest {
 
     @Test
     void aNotificationGetsNoAnswerBody() throws Exception {
-        mvc.perform(post("/mcp").header("Authorization", "Bearer " + TOKEN).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/mcp").header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}"))
                 .andExpect(status().isAccepted());
     }
 
     @Test
     void getIsNotAllowed() throws Exception {
-        mvc.perform(get("/mcp").header("Authorization", "Bearer " + TOKEN))
+        mvc.perform(get("/mcp").header("Authorization", "Bearer " + token))
                 .andExpect(status().isMethodNotAllowed());
     }
 
@@ -166,7 +240,7 @@ class McpServerTest {
         assertThat(text(result, "$.grossEur")).isEqualTo("850.00");
         assertThat(draft.status()).isEqualTo(DocumentStatus.DRAFT);
         assertThat(draft.number()).isNull();
-        assertThat(draft.createdBy()).isEqualTo("mcp");
+        assertThat(draft.createdBy()).isEqualTo("mcp:Test");
         assertThat(draft.items()).singleElement()
                 .satisfies(row -> assertThat(row.quantityThousandths()).isEqualTo(10_000));
     }
@@ -209,7 +283,7 @@ class McpServerTest {
 
     @Test
     void aBrokenBodyIsAParseError() throws Exception {
-        mvc.perform(post("/mcp").header("Authorization", "bearer " + TOKEN).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/mcp").header("Authorization", "bearer " + token).contentType(MediaType.APPLICATION_JSON)
                 .content("[{\"jsonrpc\":\"2.0\"}]"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value(-32700));
@@ -247,7 +321,7 @@ class McpServerTest {
     }
 
     private ResultActions call(String method, String params) throws Exception {
-        return mvc.perform(post("/mcp").header("Authorization", "Bearer " + TOKEN)
+        return mvc.perform(post("/mcp").header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(rpc(method, params)));
     }

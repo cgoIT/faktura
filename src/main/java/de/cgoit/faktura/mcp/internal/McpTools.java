@@ -29,6 +29,7 @@ import de.cgoit.faktura.document.InvoiceSummary;
 import de.cgoit.faktura.document.OfferService;
 import de.cgoit.faktura.document.TotalDiscount;
 import de.cgoit.faktura.dunning.DunningService;
+import de.cgoit.faktura.mcp.McpScope;
 import de.cgoit.faktura.shared.RuleViolationException;
 import de.cgoit.faktura.textblock.TextKind;
 import de.cgoit.faktura.textblock.TextScope;
@@ -118,17 +119,18 @@ public class McpTools {
                 {"type":"object","properties":{}}""", arguments -> expiringOffers());
         register("create_invoice_draft", "Creates an invoice DRAFT. It is neither numbered nor sent; a person checks "
                 + "and finalizes it in the web interface. Tax and payment term come from the tax profile and the customer.",
-                DRAFT_SCHEMA, arguments -> draft(DocumentType.INVOICE, arguments(arguments, Draft.class)));
+                DRAFT_SCHEMA, true, arguments -> draft(DocumentType.INVOICE, arguments(arguments, Draft.class)));
         register("create_offer_draft", "Creates an offer DRAFT. It is neither numbered nor sent; a person checks "
                 + "and finalizes it in the web interface.",
-                DRAFT_SCHEMA, arguments -> draft(DocumentType.OFFER, arguments(arguments, Draft.class)));
+                DRAFT_SCHEMA, true, arguments -> draft(DocumentType.OFFER, arguments(arguments, Draft.class)));
     }
 
     /**
-     * Describes the available tools for {@code tools/list}.
+     * Describes the tools a token with that scope may use, for {@code tools/list}.
      */
-    public List<ToolInfo> list() {
+    public List<ToolInfo> list(McpScope scope) {
         return tools.values().stream()
+                .filter(tool -> !tool.writes() || scope.allowsWriting())
                 .map(Tool::info)
                 .toList();
     }
@@ -139,11 +141,15 @@ public class McpTools {
      *
      * @throws IllegalArgumentException if no tool has that name
      */
-    public ToolResult call(String name, Map<String, Object> arguments) {
+    public ToolResult call(String name, Map<String, Object> arguments, McpScope scope) {
         var tool = tools.get(name);
 
         if (tool == null) {
             throw new IllegalArgumentException("Unknown tool");
+        }
+
+        if (tool.writes() && !scope.allowsWriting()) {
+            return error(messages.getMessage("mcp.error.scope", null, Locale.GERMAN));
         }
 
         try {
@@ -274,7 +280,13 @@ public class McpTools {
 
     private void register(String name, String description, String schema,
             Function<Map<String, Object>, Object> handler) {
-        tools.put(name, new Tool(new ToolInfo(name, description, mapper.readValue(schema, Map.class)), handler));
+        register(name, description, schema, false, handler);
+    }
+
+    private void register(String name, String description, String schema, boolean writes,
+            Function<Map<String, Object>, Object> handler) {
+        tools.put(name, new Tool(new ToolInfo(name, description, mapper.readValue(schema, Map.class)), writes,
+                handler));
     }
 
     private static <T, R> Page<R> page(List<T> rows, Function<T, R> mapping) {
@@ -339,7 +351,7 @@ public class McpTools {
         }
     }
 
-    private record Tool(ToolInfo info, Function<Map<String, Object>, Object> handler) {
+    private record Tool(ToolInfo info, boolean writes, Function<Map<String, Object>, Object> handler) {
     }
 
     record Query(String query) {

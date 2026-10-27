@@ -4,11 +4,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.cgoit.faktura.mcp.McpScope;
 import de.cgoit.faktura.mcp.internal.McpTools;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,7 +58,7 @@ class McpController {
 
     @PostMapping(value = "/mcp", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Map<String, Object>> handle(@RequestBody Request request) {
+    ResponseEntity<Map<String, Object>> handle(@RequestBody Request request, Authentication authentication) {
         if (request.id() != null && !(request.id() instanceof String || request.id() instanceof Number)) {
             return ResponseEntity.badRequest()
                     .body(error(null, -32600, "Invalid request"));
@@ -73,8 +75,8 @@ class McpController {
         return ResponseEntity.ok(switch (request.method()) {
             case "initialize" -> result(id, initialize(params));
             case "ping" -> result(id, Map.of());
-            case "tools/list" -> result(id, Map.of("tools", tools.list()));
-            case "tools/call" -> call(id, params);
+            case "tools/list" -> result(id, Map.of("tools", tools.list(scopeOf(authentication))));
+            case "tools/call" -> call(id, params, scopeOf(authentication));
             default -> error(id, -32601, "Method not found");
         });
     }
@@ -88,7 +90,7 @@ class McpController {
                 .body(error(null, -32700, "Parse error"));
     }
 
-    private Map<String, Object> call(Object id, Map<String, Object> params) {
+    private Map<String, Object> call(Object id, Map<String, Object> params, McpScope scope) {
         if (!(params.get("name") instanceof String name)) {
             return error(id, -32602, "Tool name missing");
         }
@@ -97,13 +99,23 @@ class McpController {
         var arguments = params.get("arguments") instanceof Map<?, ?> map ? (Map<String, Object>) map : null;
 
         try {
-            return result(id, tools.call(name, arguments));
+            return result(id, tools.call(name, arguments, scope));
         } catch (IllegalArgumentException e) {
             return error(id, -32602, "Unknown tool");
         } catch (RuntimeException e) {
             // fixed text: the message of a service exception may carry customer data
             return error(id, -32603, "Internal error");
         }
+    }
+
+    /**
+     * The scope the filter granted; without a recognizable authority a request may only read.
+     */
+    private static McpScope scopeOf(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("SCOPE_" + McpScope.DRAFT.name()))
+                ? McpScope.DRAFT
+                : McpScope.READ;
     }
 
     private static Map<String, Object> initialize(Map<String, Object> params) {

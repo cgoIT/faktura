@@ -1,5 +1,7 @@
 package de.cgoit.faktura.mcp.internal;
 
+import java.time.Clock;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +16,8 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 
 /**
  * Separate filter chain for {@code /mcp}: stateless, no CSRF (there is no browser session to forge) and only the
- * bearer token lets a request in. The chain of the web interface is not touched. Without a usable token the
- * application does not start.
+ * a valid token lets a request in. The chain of the web interface is not touched. A token in the environment, if
+ * set, must be long enough or the application does not start.
  */
 @Configuration
 @EnableConfigurationProperties(McpProperties.class)
@@ -24,16 +26,20 @@ class McpSecurityConfiguration {
     @Bean
     @Order(1)
     @ConditionalOnProperty(name = "faktura.mcp.enabled", havingValue = "true")
-    SecurityFilterChain mcpFilterChain(HttpSecurity http, McpProperties properties) throws Exception {
-        if (properties.token().strip().length() < McpProperties.MIN_TOKEN_LENGTH) {
-            throw new IllegalStateException("faktura.mcp.token must have at least "
+    SecurityFilterChain mcpFilterChain(HttpSecurity http, McpProperties properties, McpTokenRepository tokens,
+            Clock clock) throws Exception {
+        var emergency = properties.token().strip();
+
+        if (!emergency.isEmpty() && emergency.length() < McpProperties.MIN_TOKEN_LENGTH) {
+            throw new IllegalStateException("faktura.mcp.token must be empty or have at least "
                     + McpProperties.MIN_TOKEN_LENGTH + " characters");
         }
 
         http.securityMatcher("/mcp")
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new BearerTokenFilter(properties.token().strip(), properties.tokenHeader().strip()), AnonymousAuthenticationFilter.class)
+                .addFilterBefore(new BearerTokenFilter(emergency, properties.tokenHeader().strip(), tokens, clock),
+                        AnonymousAuthenticationFilter.class)
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint((request, response, exception) -> {
                             response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer");

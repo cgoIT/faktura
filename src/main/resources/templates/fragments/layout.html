@@ -43,6 +43,8 @@
          th:text="#{nav.settings}">Einstellungen</a>
       <a class="nav-item" th:if="${securityMode != null and securityMode != 'NONE' and currentUserAdmin}"
          th:classappend="${active == 'users'} ? 'active'" th:href="@{/settings/users}" th:text="#{user.tab}">Benutzer</a>
+      <a class="nav-item" th:if="${@environment.getProperty('faktura.mcp.enabled') == 'true' and (securityMode == null or securityMode == 'NONE' or currentUserAdmin)}"
+         th:classappend="${active == 'mcp'} ? 'active'" th:href="@{/settings/mcp-tokens}" th:text="#{mcp.token.tab}">KI-Zugang</a>
     </nav>
   </div>
   <div class="sidebar-bottom">
