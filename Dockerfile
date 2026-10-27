@@ -24,12 +24,13 @@ ENV FAKTURA_CONTAINER=true \
     DB_URL=jdbc:sqlite:/data/faktura.db \
     ARCHIVE_PATH=/data/archive \
     BACKUP_PATH=/data/backup \
+    LOGGING_FILE_NAME=/data/logs/faktura.log \
     TZ=Europe/Berlin \
     JAVA_TOOL_OPTIONS="-Duser.timezone=Europe/Berlin -Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError --enable-native-access=ALL-UNNAMED"
 
 RUN addgroup -S -g 10001 faktura \
     && adduser -S -u 10001 -G faktura -h /app faktura \
-    && mkdir -p /data/archive /data/backup \
+    && mkdir -p /data/archive /data/backup /data/logs \
     && chown -R faktura:faktura /data
 
 WORKDIR /app
@@ -39,7 +40,7 @@ COPY --from=build /build/extracted/snapshot-dependencies/ ./
 COPY --from=build /build/extracted/application/ ./
 
 USER faktura:faktura
-# database, archive and backups; back this volume up (docs/betrieb.md)
+# database, archive, backups and logs; back this volume up (docs/betrieb.md)
 VOLUME /data
 EXPOSE 8080
 

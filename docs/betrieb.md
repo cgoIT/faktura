@@ -28,7 +28,8 @@ lokale `.env` (nicht ins Repository).
 Browser ──> Reverse Proxy (TLS, Anmeldung; hier Pangolin/Authentik) ──> faktura (Container, Port 8080) ──> /data  (Volume)
                                                                               ├─ faktura.db   SQLite-Datenbank
                                                                               ├─ archive/     PDF und XML finalisierter Belege
-                                                                              └─ backup/      Datenbank-Sicherungen und Archiv-Spiegel
+                                                                              ├─ backup/      Datenbank-Sicherungen und Archiv-Spiegel
+                                                                              └─ logs/        Logdateien (rotiert)
 ```
 
 Alles, was aufbewahrungspflichtig ist, liegt unter `/data`. **Dieses Verzeichnis ist das, was gesichert werden muss.**
@@ -68,6 +69,8 @@ docker compose ps                 # Status "healthy" nach etwa einer Minute
 | `BACKUP_ENABLED` | `false` (Beispiel-Compose: `true`) | nächtliche Sicherung durch die Anwendung |
 | `BACKUP_CRON` | `0 30 2 * * *` | Zeitplan (Spring-Cron: Sekunde Minute Stunde Tag Monat Wochentag) |
 | `BACKUP_PATH` | `/data/backup` | Ziel der Sicherung |
+| `LOGGING_FILE_NAME` | `/data/logs/faktura.log` | Logdatei; leer = nur Konsole (`docker logs`). Logback rotiert täglich und nach Größe, ältere Dateien als `.gz` |
+| `LOG_MAX_FILE_SIZE`, `LOG_MAX_HISTORY`, `LOG_TOTAL_SIZE_CAP` | `10MB`, `14`, `200MB` | Größe je Datei, Tage Aufbewahrung, Obergrenze aller Logdateien |
 | `BACKUP_KEEP_COUNT` | `14` | so viele Datenbank-Sicherungen bleiben erhalten |
 | `EXPORT_PATH` | leer (aus) | zweiter Ablagepfad für finalisierte PDFs, z. B. ein von ecoDMS überwachter Ordner (siehe „Export-Ordner für ecoDMS“) |
 | `EXPORT_RETRY_CRON` | `0 45 5 * * *` | täglicher Nachholversuch für nicht kopierte PDFs |

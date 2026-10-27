@@ -41,6 +41,14 @@ spring:
           connectiontimeout: 10000
           timeout: 20000
           writetimeout: 20000
+# Console only, unless LOGGING_FILE_NAME is set (the image sets it to /data/logs/faktura.log); then Logback rolls daily and by size
+logging:
+  logback:
+    rollingpolicy:
+      max-file-size: ${LOG_MAX_FILE_SIZE:10MB}
+      max-history: ${LOG_MAX_HISTORY:14}
+      total-size-cap: ${LOG_TOTAL_SIZE_CAP:200MB}
+
 server:
   port: ${SERVER_PORT:8090}
   # loopback only, so that a start without Docker is not reachable from the network; the image sets 0.0.0.0
