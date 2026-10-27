@@ -60,6 +60,13 @@ public class McpTokenService {
     }
 
     /**
+     * Name of the header that may carry the bare token (configuration {@code faktura.mcp.token-header}).
+     */
+    public String tokenHeader() {
+        return properties.tokenHeader().strip();
+    }
+
+    /**
      * Validity periods in days an administrator can choose from.
      */
     public List<Integer> validityDays() {

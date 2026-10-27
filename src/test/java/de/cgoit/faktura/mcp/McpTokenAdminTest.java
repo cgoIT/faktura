@@ -107,6 +107,16 @@ class McpTokenAdminTest {
     }
 
     @Test
+    void thePageNamesAddressHeaderAndAClipboardButton() throws Exception {
+        mvc.perform(get("/settings/mcp-tokens"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("http://localhost/mcp")))
+                .andExpect(content().string(containsString("X-API-Key")))
+                .andExpect(content().string(containsString("data-copy=\"mcp-url\"")))
+                .andExpect(content().string(containsString("claude mcp add --transport http faktura")));
+    }
+
+    @Test
     void revokingFromThePageRedirectsBackToTheList() throws Exception {
         var info = tokens.create("A", McpScope.READ, 30).info();
 
