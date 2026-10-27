@@ -6,7 +6,7 @@ CREATE TABLE mcp_token (
     token_hash   VARCHAR(64)  NOT NULL UNIQUE,   -- SHA-256 of the token as lower-case hex
     token_prefix VARCHAR(12)  NOT NULL,          -- first characters of the token, to recognize it in the list
     scope        VARCHAR(10)  NOT NULL,          -- READ | DRAFT (DRAFT includes READ)
-    expires_on   VARCHAR(10)  NOT NULL,          -- last day the token is valid (ISO date)
+    expires_on   VARCHAR(10),                    -- last day the token is valid (ISO date), NULL = unlimited
     revoked_at   VARCHAR(30),
     created_by   VARCHAR(100),
     created_at   VARCHAR(30)  NOT NULL,

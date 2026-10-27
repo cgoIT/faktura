@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Management of the access tokens of the MCP server. A token is random, expires on a day chosen when it is created
+ * Management of the access tokens of the MCP server. A token is random, expires on a day chosen when it is created (or never)
  * and can be revoked at once; only its hash is stored. Creating and revoking are written to the audit log (without the
  * token). Tokens are never deleted.
  */
@@ -74,13 +74,14 @@ public class McpTokenService {
     }
 
     /**
-     * Creates a token valid for the given number of days (today included in the count: 30 days means through
-     * today + 30). The result carries the token in plain text; it cannot be shown again.
+     * Creates a token valid for the given number of days (30 days means through today + 30) or, with
+     * {@code null}, without an end date. The result carries the token in plain text; it cannot be shown again.
      *
+     * @param validityDays one of {@link #validityDays()}, or {@code null} for a token that never expires
      * @throws RuleViolationException if the name is empty or too long, or the period is not one of the offered ones
      */
     @Transactional
-    public CreatedMcpToken create(String name, McpScope scope, int validityDays) {
+    public CreatedMcpToken create(String name, McpScope scope, Integer validityDays) {
         var cleanName = name == null ? "" : name.strip();
 
         if (cleanName.isEmpty() || cleanName.length() > MAX_NAME_LENGTH) {
@@ -91,7 +92,7 @@ public class McpTokenService {
             throw new RuleViolationException("mcp.token.error.scope");
         }
 
-        if (!properties.validityDays().contains(validityDays)) {
+        if (validityDays != null && !properties.validityDays().contains(validityDays)) {
             throw new RuleViolationException("mcp.token.error.validity");
         }
 
@@ -101,12 +102,12 @@ public class McpTokenService {
 
         var token = PREFIX + HexFormat.of().formatHex(bytes);
         var id = UUID.randomUUID().toString();
-        var expiresOn = LocalDate.now(clock).plusDays(validityDays);
+        var expiresOn = validityDays == null ? null : LocalDate.now(clock).plusDays(validityDays);
 
         tokens.insert(id, cleanName, TokenHashes.sha256Hex(token), token.substring(0, PREFIX_LENGTH), scope.name(),
-                expiresOn.toString(), currentUser.username(), Instant.now(clock).toString());
+                expiresOn == null ? null : expiresOn.toString(), currentUser.username(), Instant.now(clock).toString());
         audit.record(AuditObjectType.MCP_TOKEN, id, AuditAction.MCP_TOKEN_CREATE,
-                Map.of("scope", scope.name(), "expiresOn", expiresOn.toString()));
+                Map.of("scope", scope.name(), "expiresOn", expiresOn == null ? "unlimited" : expiresOn.toString()));
 
         var created = tokens.findAll().stream()
                 .filter(row -> row.id().equals(id))
@@ -131,10 +132,12 @@ public class McpTokenService {
     }
 
     private McpTokenInfo toInfo(McpTokenRepository.Row row) {
-        var expiresOn = LocalDate.parse(row.expiresOn());
+        var expiresOn = row.expiresOn() == null ? null : LocalDate.parse(row.expiresOn());
         var status = row.revokedAt() != null
                 ? McpTokenStatus.REVOKED
-                : expiresOn.isBefore(LocalDate.now(clock)) ? McpTokenStatus.EXPIRED : McpTokenStatus.ACTIVE;
+                : expiresOn != null && expiresOn.isBefore(LocalDate.now(clock))
+                        ? McpTokenStatus.EXPIRED
+                        : McpTokenStatus.ACTIVE;
 
         return new McpTokenInfo(row.id(), row.name(), row.tokenPrefix(), McpScope.valueOf(row.scope()), expiresOn,
                 status, row.revokedAt(), row.createdBy(), row.createdAt(), row.lastUsedAt());

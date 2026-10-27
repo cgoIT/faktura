@@ -56,12 +56,12 @@ public class McpTokenRepository {
     }
 
     /**
-     * Finds a token that is neither revoked nor past its last day.
+     * Finds a token that is neither revoked nor past its last day (a token without an end date never expires).
      *
      * @param today ISO date of today; the token is valid through its {@code expires_on}
      */
     public Optional<Row> findValid(String tokenHash, String today) {
-        return jdbc.sql(SELECT + " WHERE token_hash = :hash AND revoked_at IS NULL AND expires_on >= :today")
+        return jdbc.sql(SELECT + " WHERE token_hash = :hash AND revoked_at IS NULL AND (expires_on IS NULL OR expires_on >= :today)")
                 .param("hash", tokenHash)
                 .param("today", today)
                 .query(McpTokenRepository::map)

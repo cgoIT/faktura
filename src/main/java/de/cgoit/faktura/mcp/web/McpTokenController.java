@@ -55,16 +55,26 @@ class McpTokenController {
         return page(model, null);
     }
 
+    @GetMapping("/new")
+    String form(Model model) {
+        return formPage(model, null);
+    }
+
+    /**
+     * Creates a token and answers with the list, where the new token is shown once. If the input is refused, the
+     * form opens again with the error.
+     *
+     * @param validityDays days of validity, empty for a token that never expires
+     */
     @PostMapping
-    String create(@RequestParam String name, @RequestParam McpScope scope, @RequestParam int validityDays,
-            Model model) {
+    String create(@RequestParam String name, @RequestParam McpScope scope,
+            @RequestParam(required = false) Integer validityDays, Model model) {
         try {
             return page(model, tokens.create(name, scope, validityDays));
         } catch (RuleViolationException e) {
             model.addAttribute("error", e.messageKey());
-            model.addAttribute("name", name);
 
-            return page(model, null);
+            return formPage(model, name);
         }
     }
 
@@ -93,13 +103,19 @@ class McpTokenController {
                 : baseUrl + "/mcp";
     }
 
+    private String formPage(Model model, String name) {
+        model.addAttribute("name", name);
+        model.addAttribute("validityDays", tokens.validityDays());
+        model.addAttribute("scopes", McpScope.values());
+
+        return "mcp/token-form";
+    }
+
     private String page(Model model, CreatedMcpToken created) {
         model.addAttribute("tokens", tokens.list().stream()
                 .map(token -> new Row(token, token.lastUsedAt() == null ? null
                         : LAST_USED.format(Instant.parse(token.lastUsedAt()).atZone(clock.getZone()))))
                 .toList());
-        model.addAttribute("validityDays", tokens.validityDays());
-        model.addAttribute("scopes", McpScope.values());
         model.addAttribute("created", created);
         model.addAttribute("mcpUrl", mcpUrl());
         model.addAttribute("headerName", tokens.tokenHeader());

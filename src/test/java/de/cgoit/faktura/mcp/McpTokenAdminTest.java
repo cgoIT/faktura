@@ -68,6 +68,19 @@ class McpTokenAdminTest {
     }
 
     @Test
+    void aTokenWithoutEndDateNeverExpires() {
+        var created = tokens.create("Forever", McpScope.READ, null);
+
+        jdbc.sql("UPDATE mcp_token SET created_at = '2000-01-01T00:00:00Z'").update();
+
+        assertThat(created.info().expiresOn()).isNull();
+        assertThat(created.info().status()).isEqualTo(McpTokenStatus.ACTIVE);
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM mcp_token WHERE expires_on IS NULL")
+                .query(Long.class)
+                .single()).isEqualTo(1);
+    }
+
+    @Test
     void anInvalidNameScopeOrValidityIsRefused() {
         assertThatThrownBy(() -> tokens.create(" ", McpScope.READ, 30)).isInstanceOf(RuleViolationException.class);
         assertThatThrownBy(() -> tokens.create("x".repeat(91), McpScope.READ, 30))
@@ -104,6 +117,21 @@ class McpTokenAdminTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Desktop")))
                 .andExpect(content().string(not(containsString(token))));
+    }
+
+    @Test
+    void anEmptyListSaysSoAndTheFormOffersUnlimited() throws Exception {
+        mvc.perform(get("/settings/mcp-tokens"))
+                .andExpect(content().string(containsString("Es sind noch keine Tokens erstellt.")))
+                .andExpect(content().string(not(containsString("<table"))));
+        mvc.perform(get("/settings/mcp-tokens/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Unbegrenzt")));
+        mvc.perform(post("/settings/mcp-tokens").param("name", "Forever").param("scope", "READ")
+                        .param("validityDays", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("fkt_")))
+                .andExpect(content().string(containsString("Unbegrenzt")));
     }
 
     @Test

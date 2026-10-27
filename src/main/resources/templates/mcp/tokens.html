@@ -20,37 +20,49 @@
   </section>
 
   <section class="card">
-    <h2 th:text="#{mcp.token.new}">Neuer Token</h2>
-    <form method="post" class="stack" th:action="@{/settings/mcp-tokens}">
-      <div class="form-grid">
-        <div class="field">
-          <label for="name" th:text="#{mcp.token.name}">Name</label>
-          <input type="text" id="name" name="name" required maxlength="90" th:value="${name}">
-          <span class="hint" th:text="#{mcp.token.name.hint}">Wofür der Token ist.</span>
-        </div>
-        <div class="field">
-          <label for="scope" th:text="#{mcp.token.scope}">Umfang</label>
-          <select id="scope" name="scope">
-            <option th:each="scope : ${scopes}" th:value="${scope.name()}" th:text="#{'mcp.token.scope.' + ${scope.name()}}"
-                    th:selected="${scope.name() == 'DRAFT'}">Entwürfe</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="validityDays" th:text="#{mcp.token.validity}">Gültigkeit</label>
-          <select id="validityDays" name="validityDays">
-            <option th:each="days : ${validityDays}" th:value="${days}" th:text="#{mcp.token.validity.days(${days})}"
-                    th:selected="${days == 90}">90 Tage</option>
-          </select>
-        </div>
-      </div>
-      <div class="actions">
-        <button type="submit" th:text="#{mcp.token.create}">Token erstellen</button>
-      </div>
-    </form>
+    <div class="toolbar right">
+      <a class="button" th:href="@{/settings/mcp-tokens/new}" th:text="#{mcp.token.create}">Neuen Token erstellen</a>
+    </div>
+    <p th:if="${tokens.isEmpty()}" th:text="#{mcp.token.none}">Noch keine Tokens erstellt.</p>
+    <div class="table-scroll" th:unless="${tokens.isEmpty()}">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{mcp.token.name}">Name</th>
+        <th th:text="#{mcp.token.prefix}">Beginnt mit</th>
+        <th th:text="#{mcp.token.scope}">Umfang</th>
+        <th th:text="#{mcp.token.expiresOn}">Gültig bis</th>
+        <th th:text="#{mcp.token.status}">Zustand</th>
+        <th th:text="#{mcp.token.lastUsed}">Zuletzt benutzt</th>
+        <th th:text="#{mcp.token.createdBy}">Erstellt von</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="row : ${tokens}" th:with="token=${row.token}">
+        <td th:text="${token.name}">Claude Desktop</td>
+        <td><code th:text="${token.tokenPrefix}">fkt_ab12</code></td>
+        <td th:text="#{'mcp.token.scope.' + ${token.scope.name()}}">Entwürfe</td>
+        <td th:text="${token.expiresOn != null} ? ${#temporals.format(token.expiresOn, 'dd.MM.yyyy')} : #{mcp.token.unlimited}">31.12.2026</td>
+        <td><span class="badge" th:text="#{'mcp.token.status.' + ${token.status.name()}}">Aktiv</span></td>
+        <td th:text="${row.lastUsed} ?: '–'">–</td>
+        <td th:text="${token.createdBy} ?: '–'">admin</td>
+        <td>
+          <form method="post" th:if="${token.status.name() == 'ACTIVE'}"
+                th:action="@{/settings/mcp-tokens/{id}/revoke(id=${token.id})}"
+                th:attr="data-confirm=#{mcp.token.revoke.confirm(${token.name})}">
+            <button type="submit" class="secondary" th:text="#{mcp.token.revoke}">Widerrufen</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    </div>
   </section>
 
   <section class="card" id="connect">
-    <h2 th:text="#{mcp.connect.title}">So verbinden Sie einen Assistenten</h2>
+    <details class="collapsible">
+    <summary><h2 th:text="#{mcp.connect.title}">So verbinden Sie einen Assistenten</h2></summary>
     <p th:text="#{mcp.connect.lead}">Sie brauchen die Adresse und einen Token.</p>
     <div class="field">
       <label for="mcp-url" th:text="#{mcp.connect.url}">Adresse des MCP-Servers</label>
@@ -76,45 +88,7 @@
     <div th:replace="~{fragments/copy-field :: copyField('mcp-command', ${claudeCodeCommand}, #{mcp.token.copy})}"></div>
     <p class="hint" th:text="#{mcp.connect.code.hint}">Ersetzen Sie den Platzhalter durch den Token.</p>
     <p class="hint" th:text="#{mcp.connect.proxy}">Erreichbarkeit.</p>
+    </details>
   </section>
 
-  <section class="card">
-    <div class="table-scroll">
-    <table>
-      <thead>
-      <tr>
-        <th th:text="#{mcp.token.name}">Name</th>
-        <th th:text="#{mcp.token.prefix}">Beginnt mit</th>
-        <th th:text="#{mcp.token.scope}">Umfang</th>
-        <th th:text="#{mcp.token.expiresOn}">Gültig bis</th>
-        <th th:text="#{mcp.token.status}">Zustand</th>
-        <th th:text="#{mcp.token.lastUsed}">Zuletzt benutzt</th>
-        <th th:text="#{mcp.token.createdBy}">Erstellt von</th>
-        <th></th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:if="${tokens.isEmpty()}">
-        <td colspan="8" th:text="#{mcp.token.none}">Noch keine Tokens.</td>
-      </tr>
-      <tr th:each="row : ${tokens}" th:with="token=${row.token}">
-        <td th:text="${token.name}">Claude Desktop</td>
-        <td><code th:text="${token.tokenPrefix}">fkt_ab12</code></td>
-        <td th:text="#{'mcp.token.scope.' + ${token.scope.name()}}">Entwürfe</td>
-        <td th:text="${#temporals.format(token.expiresOn, 'dd.MM.yyyy')}">31.12.2026</td>
-        <td><span class="badge" th:text="#{'mcp.token.status.' + ${token.status.name()}}">Aktiv</span></td>
-        <td th:text="${row.lastUsed} ?: '–'">–</td>
-        <td th:text="${token.createdBy} ?: '–'">admin</td>
-        <td>
-          <form method="post" th:if="${token.status.name() == 'ACTIVE'}"
-                th:action="@{/settings/mcp-tokens/{id}/revoke(id=${token.id})}"
-                th:attr="data-confirm=#{mcp.token.revoke.confirm(${token.name})}">
-            <button type="submit" class="secondary" th:text="#{mcp.token.revoke}">Widerrufen</button>
-          </form>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-    </div>
-  </section>
 </main>

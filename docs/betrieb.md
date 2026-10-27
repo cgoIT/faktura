@@ -355,8 +355,8 @@ Gesamtrabatt (Prozent) und Positionen tragen; ändern lässt er sich nur in der 
 
 - Standardmäßig aus. Einschalten: `MCP_ENABLED=true`. Der Endpunkt ist `POST /mcp`, mit eigener Anmeldung, unabhängig vom Anmeldemodus (`security`).
 - **Tokens verwalten:** Unter „KI-Zugang“ (Menü links, `/settings/mcp-tokens`) legt ein Administrator Tokens an: Name, Umfang (**Nur lesen** oder **Lesen und Entwürfe anlegen**) und
-  Gültigkeit (Auswahl aus `faktura.mcp.validity-days`, Standard 30, 90 oder 365 Tage; ein Token ohne Ablauf gibt es nicht). Der Token erscheint **nur einmal** nach dem Anlegen; gespeichert wird
-  nur sein SHA-256-Wert. „Widerrufen“ wirkt sofort. Die Liste zeigt Zustand (aktiv, abgelaufen, widerrufen), den Anfang des Tokens und die letzte Benutzung (auf die Minute genau).
+  Gültigkeit (Auswahl aus `faktura.mcp.validity-days`, Standard 30, 90 oder 365 Tage, oder „Unbegrenzt“; ein unbegrenzter Token gilt, bis er widerrufen wird, kurze Fristen sind sicherer). Der Token erscheint **nur einmal** nach dem Anlegen; gespeichert wird
+  nur sein SHA-256-Wert. „Widerrufen“ wirkt sofort. Die Seite zeigt eine Liste mit „Neuen Token erstellen“ darüber und darunter eine einklappbare Anleitung für Claude Desktop und Claude Code (Adresse, Header-Name, Kopier-Symbole). Die Liste zeigt Zustand (aktiv, abgelaufen, widerrufen), den Anfang des Tokens und die letzte Benutzung (auf die Minute genau).
   Tokens werden nie gelöscht. Anlegen und Widerrufen stehen im Audit-Log (ohne den Token). Entwürfe, die ein Assistent anlegt, tragen als Ersteller `mcp:<Name des Tokens>`.
   Ohne Anmeldung (`SECURITY_MODE=NONE`) darf jeder die Seite öffnen, der die Anwendung erreicht; sonst nur Administratoren.
 - **Token senden:** als `Authorization: Bearer <token>` oder nur als Wert im Header `MCP_TOKEN_HEADER` (Standard `X-API-Key`), für Clients, die nur einen Header ohne Präfix

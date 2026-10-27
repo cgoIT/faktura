@@ -265,7 +265,7 @@ TABLE mail_template
 TABLE mcp_token
   COLUMN created_at character varying(30) NOT NULL
   COLUMN created_by character varying(100)
-  COLUMN expires_on character varying(10) NOT NULL
+  COLUMN expires_on character varying(10)
   COLUMN id character varying(36) NOT NULL
   COLUMN last_used_at character varying(30)
   COLUMN name character varying(100) NOT NULL

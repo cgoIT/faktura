@@ -265,7 +265,7 @@ TABLE mail_template
 TABLE mcp_token
   COLUMN created_at VARCHAR(30) NOT NULL
   COLUMN created_by VARCHAR(100)
-  COLUMN expires_on VARCHAR(10) NOT NULL
+  COLUMN expires_on VARCHAR(10)
   COLUMN id VARCHAR(36)
   COLUMN last_used_at VARCHAR(30)
   COLUMN name VARCHAR(100) NOT NULL

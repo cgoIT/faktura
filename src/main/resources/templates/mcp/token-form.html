@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'mcp')}">
+<head>
+  <title th:text="#{mcp.token.new} + ' – faktura'">Neuer Token</title>
+</head>
+<body>
+<main>
+  <h1 th:text="#{mcp.token.new}">Neuer Token</h1>
+  <p class="lead"><a th:href="@{/settings/mcp-tokens}" th:text="#{mcp.token.back}">Zurück zu den Tokens</a></p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <form class="card" method="post" th:action="@{/settings/mcp-tokens}">
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="field">
+          <label for="name" th:text="#{mcp.token.name}">Name</label>
+          <input type="text" id="name" name="name" required maxlength="90" th:value="${name}">
+          <span class="hint" th:text="#{mcp.token.name.hint}">Wofür der Token gedacht ist.</span>
+        </div>
+        <div class="field">
+          <label for="scope" th:text="#{mcp.token.scope}">Umfang</label>
+          <select id="scope" name="scope">
+            <option th:each="scope : ${scopes}" th:value="${scope.name()}" th:text="#{'mcp.token.scope.' + ${scope.name()}}"
+                    th:selected="${scope.name() == 'DRAFT'}">Entwürfe</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="validityDays" th:text="#{mcp.token.validity}">Gültigkeit</label>
+          <select id="validityDays" name="validityDays">
+            <option th:each="days : ${validityDays}" th:value="${days}" th:text="#{mcp.token.validity.days(${days})}"
+                    th:selected="${days == 90}">90 Tage</option>
+            <option value="" th:text="#{mcp.token.unlimited}">Unbegrenzt</option>
+          </select>
+          <span class="hint" th:text="#{mcp.token.unlimited.hint}">Ein Token ohne Ablauf gilt, bis er widerrufen wird.</span>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" th:text="#{mcp.token.create.submit}">Token erstellen</button>
+      <a class="button secondary" th:href="@{/settings/mcp-tokens}" th:text="#{dialog.cancel}">Abbrechen</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

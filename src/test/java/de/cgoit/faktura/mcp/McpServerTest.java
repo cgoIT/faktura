@@ -144,6 +144,15 @@ class McpServerTest {
     }
 
     @Test
+    void aTokenWithoutEndDateWorks() throws Exception {
+        var forever = tokenService.create("Forever", McpScope.READ, null).token();
+
+        mvc.perform(post("/mcp").header("Authorization", "Bearer " + forever).contentType(MediaType.APPLICATION_JSON)
+                .content(rpc("ping", "{}")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void aReadTokenSeesNoDraftToolAndCannotCreateADraft() throws Exception {
         var read = tokenService.create("Reader", McpScope.READ, 30).token();
 

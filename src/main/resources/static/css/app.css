@@ -363,6 +363,10 @@ textarea {
   margin-bottom: 16px;
 }
 
+.toolbar.right {
+  justify-content: flex-end;
+}
+
 .toolbar input[type="search"] {
   flex: 1 1 240px;
 }
