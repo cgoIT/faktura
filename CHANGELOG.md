@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/cgoIT/faktura/compare/v0.3.0...v0.4.0) (2026-10-27)
+
+
+### Features
+
+* add {jahr_kurz} number placeholder, edit the next counter on the numbering page ([471ae29](https://github.com/cgoIT/faktura/commit/471ae29b30c30ef53a2c087d94a73618566631bf))
+
+
+### Bug Fixes
+
+* send credentials with the manifest request so SSO proxies do not redirect it ([7df839c](https://github.com/cgoIT/faktura/commit/7df839c841612bdd4e9d6f5259e06387d376986c))
+
 ## [0.3.0](https://github.com/cgoIT/faktura/compare/v0.2.1...v0.3.0) (2026-10-27)
 
 
