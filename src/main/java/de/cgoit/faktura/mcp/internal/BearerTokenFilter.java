@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Lets a request through as the actor {@value #ACTOR} when it carries the configured token as bearer token or in the header {@value #TOKEN_HEADER}. Both sides are
+ * Lets a request through as the actor {@value #ACTOR} when it carries the configured token as bearer token or in the configured header. Both sides are
  * hashed before the comparison, so it takes the same time whatever the token looks like.
  */
 class BearerTokenFilter extends OncePerRequestFilter {
@@ -25,13 +25,13 @@ class BearerTokenFilter extends OncePerRequestFilter {
 
     private static final String PREFIX = "Bearer ";
 
-    // for clients that can only send a plain header value (the connector dialog of Claude Desktop)
-    static final String TOKEN_HEADER = "X-API-Key";
 
     private final byte[] expected;
+    private final String tokenHeader;
 
-    BearerTokenFilter(String token) {
+    BearerTokenFilter(String token, String tokenHeader) {
         this.expected = sha256(token);
+        this.tokenHeader = tokenHeader;
     }
 
     @Override
@@ -40,7 +40,7 @@ class BearerTokenFilter extends OncePerRequestFilter {
         var header = request.getHeader(HttpHeaders.AUTHORIZATION);
         var given = header != null && header.regionMatches(true, 0, PREFIX, 0, PREFIX.length())
                 ? header.substring(PREFIX.length())
-                : request.getHeader(TOKEN_HEADER);
+                : request.getHeader(tokenHeader);
 
         if (given != null && MessageDigest.isEqual(expected, sha256(given.strip()))) {
             var context = SecurityContextHolder.createEmptyContext();

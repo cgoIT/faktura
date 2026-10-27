@@ -148,6 +148,9 @@ faktura:
     enabled: ${MCP_ENABLED:false}
     # bearer token, at least 32 characters; the module refuses to start without it
     token: ${MCP_TOKEN:}
+    # header that may carry the bare token (without "Bearer "), for clients that only send a plain header value;
+    # Claude Desktop only accepts header names Anthropic knows, e.g. X-API-Key
+    token-header: ${MCP_TOKEN_HEADER:X-API-Key}
 
   # Daily notification mail to the operator (never to customers). Which categories are reported, to whom and at what
   # time is set in the application (Einstellungen, Benachrichtigungen); every category is off until switched on.

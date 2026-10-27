@@ -81,7 +81,7 @@ docker compose ps                 # Status "healthy" nach etwa einer Minute
 | `MAIL_FROM` | leer | Absenderadresse; leer: E-Mail-Adresse des Unternehmens |
 | `MAIL_REPLY_TO`, `MAIL_BCC` | leer | optionale Antwortadresse und optionale Blindkopie jeder Mail an dich selbst |
 | `MAIL_MAX_ATTACHMENT_BYTES` | `10485760` | größere PDFs werden nicht gesendet |
-| `MCP_ENABLED`, `MCP_TOKEN` | `false`, leer | MCP-Server für KI-Assistenten einschalten und sein Token (mindestens 32 Zeichen), siehe „KI-Assistenten anbinden“ |
+| `MCP_ENABLED`, `MCP_TOKEN`, `MCP_TOKEN_HEADER` | `false`, leer, `X-API-Key` | MCP-Server für KI-Assistenten einschalten, sein Token (mindestens 32 Zeichen) und der Name des Headers, der den Token ohne `Bearer` trägt (Claude Desktop akzeptiert nur Namen, die Anthropic kennt), siehe „KI-Assistenten anbinden“ |
 | `BASE_URL` | leer | Adresse, unter der du faktura erreichst (z. B. `https://faktura.example.org/`), für den Link in der Hinweis-Mail; leer: Mail ohne Link |
 | `NOTIFICATION_ENABLED` | `true` | Prüfung der Hinweis-Mail ein/aus (die Kategorien selbst sind bis zum Einschalten in der Oberfläche aus) |
 | `NOTIFICATION_POLL_INTERVAL` | `PT5M` | wie oft geprüft wird, ob die tägliche Mail fällig ist |
@@ -350,7 +350,7 @@ nur an den Steuerberater geben. Der Export ersetzt weder das Backup noch das Arc
 
 faktura kann einem KI-Assistenten (z. B. Claude) über das Model Context Protocol Werkzeuge anbieten: Kunden und Katalog suchen, offene und überfällige Rechnungen,
 Mahnvorschläge und ablaufende Angebote lesen sowie **Rechnungs- und Angebotsentwürfe anlegen**. Finalisieren, Stornieren, Zahlungen buchen, Mails senden und
-Löschen gibt es dort nicht; das bleibt dir im Prüfdialog vorbehalten. Der Token geht als `Authorization: Bearer <token>` oder nur als Wert im Header `X-API-Key` (für Clients, die nur einen Header ohne Präfix senden, etwa der Konnektor-Dialog von Claude Desktop). Entwürfe tragen als Ersteller `mcp`. Ein Entwurf kann Interne Bezeichnung, Kundenreferenz, Leistungszeitraum, Zahlungsziel, Gesamtrabatt (Prozent) und Positionen tragen; ändern lässt er sich nur in der Oberfläche.
+Löschen gibt es dort nicht; das bleibt dir im Prüfdialog vorbehalten. Der Token geht als `Authorization: Bearer <token>` oder nur als Wert im Header `MCP_TOKEN_HEADER` (Standard `X-API-Key`) (für Clients, die nur einen Header ohne Präfix senden, etwa der Konnektor-Dialog von Claude Desktop). Entwürfe tragen als Ersteller `mcp`. Ein Entwurf kann Interne Bezeichnung, Kundenreferenz, Leistungszeitraum, Zahlungsziel, Gesamtrabatt (Prozent) und Positionen tragen; ändern lässt er sich nur in der Oberfläche.
 
 - Standardmäßig aus. Einschalten: `MCP_ENABLED=true` und `MCP_TOKEN` mit mindestens 32 zufälligen Zeichen (z. B. `openssl rand -hex 32`). Ohne brauchbaren Token startet faktura nicht.
 - Der Endpunkt ist `POST /mcp` mit dem Header `Authorization: Bearer <token>`. Er hat eine eigene Anmeldung und ist vom Anmeldemodus (`security`) unabhängig.

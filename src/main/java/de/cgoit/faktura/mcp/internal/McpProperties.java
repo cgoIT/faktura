@@ -8,9 +8,11 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *
  * @param enabled whether {@code /mcp} exists at all
  * @param token   bearer token every request must carry
+ * @param tokenHeader name of a header that may carry the bare token instead of {@code Authorization: Bearer}
  */
 @ConfigurationProperties("faktura.mcp")
-public record McpProperties(@DefaultValue("false") boolean enabled, @DefaultValue("") String token) {
+public record McpProperties(@DefaultValue("false") boolean enabled, @DefaultValue("") String token,
+        @DefaultValue("X-API-Key") String tokenHeader) {
 
     static final int MIN_TOKEN_LENGTH = 32;
 

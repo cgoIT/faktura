@@ -33,7 +33,7 @@ class McpSecurityConfiguration {
         http.securityMatcher("/mcp")
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new BearerTokenFilter(properties.token().strip()), AnonymousAuthenticationFilter.class)
+                .addFilterBefore(new BearerTokenFilter(properties.token().strip(), properties.tokenHeader().strip()), AnonymousAuthenticationFilter.class)
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint((request, response, exception) -> {
                             response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
