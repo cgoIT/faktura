@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import de.cgoit.faktura.einvoice.EInvoiceDocument;
@@ -19,6 +20,7 @@ import org.mustangproject.Contact;
 import org.mustangproject.Invoice;
 import org.mustangproject.Item;
 import org.mustangproject.Product;
+import org.mustangproject.ReferencedDocument;
 import org.mustangproject.TradeParty;
 
 /**
@@ -56,8 +58,8 @@ final class MustangMapper {
 
         if (document.type() == EInvoiceDocument.Type.CREDIT_NOTE) {
             invoice.setCreditNote();
-            invoice.setInvoiceReferencedDocumentID(document.referencedNumber());
-            invoice.setInvoiceReferencedIssueDate(date(document.referencedDate()));
+            invoice.setInvoiceReferencedDocuments(
+                    List.of(new ReferencedDocument(document.referencedNumber(), date(document.referencedDate()))));
         }
 
         for (var line : document.lines()) {
@@ -67,8 +69,8 @@ final class MustangMapper {
         for (var group : document.taxGroups()) {
             if (group.allowanceCents() > 0) {
                 invoice.addAllowance(new Allowance(euro(group.allowanceCents()))
-                        .setTaxPercent(percent(group.rateBp()))
-                        .setCategoryCode(group.category())
+                        .setTaxRateApplicablePercent(percent(group.rateBp()))
+                        .setTaxCategoryCode(group.category())
                         .setReason(discountReason));
             }
         }
@@ -76,8 +78,8 @@ final class MustangMapper {
         if (document.charge() != null) {
             var charge = document.charge();
             var mapped = new Charge(euro(charge.cents()))
-                    .setTaxPercent(percent(charge.rateBp()))
-                    .setCategoryCode(charge.category())
+                    .setTaxRateApplicablePercent(percent(charge.rateBp()))
+                    .setTaxCategoryCode(charge.category())
                     .setReason(charge.name());
             var reason = document.taxGroups().stream()
                     .filter(group -> group.category().equals(charge.category()) && group.rateBp() == charge.rateBp())
