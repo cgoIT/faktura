@@ -12,7 +12,7 @@
   <form class="card" method="post" th:action="@{/settings/mcp-tokens}">
     <div class="form-section">
       <div class="form-grid">
-        <div class="field">
+        <div class="field wide">
           <label for="name" th:text="#{mcp.token.name}">Name</label>
           <input type="text" id="name" name="name" required maxlength="90" th:value="${name}">
           <span class="hint" th:text="#{mcp.token.name.hint}">Wofür der Token gedacht ist.</span>
