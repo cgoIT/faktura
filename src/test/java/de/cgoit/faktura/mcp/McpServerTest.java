@@ -161,6 +161,20 @@ class McpServerTest {
     }
 
     @Test
+    void anInvoiceDraftTakesPaymentTermTotalDiscountAndDesignation() throws Exception {
+        var result = tool("create_invoice_draft", """
+                {"customerId":"%s","subject":"Erstellt mit MCP","paymentDays":25,"totalDiscountPercent":"5",
+                 "items":[{"description":"Anfahrt","unitPrice":"100"}]}
+                """.formatted(customerId));
+        var draft = invoices.find(text(result, "$.id")).orElseThrow();
+
+        assertThat(text(result, "$.grossEur")).isEqualTo("95.00");
+        assertThat(text(result, "$.totalDiscountPercent")).isEqualTo("5");
+        assertThat(draft.subject()).isEqualTo("Erstellt mit MCP");
+        assertThat(draft.dueDate()).isEqualTo(draft.issueDate().plusDays(25));
+    }
+
+    @Test
     void aFreeTextItemNeedsAPrice() throws Exception {
         tool("create_invoice_draft", """
                 {"customerId":"%s","items":[{"description":"Anfahrt"}]}

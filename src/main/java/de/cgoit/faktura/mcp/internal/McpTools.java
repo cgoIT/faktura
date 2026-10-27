@@ -27,6 +27,7 @@ import de.cgoit.faktura.document.InvoiceItemInput;
 import de.cgoit.faktura.document.InvoiceService;
 import de.cgoit.faktura.document.InvoiceSummary;
 import de.cgoit.faktura.document.OfferService;
+import de.cgoit.faktura.document.TotalDiscount;
 import de.cgoit.faktura.dunning.DunningService;
 import de.cgoit.faktura.shared.RuleViolationException;
 import de.cgoit.faktura.textblock.TextKind;
@@ -59,7 +60,9 @@ public class McpTools {
     private static final String DRAFT_SCHEMA = """
             {"type":"object","required":["customerId","items"],"properties":{
               "customerId":{"type":"string","description":"Customer id from search_customers"},
-              "subject":{"type":"string","description":"Subject line, optional"},
+              "subject":{"type":"string","description":"Internal designation of the document (not printed on it; the web form calls it 'Interne Bezeichnung'), optional"},
+              "paymentDays":{"type":"integer","minimum":0,"maximum":365,"description":"Payment term in days; default is the customer's or the company's term"},
+              "totalDiscountPercent":{"type":"string","description":"Discount on the whole document in percent, e.g. 5; optional"},
               "customerReference":{"type":"string","description":"Reference of the customer, optional"},
               "serviceFrom":{"type":"string","description":"Start of the service period, YYYY-MM-DD, optional"},
               "serviceTo":{"type":"string","description":"End of the service period, YYYY-MM-DD, with serviceFrom"},
@@ -225,13 +228,17 @@ public class McpTools {
                 .map(item -> item(item, day))
                 .toList();
         var scope = offer ? TextScope.OFFER : TextScope.INVOICE;
-        var input = new InvoiceInput(draft.customerId(), issueDate, from, to, null, draft.subject(),
+        var discount = blankToNull(draft.totalDiscountPercent()) != null
+                ? TotalDiscount.percent(Math.toIntExact(scaled(draft.totalDiscountPercent(), 2)))
+                : null;
+        var input = new InvoiceInput(draft.customerId(), issueDate, from, to, draft.paymentDays(), draft.subject(),
                 texts.defaultBody(scope, TextKind.HEADER).orElse(null),
-                texts.defaultBody(scope, TextKind.FOOTER).orElse(null), null, items, null,
+                texts.defaultBody(scope, TextKind.FOOTER).orElse(null), discount, items, null,
                 draft.customerReference(), null);
         var info = offer ? invoices.createOfferDraft(input) : invoices.createDraft(input);
 
         return new DraftResult(info.id(), type.name(), euros(info.netTotalCents()), euros(info.grossTotalCents()),
+                iso(offer ? info.validUntil() : info.dueDate()), blankToNull(draft.totalDiscountPercent()),
                 link(info, offer));
     }
 
@@ -345,7 +352,7 @@ public class McpTools {
     }
 
     record Draft(String customerId, String subject, String customerReference, String serviceFrom, String serviceTo,
-            List<DraftItem> items) {
+            Integer paymentDays, String totalDiscountPercent, List<DraftItem> items) {
     }
 
     record DraftItem(String catalogItemId, String description, String quantity, String unitPrice,
@@ -381,6 +388,7 @@ public class McpTools {
     record OfferRow(String id, String number, String customer, String state, String validUntil, String grossEur) {
     }
 
-    record DraftResult(String id, String type, String netEur, String grossEur, String link) {
+    record DraftResult(String id, String type, String netEur, String grossEur, String dueDate, String totalDiscountPercent,
+            String link) {
     }
 }
