@@ -2,7 +2,7 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, ${offer} ? 'offers' : 'invoices')}">
 <head>
-  <title th:text="(${offer} ? #{offer.title} : #{invoice.title}) + ' – Faktura'">Rechnungen</title>
+  <title th:text="(${offer} ? #{offer.title} : #{invoice.title}) + ' – faktura'">Rechnungen</title>
 </head>
 <body>
 <main class="wide">

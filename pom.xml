@@ -13,7 +13,7 @@
   <artifactId>faktura</artifactId>
   <version>0.2.1</version>
   <name>faktura</name>
-  <description>Faktura – kleine Rechnungsstellung mit ZUGFeRD, Wiedervorlagen und Mahnwesen.</description>
+  <description>faktura – kleine Rechnungsstellung mit ZUGFeRD, Wiedervorlagen und Mahnwesen.</description>
   <url>https://github.com/cgoIT/faktura</url>
   <inceptionYear>2026</inceptionYear>
   <licenses>

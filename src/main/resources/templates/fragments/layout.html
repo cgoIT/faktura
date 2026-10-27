@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title th:replace="${title}">Faktura</title>
+  <title th:replace="${title}">faktura</title>
   <!--/* CSRF token for htmx requests (app.js sends it in a header) and htmx settings that a strict CSP needs: no eval, no inline style element. */-->
   <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
   <meta name="htmx-config" content='{"allowEval":false,"includeIndicatorStyles":false}'>
   <link rel="stylesheet" th:href="@{/css/app.css}">
   <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
+  <link rel="icon" sizes="any" th:href="@{/favicon.ico}">
+  <link rel="apple-touch-icon" th:href="@{/images/apple-touch-icon.png}">
+  <link rel="manifest" th:href="@{/manifest.webmanifest}">
+  <meta name="theme-color" content="#0f5c6e">
   <script th:src="@{/js/htmx.min.js}" defer></script>
   <script th:src="@{/js/app.js}" defer></script>
 </head>
 <body>
 <aside class="sidebar">
   <div>
-    <a class="brand" th:href="@{/}" th:attr="aria-label=#{nav.home}"><span class="brand-mark"></span><span>Faktura</span></a>
+    <a class="brand" th:href="@{/}" th:attr="aria-label=#{nav.home}"><span class="brand-mark"></span><span>faktura</span></a>
     <nav class="nav" th:aria-label="#{nav.label}">
       <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'invoices'} ? 'active'" th:href="@{/invoices}"
          th:text="#{nav.invoices}">Rechnungen</a>

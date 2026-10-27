@@ -30,7 +30,7 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 @EnableConfigurationProperties(SecurityProperties.class)
 class SecurityConfiguration {
 
-    private static final String[] PUBLIC = { "/css/**", "/js/**", "/fonts/**", "/images/**", "/login", "/error",
+    private static final String[] PUBLIC = { "/css/**", "/js/**", "/fonts/**", "/images/**", "/favicon.ico", "/manifest.webmanifest", "/login", "/error",
             "/actuator/health", "/actuator/health/**" };
 
     @Bean

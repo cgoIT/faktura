@@ -86,7 +86,7 @@ a {
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: var(--accent);
+  background: url('/images/logo.svg') center / contain no-repeat;
 }
 
 .nav {
