@@ -1293,6 +1293,12 @@ body.login { display: flex; justify-content: center; padding: 10vh 16px; }
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.copy-status {
+  min-width: 5em;
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+}
+
 .steps li {
   margin-bottom: 8px;
 }

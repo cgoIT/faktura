@@ -72,7 +72,6 @@
       <label for="mcp-header" th:text="#{mcp.connect.header}">Name des Headers</label>
       <div th:replace="~{fragments/copy-field :: copyField('mcp-header', ${headerName}, #{mcp.token.copy})}"></div>
     </div>
-    <p class="hint" role="status" id="copy-status"></p>
 
     <h3 th:text="#{mcp.connect.desktop.title}">Claude Desktop</h3>
     <ol class="steps">

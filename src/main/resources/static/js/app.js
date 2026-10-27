@@ -618,6 +618,10 @@ document.addEventListener('click', function (event) {
   var report = function (attribute) {
     if (status) {
       status.textContent = button.getAttribute(attribute);
+      window.clearTimeout(status.copyTimer);
+      status.copyTimer = window.setTimeout(function () {
+        status.textContent = '';
+      }, 3000);
     }
   };
 

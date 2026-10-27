@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<!--/* A read-only value with a button that copies it; the button writes its result into the element #copy-status of the page. */-->
+<!--/* A read-only value with a button that copies it; the button writes its result into the status element next to it. */-->
 <div th:fragment="copyField(id, value, label)" class="copy-row">
   <input type="text" readonly autocomplete="off" th:id="${id}" th:value="${value}">
   <button type="button" class="icon-button"
-          th:attr="data-copy=${id}, data-copy-status='copy-status', data-copied=#{mcp.token.copied}, data-copy-failed=#{mcp.token.copyFailed}, aria-label=${label}, title=${label}"><svg th:replace="~{fragments/icons :: copy}"></svg></button>
+          th:attr="data-copy=${id}, data-copy-status=${id} + '-status', data-copied=#{mcp.token.copied}, data-copy-failed=#{mcp.token.copyFailed}, aria-label=${label}, title=${label}"><svg th:replace="~{fragments/icons :: copy}"></svg></button>
+  <span class="copy-status" role="status" th:id="${id} + '-status'"></span>
 </div>
 </body>
 </html>
