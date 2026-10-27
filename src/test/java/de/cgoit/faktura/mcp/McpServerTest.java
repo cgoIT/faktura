@@ -38,7 +38,8 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @SqliteTest
 @TestPropertySource(properties = {
-        "faktura.mcp.enabled=true",
+        "faktura.mcp.enabled=true", "faktura.security.mode=FORM", "faktura.security.admin-user=boss",
+        "faktura.security.admin-password=correct horse battery",
         "faktura.mcp.token=0123456789abcdef0123456789abcdef-test" })
 class McpServerTest {
 

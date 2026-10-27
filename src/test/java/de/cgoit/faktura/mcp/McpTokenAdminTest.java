@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,14 +25,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 /**
  * Token administration: only the hash is stored, the token is shown once, validity and revocation hold, and creating
  * and revoking are audited.
  */
 @SqliteTest
-@TestPropertySource(properties = "faktura.mcp.enabled=true")
+@TestPropertySource(properties = { "faktura.mcp.enabled=true", "faktura.security.mode=FORM",
+        "faktura.security.admin-user=boss", "faktura.security.admin-password=correct horse battery" })
 class McpTokenAdminTest {
+
+    private static final RequestPostProcessor ADMIN = user("boss").roles("ADMIN");
 
     @Autowired
     private McpTokenService tokens;
@@ -104,7 +109,7 @@ class McpTokenAdminTest {
 
     @Test
     void theTokenIsShownOnceInTheAnswerToCreating() throws Exception {
-        var body = mvc.perform(post("/settings/mcp-tokens").param("name", "Desktop").param("scope", "DRAFT")
+        var body = mvc.perform(post("/settings/mcp-tokens").with(ADMIN).param("name", "Desktop").param("scope", "DRAFT")
                         .param("validityDays", "90"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("fkt_")))
@@ -113,7 +118,7 @@ class McpTokenAdminTest {
                 .getContentAsString();
         var token = body.substring(body.indexOf("fkt_"), body.indexOf("fkt_") + 68);
 
-        mvc.perform(get("/settings/mcp-tokens"))
+        mvc.perform(get("/settings/mcp-tokens").with(ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Desktop")))
                 .andExpect(content().string(not(containsString(token))));
@@ -121,13 +126,13 @@ class McpTokenAdminTest {
 
     @Test
     void anEmptyListSaysSoAndTheFormOffersUnlimited() throws Exception {
-        mvc.perform(get("/settings/mcp-tokens"))
+        mvc.perform(get("/settings/mcp-tokens").with(ADMIN))
                 .andExpect(content().string(containsString("Es sind noch keine Tokens erstellt.")))
                 .andExpect(content().string(not(containsString("<table"))));
-        mvc.perform(get("/settings/mcp-tokens/new"))
+        mvc.perform(get("/settings/mcp-tokens/new").with(ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Unbegrenzt")));
-        mvc.perform(post("/settings/mcp-tokens").param("name", "Forever").param("scope", "READ")
+        mvc.perform(post("/settings/mcp-tokens").with(ADMIN).param("name", "Forever").param("scope", "READ")
                         .param("validityDays", ""))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("fkt_")))
@@ -136,7 +141,7 @@ class McpTokenAdminTest {
 
     @Test
     void thePageNamesAddressHeaderAndAClipboardButton() throws Exception {
-        mvc.perform(get("/settings/mcp-tokens"))
+        mvc.perform(get("/settings/mcp-tokens").with(ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("http://localhost/mcp")))
                 .andExpect(content().string(containsString("X-API-Key")))
@@ -148,7 +153,7 @@ class McpTokenAdminTest {
     void revokingFromThePageRedirectsBackToTheList() throws Exception {
         var info = tokens.create("A", McpScope.READ, 30).info();
 
-        mvc.perform(post("/settings/mcp-tokens/" + info.id() + "/revoke"))
+        mvc.perform(post("/settings/mcp-tokens/" + info.id() + "/revoke").with(ADMIN))
                 .andExpect(redirectedUrl("/settings/mcp-tokens"));
 
         assertThat(tokens.list().getFirst().status()).isEqualTo(McpTokenStatus.REVOKED);

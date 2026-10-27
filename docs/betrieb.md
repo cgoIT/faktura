@@ -353,12 +353,12 @@ Mahnvorschläge und ablaufende Angebote lesen sowie **Rechnungs- und Angebotsent
 Löschen gibt es dort nicht; das bleibt dir im Prüfdialog vorbehalten. Ein Entwurf kann Interne Bezeichnung, Kundenreferenz, Leistungszeitraum, Zahlungsziel,
 Gesamtrabatt (Prozent) und Positionen tragen; ändern lässt er sich nur in der Oberfläche.
 
-- Standardmäßig aus. Einschalten: `MCP_ENABLED=true`. Der Endpunkt ist `POST /mcp`, mit eigener Anmeldung, unabhängig vom Anmeldemodus (`security`).
+- Standardmäßig aus. Einschalten: `MCP_ENABLED=true`. Der Endpunkt ist `POST /mcp`, mit eigener Anmeldung per Token. **Voraussetzung ist ein Anmeldemodus** (`SECURITY_MODE` `FORM`, `PROXY_HEADER` oder `PROXY_HEADER_ADMIN_FORM`): Mit `NONE` startet die Anwendung nicht, weil `/mcp` am Proxy vorbei erreichbar sein muss und dann nur der Proxy die Seite schützen würde, auf der Tokens entstehen.
 - **Tokens verwalten:** Unter „KI-Zugang“ (Menü links, `/settings/mcp-tokens`) legt ein Administrator Tokens an: Name, Umfang (**Nur lesen** oder **Lesen und Entwürfe anlegen**) und
   Gültigkeit (Auswahl aus `faktura.mcp.validity-days`, Standard 30, 90 oder 365 Tage, oder „Unbegrenzt“; ein unbegrenzter Token gilt, bis er widerrufen wird, kurze Fristen sind sicherer). Der Token erscheint **nur einmal** nach dem Anlegen; gespeichert wird
   nur sein SHA-256-Wert. „Widerrufen“ wirkt sofort. Die Seite zeigt eine Liste mit „Neuen Token erstellen“ darüber und darunter eine einklappbare Anleitung für Claude Desktop und Claude Code (Adresse, Header-Name, Kopier-Symbole). Die Liste zeigt Zustand (aktiv, abgelaufen, widerrufen), den Anfang des Tokens und die letzte Benutzung (auf die Minute genau).
   Tokens werden nie gelöscht. Anlegen und Widerrufen stehen im Audit-Log (ohne den Token). Entwürfe, die ein Assistent anlegt, tragen als Ersteller `mcp:<Name des Tokens>`.
-  Ohne Anmeldung (`SECURITY_MODE=NONE`) darf jeder die Seite öffnen, der die Anwendung erreicht; sonst nur Administratoren. **Im Modus `NONE` muss der Proxy `/settings/mcp-tokens` selbst schützen** (Pangolin mit Authentik) und von außen nur `/mcp` ohne Anmeldung durchlassen; sonst kann jeder, der die Oberfläche erreicht, einen Token mit Schreibrechten erzeugen.
+  Die Seite ist nur für Administratoren.
 - **Token senden:** als `Authorization: Bearer <token>` oder nur als Wert im Header `MCP_TOKEN_HEADER` (Standard `X-API-Key`), für Clients, die nur einen Header ohne Präfix
   senden, etwa der Konnektor-Dialog von Claude Desktop (der nur Header-Namen zulässt, die Anthropic kennt).
 - **Notzugang:** `MCP_TOKEN` (mindestens 32 zufällige Zeichen, z. B. `openssl rand -hex 32`) ist optional. Er gilt unbegrenzt, darf nur lesen und erscheint nicht in der Verwaltung.

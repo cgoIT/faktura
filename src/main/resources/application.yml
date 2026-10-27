@@ -143,7 +143,7 @@ faktura:
   # Address of the application as the operator reaches it, for the link in the notification mail. Empty: no link.
   base-url: ${BASE_URL:}
 
-  # MCP server for AI assistants (POST /mcp): read access and draft creation, nothing irreversible. Off by default.
+  # MCP server for AI assistants (POST /mcp): read access and draft creation, nothing irreversible. Off by default; needs a sign-in mode other than NONE.
   mcp:
     enabled: ${MCP_ENABLED:false}
     # optional emergency token with read access only (at least 32 characters, else the module refuses to start);

@@ -4,6 +4,7 @@ import java.time.Clock;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,7 +18,9 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 /**
  * Separate filter chain for {@code /mcp}: stateless, no CSRF (there is no browser session to forge) and only
  * a valid token lets a request in. The chain of the web interface is not touched. A token in the environment, if
- * set, must be long enough or the application does not start.
+ * set, must be long enough or the application does not start. Without a sign-in mode the application does not start
+ * either: the endpoint has to bypass the proxy, and then nothing but the proxy would stand between the world and
+ * the page that mints tokens.
  */
 @Configuration
 @EnableConfigurationProperties(McpProperties.class)
@@ -27,7 +30,12 @@ class McpSecurityConfiguration {
     @Order(1)
     @ConditionalOnProperty(name = "faktura.mcp.enabled", havingValue = "true")
     SecurityFilterChain mcpFilterChain(HttpSecurity http, McpProperties properties, McpTokenRepository tokens,
-            Clock clock) throws Exception {
+            Clock clock, @Value("${faktura.security.mode:NONE}") String securityMode) throws Exception {
+        if (securityMode.strip().equalsIgnoreCase("NONE")) {
+            throw new IllegalStateException(
+                    "faktura.mcp.enabled needs faktura.security.mode FORM, PROXY_HEADER or PROXY_HEADER_ADMIN_FORM");
+        }
+
         var emergency = properties.token().strip();
 
         if (!emergency.isEmpty() && emergency.length() < McpProperties.MIN_TOKEN_LENGTH) {
