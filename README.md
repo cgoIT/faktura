@@ -60,12 +60,15 @@ Backups verschlüsseln, Zugriff begrenzen, DSGVO und Aufbewahrungsfristen beacht
 
 ## Schnellstart
 
-Mit Docker Compose (mit Anmeldung per Formular):
+Mit Docker Compose und dem fertigen Image aus der GitHub Container Registry (mit Anmeldung per Formular, kein Klonen und kein Bauen nötig):
 
 ```bash
-cp .env.example .env     # Pflicht: SECURITY_ADMIN_PASSWORD (mind. 12 Zeichen) eintragen, Modus ist FORM
+mkdir faktura && cd faktura
+curl -fsSLO https://raw.githubusercontent.com/cgoIT/faktura/main/docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/cgoIT/faktura/main/.env.example -o .env
+# Pflicht in .env: SECURITY_ADMIN_PASSWORD (mind. 12 Zeichen) eintragen, Modus ist FORM
 mkdir -p data && sudo chown 10001:10001 data
-docker compose up -d --build
+docker compose up -d
 ```
 
 Danach erreichbar unter <http://127.0.0.1:8080> (Port nur an localhost gebunden; für den Zugriff von außen Reverse Proxy mit TLS davorsetzen).

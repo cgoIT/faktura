@@ -35,12 +35,15 @@ Alles, was aufbewahrungspflichtig ist, liegt unter `/data`. **Dieses Verzeichnis
 
 ## Start
 
-Voraussetzung: Docker mit Compose.
+Voraussetzung: Docker mit Compose. Gebraucht werden nur `docker-compose.yml` und `.env.example` aus dem Repository; das Image kommt
+fertig aus der Registry (siehe „Fertiges Container-Image“).
 
 ```bash
-cp .env.example .env              # Pflicht: Administrator-Passwort eintragen; Port, Datenverzeichnis, Backup-Zeit anpassen
+curl -fsSLO https://raw.githubusercontent.com/cgoIT/faktura/main/docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/cgoIT/faktura/main/.env.example -o .env
+                                  # Pflicht in .env: Administrator-Passwort eintragen; Port, Datenverzeichnis, Backup-Zeit anpassen
 mkdir -p data && sudo chown 10001:10001 data   # der Container läuft als Nutzer 10001, nicht als root
-docker compose up -d --build
+docker compose up -d
 docker compose ps                 # Status "healthy" nach etwa einer Minute
 ```
 
@@ -159,16 +162,16 @@ nennen Nummern, Zähler und Fehlerklassen. Beim Weitergeben von Logs trotzdem ku
 ## Update
 
 1. Backup anstoßen und prüfen (siehe unten): `docker compose run --rm faktura --faktura.maintenance=backup …`.
-2. Neuen Stand holen: `git pull`.
-3. `docker compose up -d --build`. Beim Start führt Flyway neue Migrationen aus. Migrationen werden nie nachträglich geändert.
+2. Neues Image holen: `docker compose pull` (bei festgeschriebener Version vorher den Tag in `docker-compose.yml` anheben).
+3. `docker compose up -d`. Beim Start führt Flyway neue Migrationen aus. Migrationen werden nie nachträglich geändert.
 4. `docker compose ps` zeigt `healthy`, danach Stichprobe in der Oberfläche (Rechnungsliste, ein PDF öffnen).
 5. Bei einem Fehler: Container stoppen, das Backup zurückspielen (siehe „Wiederherstellung“), das vorherige Image starten.
 
 ## Fertiges Container-Image
 
 Zu jedem Release veröffentlicht die CI ein Image in der GitHub Container Registry (`ghcr.io/cgoit/faktura`) für `linux/amd64` und `linux/arm64`,
-getaggt mit der vollen Version (z. B. `0.2.0`), der Minor-Version (`0.2`), der Major-Version (`0`, später `1` usw.) und `latest`. Wer nicht selbst bauen will, nutzt in `docker-compose.yml`
-`image: ghcr.io/cgoit/faktura:0.2` statt `build: .`. Für reproduzierbare Betriebe die volle Version oder den Digest festschreiben; `latest` und die Major-Version bringen mit einem Update auch größere Änderungen, vor dem Update gilt der Ablauf unter „Update“. Die Images sind
+getaggt mit der vollen Version (z. B. `0.2.0`), der Minor-Version (`0.2`), der Major-Version (`0`, später `1` usw.) und `latest`. Die `docker-compose.yml` nutzt
+`latest`; wer selbst bauen will, baut mit `docker build -t faktura .` und setzt dort `image: faktura`. Für reproduzierbare Betriebe die volle Version oder den Digest festschreiben; `latest` und die Major-Version bringen mit einem Update auch größere Änderungen, vor dem Update gilt der Ablauf unter „Update“. Die Images sind
 mit cosign (keyless) signiert und haben eine Herkunftsbescheinigung:
 
 ```bash

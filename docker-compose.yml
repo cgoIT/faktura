@@ -1,15 +1,15 @@
 # Example setup. Copy .env.example to .env and adjust it (the file is required); no credentials belong in this file.
 #
-#   docker compose up -d --build      start (builds the image; or use the published image, see below)
+#   docker compose up -d              start (pulls the published image of the latest release)
+#   docker compose pull && docker compose up -d   update to the latest release (back up first, docs/betrieb.md)
 #   docker compose logs -f faktura    follow the log
 #
 # The application listens on plain HTTP. Put it behind a reverse proxy with TLS (docs/betrieb.md) and do not publish
 # the port to the network: the port below is bound to localhost only. All settings live in .env.
 services:
   faktura:
-    build: .
-    # or without building: image: ghcr.io/cgoit/faktura:0.2
-    image: faktura:local
+    # pin a version (e.g. 0.2.1) for reproducible updates; to build from source: docker build -t faktura . and image: faktura
+    image: ghcr.io/cgoit/faktura:latest
     container_name: faktura
     restart: unless-stopped
     ports:
