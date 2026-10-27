@@ -34,6 +34,7 @@ Angebote, Wiedervorlagen (wiederkehrende Rechnungen), Mahnwesen, ZUGFeRD-E-Rechn
 - **Wiedervorlagen**: wiederkehrende Rechnungen im Voraus, erzeugt als Entwurf zur Freigabe
 - **Mailversand** von Belegen an Kunden (nur auf ausdrückliche Aktion) und tägliche Hinweis-Mail an den Betreiber
 - CSV-Export für die Buchhaltung, Backup und Archivprüfung, optionaler Export-Ordner für ein Dokumentenarchiv (z. B. ecoDMS)
+- **KI-Assistenten (MCP, optional, standardmäßig aus)**: Claude & Co. lesen Kunden, Katalog, offene Rechnungen und legen **nur Entwürfe** an – nie finalisieren, stornieren, buchen, mailen oder löschen. Zugang über Tokens, die ein Administrator verwaltet; braucht einen Anmeldemodus ungleich `NONE` (siehe [docs/betrieb.md](docs/betrieb.md), „KI-Assistenten anbinden“)
 - Anmeldung zuschaltbar (keine / Formular / Proxy-Header / Proxy-Header mit Admin-Formular), mehrere Benutzer, CSRF-Schutz und strenge Content-Security-Policy
 
 ## Was faktura ausdrücklich nicht ist
