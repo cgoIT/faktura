@@ -262,6 +262,21 @@ TABLE mail_template
   ROW body='{anrede}\n\nvielen Dank für Ihre Anfrage. Anbei erhalten Sie das Angebot {angebotsnummer} über {betrag}. Es ist gültig bis zum {gueltig_bis}.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000008' is_default='1' name='Formell' scope='OFFER' subject='Angebot {angebotsnummer} von {firma_name}'
   ROW body='{anrede}\n\nzur Rechnung {rechnungsnummer} vom {rechnungsdatum} konnten wir bislang keinen Zahlungseingang feststellen. Im Anhang finden Sie die {mahnstufe}.\n\nWir bitten Sie, den offenen Betrag von {gesamtforderung} bis zum {neue_frist} zu überweisen. Sollte sich Ihre Zahlung mit diesem Schreiben überschnitten haben, betrachten Sie es bitte als gegenstandslos.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000005' is_default='1' name='Formell' scope='DUNNING' subject='{mahnstufe} zur Rechnung {rechnungsnummer}'
 
+TABLE mcp_token
+  COLUMN created_at VARCHAR(30) NOT NULL
+  COLUMN created_by VARCHAR(100)
+  COLUMN expires_on VARCHAR(10)
+  COLUMN id VARCHAR(36)
+  COLUMN last_used_at VARCHAR(30)
+  COLUMN name VARCHAR(100) NOT NULL
+  COLUMN revoked_at VARCHAR(30)
+  COLUMN scope VARCHAR(10) NOT NULL
+  COLUMN token_hash VARCHAR(64) NOT NULL
+  COLUMN token_prefix VARCHAR(12) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (token_hash)
+  CHECK  (scope IN ('READ', 'DRAFT'))
+
 TABLE notification_log
   COLUMN category VARCHAR(20) NOT NULL
   COLUMN id VARCHAR(36)

@@ -81,6 +81,7 @@ docker compose ps                 # Status "healthy" nach etwa einer Minute
 | `MAIL_FROM` | leer | Absenderadresse; leer: E-Mail-Adresse des Unternehmens |
 | `MAIL_REPLY_TO`, `MAIL_BCC` | leer | optionale Antwortadresse und optionale Blindkopie jeder Mail an dich selbst |
 | `MAIL_MAX_ATTACHMENT_BYTES` | `10485760` | größere PDFs werden nicht gesendet |
+| `MCP_ENABLED`, `MCP_TOKEN`, `MCP_TOKEN_HEADER` | `false`, leer, `X-API-Key` | MCP-Server für KI-Assistenten einschalten, optionaler Notzugang zum Lesen (mindestens 32 Zeichen; Tokens verwaltet der Administrator in der Oberfläche) und der Name des Headers, der den Token ohne `Bearer` trägt (Claude Desktop akzeptiert nur Namen, die Anthropic kennt), siehe „KI-Assistenten anbinden“ |
 | `BASE_URL` | leer | Adresse, unter der du faktura erreichst (z. B. `https://faktura.example.org/`), für den Link in der Hinweis-Mail; leer: Mail ohne Link |
 | `NOTIFICATION_ENABLED` | `true` | Prüfung der Hinweis-Mail ein/aus (die Kategorien selbst sind bis zum Einschalten in der Oberfläche aus) |
 | `NOTIFICATION_POLL_INTERVAL` | `PT5M` | wie oft geprüft wird, ob die tägliche Mail fällig ist |
@@ -344,6 +345,30 @@ automatisiert (Neuaufbau und Datenübernahme per Skript). Beim Backup mit Postgr
 Unter „Export“ in der Navigation lassen sich je Jahr zwei CSV-Dateien laden (Rechnungen und Stornos nach Rechnungsdatum, Zahlungen nach Zahlungsdatum).
 Die Dateien entstehen beim Abruf aus der Datenbank, es liegt nichts auf dem Server. Sie enthalten Kundendaten und Verwendungszwecke: sicher aufbewahren und
 nur an den Steuerberater geben. Der Export ersetzt weder das Backup noch das Archiv.
+
+## KI-Assistenten anbinden (MCP)
+
+faktura kann einem KI-Assistenten (z. B. Claude) über das Model Context Protocol Werkzeuge anbieten: Kunden und Katalog suchen, offene und überfällige Rechnungen,
+Mahnvorschläge und ablaufende Angebote lesen sowie **Rechnungs- und Angebotsentwürfe anlegen**. Finalisieren, Stornieren, Zahlungen buchen, Mails senden und
+Löschen gibt es dort nicht; das bleibt dir im Prüfdialog vorbehalten. Ein Entwurf kann Interne Bezeichnung, Kundenreferenz, Leistungszeitraum, Zahlungsziel,
+Gesamtrabatt (Prozent) und Positionen tragen; ändern lässt er sich nur in der Oberfläche.
+
+- Standardmäßig aus. Einschalten: `MCP_ENABLED=true`. Der Endpunkt ist `POST /mcp`, mit eigener Anmeldung per Token. **Voraussetzung ist ein Anmeldemodus** (`SECURITY_MODE` `FORM`, `PROXY_HEADER` oder `PROXY_HEADER_ADMIN_FORM`): Mit `NONE` startet die Anwendung nicht, weil `/mcp` am Proxy vorbei erreichbar sein muss und dann nur der Proxy die Seite schützen würde, auf der Tokens entstehen.
+- **Tokens verwalten:** Unter „KI-Zugang“ (Menü links, `/settings/mcp-tokens`) legt ein Administrator Tokens an: Name, Umfang (**Nur lesen** oder **Lesen und Entwürfe anlegen**) und
+  Gültigkeit (Auswahl aus `faktura.mcp.validity-days`, Standard 30, 90 oder 365 Tage, oder „Unbegrenzt“; ein unbegrenzter Token gilt, bis er widerrufen wird, kurze Fristen sind sicherer). Der Token erscheint **nur einmal** nach dem Anlegen; gespeichert wird
+  nur sein SHA-256-Wert. „Widerrufen“ wirkt sofort. Die Seite zeigt eine Liste mit „Neuen Token erstellen“ darüber und darunter eine einklappbare Anleitung für Claude Desktop und Claude Code (Adresse, Header-Name, Kopier-Symbole). Die Liste zeigt Zustand (aktiv, abgelaufen, widerrufen), den Anfang des Tokens und die letzte Benutzung (auf die Minute genau).
+  Tokens werden nie gelöscht. Anlegen und Widerrufen stehen im Audit-Log (ohne den Token). Entwürfe, die ein Assistent anlegt, tragen als Ersteller `mcp:<Name des Tokens>`.
+  Die Seite ist nur für Administratoren.
+- **Token senden:** als `Authorization: Bearer <token>` oder nur als Wert im Header `MCP_TOKEN_HEADER` (Standard `X-API-Key`), für Clients, die nur einen Header ohne Präfix
+  senden, etwa der Konnektor-Dialog von Claude Desktop (der nur Header-Namen zulässt, die Anthropic kennt).
+- **Notzugang:** `MCP_TOKEN` (mindestens 32 zufällige Zeichen, z. B. `openssl rand -hex 32`) ist optional. Er gilt unbegrenzt, darf nur lesen und erscheint nicht in der Verwaltung.
+  Für den normalen Betrieb leer lassen und Tokens in der Oberfläche anlegen.
+- Beispiel Claude Code: `claude mcp add --transport http faktura http://localhost:8090/mcp --header "Authorization: Bearer <token>"`.
+- **Hinter Pangolin und Authentik** kann ein MCP-Client die Anmeldung nicht durchlaufen. Dafür braucht `/mcp` eine eigene Ressource oder eine Ausnahme, die nur am Token hängt.
+  Das ist ein bewusst geöffneter Zugang: Tokens geheim halten, kurz gültig wählen und bei Verdacht widerrufen. Ein Reverse Proxy, der Request-Header mitschreibt (Traefik: Access-Log),
+  schreibt den Token ins Log; Header `Authorization` und `X-API-Key` dort ausblenden.
+- **Datenschutz:** Was die Werkzeuge zurückgeben (Kundenname, Ort, Rechnungsnummern, Beträge), geht an das Modell des Assistenten. Bankdaten, Telefonnummern und Notizen
+  werden nicht geliefert. Parameter und Ergebnisse werden nicht geloggt.
 
 ## Aufbewahrungsfristen
 

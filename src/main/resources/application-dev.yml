@@ -48,7 +48,7 @@ faktura:
     enabled: true
     from: rechnung@example.test
   # The notification mail is due at 00:00 (set by the seeder), so the first check after the start sends it to Mailpit.
-  base-url: http://localhost:8090
+  base-url: ${BASE_URL:http://localhost:8090}
   notification:
     poll-interval: PT1M
   security:
@@ -62,3 +62,5 @@ faktura:
     max-failures: 5
     admin-user: ${SECURITY_ADMIN_USER:admin}
     admin-password: ${SECURITY_ADMIN_PASSWORD:anmeldung}
+  mcp:
+    enabled: ${MCP_ENABLED:true}

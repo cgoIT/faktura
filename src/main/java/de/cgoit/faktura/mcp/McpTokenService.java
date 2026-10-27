@@ -1,0 +1,155 @@
+package de.cgoit.faktura.mcp;
+
+import java.security.SecureRandom;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import de.cgoit.faktura.audit.AuditAction;
+import de.cgoit.faktura.audit.AuditObjectType;
+import de.cgoit.faktura.audit.AuditService;
+import de.cgoit.faktura.mcp.internal.McpProperties;
+import de.cgoit.faktura.mcp.internal.McpTokenRepository;
+import de.cgoit.faktura.mcp.internal.TokenHashes;
+import de.cgoit.faktura.shared.CurrentUser;
+import de.cgoit.faktura.shared.RuleViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Management of the access tokens of the MCP server. A token is random, expires on a day chosen when it is created (or never)
+ * and can be revoked at once; only its hash is stored. Creating and revoking are written to the audit log (without the
+ * token). Tokens are never deleted.
+ */
+@Service
+public class McpTokenService {
+
+    static final int MAX_NAME_LENGTH = 90;
+
+    private static final String PREFIX = "fkt_";
+    private static final int PREFIX_LENGTH = 8;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private final McpTokenRepository tokens;
+    private final McpProperties properties;
+    private final AuditService audit;
+    private final CurrentUser currentUser;
+    private final Clock clock;
+
+    public McpTokenService(McpTokenRepository tokens, McpProperties properties, AuditService audit,
+            CurrentUser currentUser, Clock clock) {
+        this.tokens = tokens;
+        this.properties = properties;
+        this.audit = audit;
+        this.currentUser = currentUser;
+        this.clock = clock;
+    }
+
+    /**
+     * Lists all tokens, newest first.
+     */
+    @Transactional(readOnly = true)
+    public List<McpTokenInfo> list() {
+        return tokens.findAll().stream()
+                .map(this::toInfo)
+                .toList();
+    }
+
+    /**
+     * Name of the header that may carry the bare token (configuration {@code faktura.mcp.token-header}).
+     */
+    public String tokenHeader() {
+        return properties.tokenHeader().strip();
+    }
+
+    /**
+     * Validity periods in days an administrator can choose from.
+     */
+    public List<Integer> validityDays() {
+        return properties.validityDays();
+    }
+
+    /**
+     * Creates a token valid for the given number of days (30 days means through today + 30) or, with
+     * {@code null}, without an end date. The result carries the token in plain text; it cannot be shown again.
+     *
+     * @param validityDays one of {@link #validityDays()}, or {@code null} for a token that never expires
+     * @throws RuleViolationException if the name is empty or too long, or the period is not one of the offered ones
+     */
+    @Transactional
+    public CreatedMcpToken create(String name, McpScope scope, Integer validityDays) {
+        var cleanName = name == null ? "" : name.strip();
+
+        if (cleanName.isEmpty() || cleanName.length() > MAX_NAME_LENGTH) {
+            throw new RuleViolationException("mcp.token.error.name");
+        }
+
+        if (scope == null) {
+            throw new RuleViolationException("mcp.token.error.scope");
+        }
+
+        if (validityDays != null && !properties.validityDays().contains(validityDays)) {
+            throw new RuleViolationException("mcp.token.error.validity");
+        }
+
+        var bytes = new byte[32];
+
+        RANDOM.nextBytes(bytes);
+
+        var token = PREFIX + HexFormat.of().formatHex(bytes);
+        var id = UUID.randomUUID().toString();
+        var expiresOn = validityDays == null ? null : LocalDate.now(clock).plusDays(validityDays);
+
+        tokens.insert(id, cleanName, TokenHashes.sha256Hex(token), token.substring(0, PREFIX_LENGTH), scope.name(),
+                expiresOn == null ? null : expiresOn.toString(), currentUser.username(), now());
+        audit.record(AuditObjectType.MCP_TOKEN, id, AuditAction.MCP_TOKEN_CREATE,
+                Map.of("scope", scope.name(), "expiresOn", expiresOn == null ? "unlimited" : expiresOn.toString()));
+
+        var created = tokens.findById(id)
+                .orElseThrow();
+
+        return new CreatedMcpToken(toInfo(created), token);
+    }
+
+    /**
+     * Revokes a token; it stops working at once.
+     *
+     * @throws RuleViolationException if there is no such token or it is revoked already
+     */
+    @Transactional
+    public void revoke(String id) {
+        if (!tokens.revoke(id, now())) {
+            throw new RuleViolationException("mcp.token.error.unknown");
+        }
+
+        audit.record(AuditObjectType.MCP_TOKEN, id, AuditAction.MCP_TOKEN_REVOKE, Map.of());
+    }
+
+    /**
+     * Current time with whole seconds, so stored times have one fixed width and compare correctly as text.
+     */
+    private String now() {
+        return Instant.now(clock)
+                .truncatedTo(ChronoUnit.SECONDS)
+                .toString();
+    }
+
+    private McpTokenInfo toInfo(McpTokenRepository.Row row) {
+        var expiresOn = row.expiresOn() == null ? null : LocalDate.parse(row.expiresOn());
+        var status = McpTokenStatus.ACTIVE;
+
+        if (row.revokedAt() != null) {
+            status = McpTokenStatus.REVOKED;
+        } else if (expiresOn != null && expiresOn.isBefore(LocalDate.now(clock))) {
+            status = McpTokenStatus.EXPIRED;
+        }
+
+        return new McpTokenInfo(row.id(), row.name(), row.tokenPrefix(), McpScope.valueOf(row.scope()), expiresOn,
+                status, row.revokedAt(), row.createdBy(), row.createdAt(), row.lastUsedAt());
+    }
+}

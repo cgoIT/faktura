@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'mcp')}">
+<head>
+  <title th:text="#{mcp.token.title} + ' – faktura'">KI-Zugang</title>
+</head>
+<body>
+<main class="wide">
+  <h1 th:text="#{mcp.token.title}">KI-Zugang</h1>
+  <p class="lead" th:text="#{mcp.token.lead}">Tokens für KI-Assistenten.</p>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+
+  <section class="card" th:if="${created != null}">
+    <h2 th:text="#{mcp.token.created.title(${created.info.name})}">Token erstellt</h2>
+    <p th:text="#{mcp.token.created.hint}">Kopieren Sie den Token jetzt.</p>
+    <div class="field">
+      <label for="created-token" th:text="#{mcp.token.created.label}">Token</label>
+      <div th:replace="~{fragments/copy-field :: copyField('created-token', ${created.token}, #{mcp.token.copy})}"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="toolbar right">
+      <a class="button" th:href="@{/settings/mcp-tokens/new}" th:text="#{mcp.token.create}">Neuen Token erstellen</a>
+    </div>
+    <p th:if="${tokens.isEmpty()}" th:text="#{mcp.token.none}">Noch keine Tokens erstellt.</p>
+    <div class="table-scroll" th:unless="${tokens.isEmpty()}">
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{mcp.token.name}">Name</th>
+        <th th:text="#{mcp.token.prefix}">Beginnt mit</th>
+        <th th:text="#{mcp.token.scope}">Umfang</th>
+        <th th:text="#{mcp.token.expiresOn}">Gültig bis</th>
+        <th th:text="#{mcp.token.status}">Zustand</th>
+        <th th:text="#{mcp.token.lastUsed}">Zuletzt benutzt</th>
+        <th th:text="#{mcp.token.createdBy}">Erstellt von</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="row : ${tokens}" th:with="token=${row.token}">
+        <td th:text="${token.name}">Claude Desktop</td>
+        <td><code th:text="${token.tokenPrefix}">fkt_ab12</code></td>
+        <td th:text="#{'mcp.token.scope.' + ${token.scope.name()}}">Entwürfe</td>
+        <td th:text="${token.expiresOn != null} ? ${#temporals.format(token.expiresOn, 'dd.MM.yyyy')} : #{mcp.token.unlimited}">31.12.2026</td>
+        <td><span class="badge" th:text="#{'mcp.token.status.' + ${token.status.name()}}">Aktiv</span></td>
+        <td th:text="${row.lastUsed} ?: '–'">–</td>
+        <td th:text="${token.createdBy} ?: '–'">admin</td>
+        <td>
+          <form method="post" th:if="${token.status.name() == 'ACTIVE'}"
+                th:action="@{/settings/mcp-tokens/{id}/revoke(id=${token.id})}"
+                th:attr="data-confirm=#{mcp.token.revoke.confirm(${token.name})}">
+            <button type="submit" class="secondary" th:text="#{mcp.token.revoke}">Widerrufen</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="card" id="connect">
+    <details class="collapsible">
+    <summary><h2 th:text="#{mcp.connect.title}">So verbinden Sie einen Assistenten</h2></summary>
+    <p th:text="#{mcp.connect.lead}">Sie brauchen die Adresse und einen Token.</p>
+    <div class="field">
+      <label for="mcp-url" th:text="#{mcp.connect.url}">Adresse des MCP-Servers</label>
+      <div th:replace="~{fragments/copy-field :: copyField('mcp-url', ${mcpUrl}, #{mcp.token.copy})}"></div>
+    </div>
+    <div class="field">
+      <label for="mcp-header" th:text="#{mcp.connect.header}">Name des Headers</label>
+      <div th:replace="~{fragments/copy-field :: copyField('mcp-header', ${headerName}, #{mcp.token.copy})}"></div>
+    </div>
+
+    <h3 th:text="#{mcp.connect.desktop.title}">Claude Desktop</h3>
+    <ol class="steps">
+      <li th:utext="#{mcp.connect.desktop.1}">Einstellungen</li>
+      <li th:utext="#{mcp.connect.desktop.2}">Name und Adresse</li>
+      <li th:utext="#{mcp.connect.desktop.3}">Keine Anmeldung</li>
+      <li th:utext="#{mcp.connect.desktop.4(${headerName})}">Header</li>
+      <li th:utext="#{mcp.connect.desktop.5}">Berechtigungen</li>
+    </ol>
+
+    <h3 th:text="#{mcp.connect.code.title}">Claude Code</h3>
+    <p th:text="#{mcp.connect.code.lead}">Im Terminal:</p>
+    <div th:replace="~{fragments/copy-field :: copyField('mcp-command', ${claudeCodeCommand}, #{mcp.token.copy})}"></div>
+    <p class="hint" th:text="#{mcp.connect.code.hint}">Ersetzen Sie den Platzhalter durch den Token.</p>
+    <p class="hint" th:text="#{mcp.connect.proxy}">Erreichbarkeit.</p>
+    </details>
+  </section>
+
+</main>

@@ -62,7 +62,7 @@ class SecurityConfiguration {
                         .addFilterBefore(new ActiveUserFilter(repository), AuthorizationFilter.class)
                         .authorizeHttpRequests(requests -> requests
                                 .requestMatchers(PUBLIC).permitAll()
-                                .requestMatchers("/settings/users/**").hasRole("ADMIN")
+                                .requestMatchers("/settings/users/**", "/settings/mcp-tokens/**").hasRole("ADMIN")
                                 .anyRequest().authenticated())
                         .formLogin(form -> form.loginPage("/login").failureUrl("/login?error").permitAll())
                         .logout(logout -> logout.logoutSuccessUrl("/login?logout"));
@@ -81,7 +81,7 @@ class SecurityConfiguration {
                         // admin mode is for the user administration only; the daily work is done as a proxy user
                         .authorizeHttpRequests(requests -> requests
                                 .requestMatchers(PUBLIC).permitAll()
-                                .requestMatchers("/settings/users/**", "/account/**").hasRole("ADMIN")
+                                .requestMatchers("/settings/users/**", "/settings/mcp-tokens/**", "/account/**").hasRole("ADMIN")
                                 .anyRequest().access((authentication, context) -> new AuthorizationDecision(
                                         !hasAdminRole(authentication.get()))))
                         .formLogin(form -> form.loginPage("/login").failureUrl("/login?error")
@@ -95,7 +95,7 @@ class SecurityConfiguration {
                             .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.FORBIDDEN)))
                     .authorizeHttpRequests(requests -> requests
                             .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
-                            .requestMatchers("/settings/users/**").hasRole("ADMIN")
+                            .requestMatchers("/settings/users/**", "/settings/mcp-tokens/**").hasRole("ADMIN")
                             .anyRequest().authenticated());
         }
 

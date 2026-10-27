@@ -603,3 +603,39 @@ document.body.addEventListener('htmx:afterSettle', function (event) {
     first.click();
   }
 });
+
+// A button with data-copy="<id of an input>" copies the value of that input to the clipboard and tells the result in
+// the element named by data-copy-status (texts in data-copied and data-copy-failed).
+document.addEventListener('click', function (event) {
+  var button = event.target.closest('[data-copy]');
+
+  if (!button) {
+    return;
+  }
+
+  var source = document.getElementById(button.getAttribute('data-copy'));
+  var status = document.getElementById(button.getAttribute('data-copy-status'));
+  var report = function (attribute) {
+    if (status) {
+      status.textContent = button.getAttribute(attribute);
+      window.clearTimeout(status.copyTimer);
+      status.copyTimer = window.setTimeout(function () {
+        status.textContent = '';
+      }, 3000);
+    }
+  };
+
+  source.select();
+
+  if (!navigator.clipboard) {
+    report('data-copy-failed');
+
+    return;
+  }
+
+  navigator.clipboard.writeText(source.value).then(function () {
+    report('data-copied');
+  }, function () {
+    report('data-copy-failed');
+  });
+});

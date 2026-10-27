@@ -262,6 +262,21 @@ TABLE mail_template
   ROW body='{anrede}\n\nvielen Dank für Ihre Anfrage. Anbei erhalten Sie das Angebot {angebotsnummer} über {betrag}. Es ist gültig bis zum {gueltig_bis}.\n\nBei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-23T00:00:00Z' id='30000000-0000-0000-0000-000000000008' is_default='1' name='Formell' scope='OFFER' subject='Angebot {angebotsnummer} von {firma_name}'
   ROW body='{anrede}\n\nzur Rechnung {rechnungsnummer} vom {rechnungsdatum} konnten wir bislang keinen Zahlungseingang feststellen. Im Anhang finden Sie die {mahnstufe}.\n\nWir bitten Sie, den offenen Betrag von {gesamtforderung} bis zum {neue_frist} zu überweisen. Sollte sich Ihre Zahlung mit diesem Schreiben überschnitten haben, betrachten Sie es bitte als gegenstandslos.\n\nMit freundlichen Grüßen\n{firma_inhaber}' created_at='2026-10-22T00:00:00Z' id='30000000-0000-0000-0000-000000000005' is_default='1' name='Formell' scope='DUNNING' subject='{mahnstufe} zur Rechnung {rechnungsnummer}'
 
+TABLE mcp_token
+  COLUMN created_at character varying(30) NOT NULL
+  COLUMN created_by character varying(100)
+  COLUMN expires_on character varying(10)
+  COLUMN id character varying(36) NOT NULL
+  COLUMN last_used_at character varying(30)
+  COLUMN name character varying(100) NOT NULL
+  COLUMN revoked_at character varying(30)
+  COLUMN scope character varying(10) NOT NULL
+  COLUMN token_hash character varying(64) NOT NULL
+  COLUMN token_prefix character varying(12) NOT NULL
+  PRIMARY KEY (id)
+  UNIQUE (token_hash)
+  ck_mcp_token_scope CHECK (((scope)::text = ANY ((ARRAY['READ'::character varying, 'DRAFT'::character varying])::text[])))
+
 TABLE notification_log
   COLUMN category character varying(20) NOT NULL
   COLUMN id character varying(36) NOT NULL
