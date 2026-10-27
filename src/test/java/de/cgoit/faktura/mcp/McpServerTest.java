@@ -105,10 +105,10 @@ class McpServerTest {
 
     @Test
     void theTokenAlsoWorksAsAPlainHeaderValue() throws Exception {
-        mvc.perform(post("/mcp").header("X-MCP-Token", TOKEN).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/mcp").header("X-API-Key", TOKEN).contentType(MediaType.APPLICATION_JSON)
                 .content(rpc("ping", "{}")))
                 .andExpect(status().isOk());
-        mvc.perform(post("/mcp").header("X-MCP-Token", "wrong").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/mcp").header("X-API-Key", "wrong").contentType(MediaType.APPLICATION_JSON)
                 .content(rpc("ping", "{}")))
                 .andExpect(status().isUnauthorized());
     }

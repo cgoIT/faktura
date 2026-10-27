@@ -26,7 +26,7 @@ class BearerTokenFilter extends OncePerRequestFilter {
     private static final String PREFIX = "Bearer ";
 
     // for clients that can only send a plain header value (the connector dialog of Claude Desktop)
-    static final String TOKEN_HEADER = "X-MCP-Token";
+    static final String TOKEN_HEADER = "X-API-Key";
 
     private final byte[] expected;
 
