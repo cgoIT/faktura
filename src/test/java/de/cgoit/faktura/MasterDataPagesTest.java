@@ -206,10 +206,10 @@ class MasterDataPagesTest {
 
     @Test
     void numberPatternCanBeChangedAndInvalidPatternIsReported() throws Exception {
-        mvc.perform(post("/numbering/INVOICE").param("pattern", "R-{jahr}-{####}"))
+        mvc.perform(post("/numbering/INVOICE").param("pattern", "R-{jahr}-{####}").param("next", "1"))
                 .andExpect(flash().attribute("message", "numbering.saved"));
 
-        mvc.perform(post("/numbering/INVOICE").param("pattern", "R-{jahr}"))
+        mvc.perform(post("/numbering/INVOICE").param("pattern", "R-{jahr}").param("next", "1"))
                 .andExpect(flash().attribute("error", "numbering.error.invalid"));
 
         mvc.perform(get("/numbering"))

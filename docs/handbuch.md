@@ -18,7 +18,7 @@ Auf der Startseite zeigt die Einrichtungsliste, was noch fehlt. Reihenfolge:
    Das **Leistungsdatum** eines Belegs bestimmt, welches Profil gilt. Beim Kleinunternehmer wird keine Umsatzsteuer ausgewiesen, der
    Hinweistext steht auf der Rechnung. Ein Wechsel (z. B. zur Regelbesteuerung) ist ein neues Profil mit Datum, kein Umbau. Befreiungstexte
    für Steuerkategorien ohne Steuer pflegen Sie auf derselben Seite; ohne Text bricht das Finalisieren einer E-Rechnung ab.
-3. **Nummernkreise** (Einstellungen → Nummernkreise): Muster je Belegart, z. B. `RE{jahr}{#####}` ergibt `RE202600001`. Bei Mustern mit `{jahr}`
+3. **Nummernkreise** (Einstellungen → Nummernkreise): Muster je Belegart (`{jahr_kurz}` ergibt das zweistellige Jahr, z. B. `RE0{jahr_kurz}{###}` → `RE027042`); der Zähler lässt sich dort erhöhen, um unterjährig an eine Altsoftware anzuschließen (nie senken); z. B. `RE{jahr}{#####}` ergibt `RE202600001`. Bei Mustern mit `{jahr}`
    beginnt der Zähler jedes Jahr neu. Ändern Sie das Muster nach der ersten vergebenen Nummer nicht zwischen jährlich und durchgehend.
 4. **Einheiten** (Einstellungen → Einheiten): Stunde, Stück, Pauschale usw. Der UN/ECE-Code der Einheit geht in die E-Rechnung.
 5. **Textvorlagen** (Kopf- und Fußtexte), **Mailvorlagen**, **Mahnstufen** und **Versandarten** bei Bedarf anpassen (Abschnitte unten).

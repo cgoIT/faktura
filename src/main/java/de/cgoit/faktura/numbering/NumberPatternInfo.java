@@ -4,6 +4,7 @@ package de.cgoit.faktura.numbering;
  * Configured number pattern of a scope together with the number that would be assigned next.
  *
  * @param nextNumber example of the next number for the current period; it is not reserved
+ * @param nextCounter counter value of {@code nextNumber}
  */
-public record NumberPatternInfo(NumberScope scope, String pattern, String nextNumber) {
+public record NumberPatternInfo(NumberScope scope, String pattern, String nextNumber, long nextCounter) {
 }

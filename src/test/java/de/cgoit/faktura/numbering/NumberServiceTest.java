@@ -151,4 +151,17 @@ class NumberServiceTest {
     private String next(NumberScope scope, LocalDate date) {
         return transaction.execute(status -> numbers.next(scope, date));
     }
+
+    @Test
+    void shortYearPatternAndRaisedCounter() {
+        jdbc.sql("UPDATE number_pattern SET pattern = 'RE0{jahr_kurz}{###}' WHERE scope = 'INVOICE'").update();
+        var date = LocalDate.of(2027, 6, 1);
+
+        settings.setNext(NumberScope.INVOICE, date, 42);
+
+        assertThat(next(NumberScope.INVOICE, date)).isEqualTo("RE027042");
+        assertThatThrownBy(() -> settings.setNext(NumberScope.INVOICE, date, 41))
+                .isInstanceOf(RuleViolationException.class);
+        assertThat(next(NumberScope.INVOICE, date)).isEqualTo("RE027043");
+    }
 }

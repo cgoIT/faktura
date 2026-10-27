@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 /**
  * Configurable number pattern, e.g. {@code RE{jahr}{#####}} yields RE202600001.
- * Placeholders: {@code {jahr}} (four digits) and exactly one counter {@code {#...}} (number of hashes = minimum width).
+ * Placeholders: {@code {jahr}} (four digits) or {@code {jahr_kurz}} (two digits, at most one of them) and exactly one counter {@code {#...}} (number of hashes = minimum width).
  * If the pattern contains {@code {jahr}}, the counter restarts every year.
  */
 public final class NumberPattern {
@@ -35,8 +35,8 @@ public final class NumberPattern {
             checkNoStrayBraces(pattern.substring(last, m.start()));
             last = m.end();
             String name = m.group(1);
-            if (name.equals("jahr")) {
-                if (year) throw new IllegalArgumentException("{jahr} may occur only once");
+            if (name.equals("jahr") || name.equals("jahr_kurz")) {
+                if (year) throw new IllegalArgumentException("The year may occur only once");
                 year = true;
             } else if (COUNTER.matcher(name).matches()) {
                 counters++;
@@ -70,7 +70,11 @@ public final class NumberPattern {
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
             String name = m.group(1);
-            m.appendReplacement(sb, Matcher.quoteReplacement(name.equals("jahr") ? String.format("%04d", year) : c));
+            m.appendReplacement(sb, Matcher.quoteReplacement(switch (name) {
+                case "jahr" -> String.format("%04d", year);
+                case "jahr_kurz" -> String.format("%02d", year % 100);
+                default -> c;
+            }));
         }
         m.appendTail(sb);
         return sb.toString();

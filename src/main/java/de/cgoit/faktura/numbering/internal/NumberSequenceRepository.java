@@ -58,6 +58,25 @@ public class NumberSequenceRepository {
     }
 
     /**
+     * Sets the counter of the period to {@code value} unless it is already higher; creates the row if needed.
+     *
+     * @return false if the stored counter is above {@code value}
+     */
+    public boolean raiseCounter(NumberScope scope, String period, long value) {
+        return jdbc.sql("""
+                        INSERT INTO number_sequence (id, scope, period, last_value)
+                        VALUES (:id, :scope, :period, :value)
+                        ON CONFLICT (scope, period) DO UPDATE SET last_value = :value
+                        WHERE number_sequence.last_value <= :value
+                        """)
+                .param("id", UUID.randomUUID().toString())
+                .param("scope", scope.name())
+                .param("period", period)
+                .param("value", value)
+                .update() > 0;
+    }
+
+    /**
      * Increments the counter of the period with a single statement and returns the new value.
      * Creates the counter row on first use. Must run in the transaction of the caller.
      */

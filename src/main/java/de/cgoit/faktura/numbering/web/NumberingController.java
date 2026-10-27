@@ -38,9 +38,10 @@ public class NumberingController {
     }
 
     @PostMapping("/{scope}")
-    public String update(@PathVariable NumberScope scope, @RequestParam String pattern, RedirectAttributes redirect) {
+    public String update(@PathVariable NumberScope scope, @RequestParam String pattern, @RequestParam long next,
+                         RedirectAttributes redirect) {
         try {
-            settings.update(scope, pattern);
+            settings.update(scope, pattern, LocalDate.now(clock), next);
             redirect.addFlashAttribute("message", "numbering.saved");
         } catch (RuleViolationException e) {
             redirect.addFlashAttribute("error", e.messageKey());

@@ -5,7 +5,7 @@
   <title th:text="#{numbering.title} + ' – faktura'">Nummernkreise</title>
 </head>
 <body>
-<main class="wide form-width">
+<main class="wide">
   <h1 th:text="#{settings.title}">Einstellungen</h1>
   <p class="lead" th:text="#{numbering.lead}">Nummernmuster</p>
   <div th:replace="~{fragments/settings-tabs :: tabs('numbering')}"></div>
@@ -16,6 +16,7 @@
       <tr>
         <th th:text="#{numbering.scope}">Bereich</th>
         <th th:text="#{numbering.pattern}">Muster</th>
+        <th th:text="#{numbering.nextCounter}">Nächster Zähler</th>
         <th th:text="#{numbering.next}">Nächste Nummer</th>
         <th></th>
       </tr>
@@ -25,6 +26,8 @@
         <td th:text="#{'numbering.scope.' + ${info.scope}}">Rechnung</td>
         <td><input type="text" name="pattern" th:value="${info.pattern}" required maxlength="100"
                    th:attr="form='pattern-' + ${info.scope},aria-label=#{numbering.pattern}"></td>
+        <td><input type="number" name="next" min="1" th:value="${info.nextCounter}" required
+                   th:attr="form='pattern-' + ${info.scope},aria-label=#{numbering.nextCounter}"></td>
         <td th:text="${info.nextNumber}">RE202700001</td>
         <td class="row-actions icons">
           <form method="post" th:id="'pattern-' + ${info.scope}" th:action="@{/numbering/{scope}(scope=${info.scope})}">

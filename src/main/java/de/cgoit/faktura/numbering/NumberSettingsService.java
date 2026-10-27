@@ -59,6 +59,30 @@ public class NumberSettingsService {
     }
 
     /**
+     * Changes pattern and counter together; either both apply or neither.
+     */
+    @Transactional
+    public void update(NumberScope scope, String patternText, LocalDate date, long next) {
+        update(scope, patternText);
+        setNext(scope, date, next);
+    }
+
+    /**
+     * Sets the counter so that {@code next} is assigned next in the period of {@code date}, e.g. to continue
+     * the numbers of a previous system. The counter can only move forward: lowering it could repeat a number.
+     *
+     * @throws RuleViolationException if {@code next} is below 1 or not above the last assigned counter
+     */
+    @Transactional
+    public void setNext(NumberScope scope, LocalDate date, long next) {
+        var period = NumberService.period(numbers.parsedPattern(scope), date);
+
+        if (next < 1 || !sequences.raiseCounter(scope, period, next - 1)) {
+            throw new RuleViolationException("numbering.error.counterLow");
+        }
+    }
+
+    /**
      * Numbered documents share one unique number column, so their patterns must start with different literals;
      * otherwise two scopes would eventually assign the same number.
      */
@@ -87,6 +111,6 @@ public class NumberSettingsService {
         var pattern = numbers.parsedPattern(scope);
         var last = sequences.lastValue(scope, NumberService.period(pattern, today));
 
-        return new NumberPatternInfo(scope, pattern.toString(), pattern.format(today.getYear(), last + 1));
+        return new NumberPatternInfo(scope, pattern.toString(), pattern.format(today.getYear(), last + 1), last + 1);
     }
 }
