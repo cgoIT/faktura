@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import de.cgoit.faktura.SqliteTest;
+import de.cgoit.faktura.shared.MailTone;
 import de.cgoit.faktura.shared.RuleViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,6 +100,18 @@ class CustomerServiceTest {
         assertThat(customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null, null, null, null,
                 null, EInvoiceMode.NONE, " a@example.test ;b@example.test,, ")).mailRecipients())
                 .isEqualTo("a@example.test, b@example.test");
+        for (var broken : new String[] {"a@example.test, <b@example.test>", "Max (x) <m@example.test>",
+                "a@example.test; \"b\"@example.test", "a b@example.test", "a@example"}) {
+            assertThatThrownBy(() -> customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null,
+                    null, null, null, null, EInvoiceMode.NONE, broken)))
+                    .as(broken)
+                    .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("mailRecipients"));
+        }
+        assertThatThrownBy(() -> customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null,
+                "<a@example.test>", null, null, null)))
+                .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("invoiceEmail"));
+        assertThat(customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null, null, null, null,
+                null, EInvoiceMode.NONE, null, MailTone.INFORMAL)).mailTone()).isEqualTo(MailTone.INFORMAL);
         assertThatThrownBy(() -> customers.addContact(customer.id(), new ContactInput("Erika", " ")))
                 .hasMessage("validation.required")
                 .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("lastName"));

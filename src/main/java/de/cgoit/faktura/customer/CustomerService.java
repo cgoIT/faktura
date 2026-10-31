@@ -32,7 +32,9 @@ public class CustomerService {
 
     private static final Pattern GERMAN_VAT_ID = Pattern.compile("DE\\d{9}");
     private static final Pattern VAT_ID = Pattern.compile("[A-Z]{2}[A-Z0-9]{2,12}");
-    private static final Pattern EMAIL = Pattern.compile("[^@\\s]+@[^@\\s]+\\.[^@\\s]+");
+    // no characters that break an address header or make the mail server refuse the address
+    private static final Pattern EMAIL = Pattern.compile(
+            "[^@\\s<>()\\[\\],;:\"\\\\]+@[^@\\s<>()\\[\\],;:\"\\\\]+\\.[^@\\s<>()\\[\\],;:\"\\\\]+");
 
     private final CustomerRepository customers;
     private final ContactRepository contacts;

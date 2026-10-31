@@ -37,6 +37,7 @@ import de.cgoit.faktura.document.OfferState;
 import de.cgoit.faktura.document.TotalDiscount;
 import de.cgoit.faktura.dunning.DunningLevelService;
 import de.cgoit.faktura.dunning.DunningService;
+import de.cgoit.faktura.shared.MailTone;
 import de.cgoit.faktura.shared.RuleViolationException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
@@ -74,6 +75,9 @@ class MailServiceTest {
 
     @Autowired
     private CustomerService customers;
+
+    @Autowired
+    private MailTemplateService templates;
 
     @Autowired
     private ArchiveService archive;
@@ -229,6 +233,40 @@ class MailServiceTest {
         var invoice = MailTestData.invoice(invoices, finalizer, customerId, null, TODAY);
 
         assertThat(mail.prepare(document(invoice), null).recipients()).isEqualTo(MailTestData.CUSTOMER_EMAIL);
+    }
+
+    @Test
+    void severalTemplatesWithTheSameToneYieldTheFirstByName() {
+        var customer = customers.find(customerId).orElseThrow();
+
+        templates.create(new MailTemplateInput(MailScope.INVOICE, "Alternativ informell", "Hi", "Hallo", false,
+                MailTone.INFORMAL));
+        customers.update(customerId, new CustomerInput(customer.name(), customer.street(), customer.zip(),
+                customer.city(), customer.country(), customer.vatId(), customer.invoiceEmail(),
+                customer.paymentDays(), customer.discountBp(), customer.note(), customer.einvoiceMode(), null,
+                MailTone.INFORMAL));
+
+        assertThat(mail.prepare(document(invoice()), null).template().orElseThrow().name())
+                .isEqualTo("Alternativ informell");
+    }
+
+    @Test
+    void customerWithoutToneGetsTheDefaultTemplate() {
+        var draft = mail.prepare(document(invoice()), null);
+
+        assertThat(draft.template().orElseThrow().isDefault()).isTrue();
+    }
+
+    @Test
+    void sendingToMoreAddressesThanAllowedIsRefused() {
+        var invoice = invoice();
+        var target = document(invoice);
+        var prepared = mail.prepare(target, null);
+        var many = "a@example.test, b@example.test, c@example.test, d@example.test, e@example.test, f@example.test";
+
+        assertThatThrownBy(() -> mail.send(new SendMailCommand(target, many, prepared.subject(), prepared.body(),
+                true))).hasMessage("mail.error.recipientCount");
+        assertThat(sender.sent()).isEmpty();
     }
 
     @Test
