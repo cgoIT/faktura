@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/cgoIT/faktura/compare/v0.9.0...v0.9.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* open PDFs in the app window when installed as standalone app ([3c01878](https://github.com/cgoIT/faktura/commit/3c01878d1107dbb8b708dfaa3c83292d895f97a1))
+
 ## [0.9.0](https://github.com/cgoIT/faktura/compare/v0.8.0...v0.9.0) (2026-10-31)
 
 
