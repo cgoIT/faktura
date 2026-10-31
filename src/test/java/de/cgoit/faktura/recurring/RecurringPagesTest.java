@@ -17,6 +17,8 @@ import de.cgoit.faktura.SqliteTest;
 import de.cgoit.faktura.TestArchive;
 import de.cgoit.faktura.customer.CustomerInput;
 import de.cgoit.faktura.customer.CustomerService;
+import de.cgoit.faktura.document.InvoiceInput;
+import de.cgoit.faktura.document.InvoiceItemInput;
 import de.cgoit.faktura.document.InvoiceService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -302,5 +304,25 @@ class RecurringPagesTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("message", "recurring.run.created"));
         assertThat(plans.pendingCount()).isEqualTo(1);
+    }
+
+    @Test
+    void newPlanCanBePrefilledFromInvoice() throws Exception {
+        var invoice = invoices.createDraft(new InvoiceInput(customerId, TODAY, LocalDate.parse("2026-10-01"),
+                LocalDate.parse("2026-12-31"), null, "Hosting Q4", null, null, null,
+                List.of(new InvoiceItemInput("Hosting Paket", 1000, "Std", 12_300, 0, "E", 0, null)), null));
+
+        mvc.perform(get("/recurring/new").param("fromInvoice", invoice.id()))
+                .andExpect(status().isNotFound());
+        jdbc.sql("UPDATE document SET status = 'FINAL' WHERE id = :id")
+                .param("id", invoice.id())
+                .update();
+        mvc.perform(get("/recurring/new").param("fromInvoice", invoice.id()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Hosting Paket")))
+                .andExpect(content().string(containsString("Hosting Q4")))
+                .andExpect(content().string(containsString("2027-01-01")));
+        mvc.perform(get("/recurring/new").param("fromInvoice", "unknown"))
+                .andExpect(status().isNotFound());
     }
 }

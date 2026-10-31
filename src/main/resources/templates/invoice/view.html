@@ -23,7 +23,9 @@
       <span th:text="#{invoice.cancelsInvoice}">Storniert die Rechnung</span>
       <a th:href="@{${base + '/{id}'}(id=${invoice.refDocumentId})}" th:text="#{invoice.open}">Öffnen</a>
     </p>
-    <p><a class="button" th:href="@{${base + '/{id}/pdf'}(id=${invoice.id})}" target="_blank" th:text="#{invoice.pdf}">PDF öffnen</a></p>
+    <p><a class="button" th:href="@{${base + '/{id}/pdf'}(id=${invoice.id})}" target="_blank" th:text="#{invoice.pdf}">PDF öffnen</a>
+      <a class="button" th:if="${invoice.status.name() == 'FINAL' and invoice.type.name() == 'INVOICE' and !invoice.cancelled}"
+         th:href="@{/recurring/new(fromInvoice=${invoice.id})}" th:text="#{invoice.toPlan}">Wiedervorlage anlegen</a></p>
     <dl class="preview">
       <dt th:text="#{invoice.customer}">Kunde</dt>
       <dd th:text="${invoice.recipientName} ?: '–'">Muster GmbH</dd>

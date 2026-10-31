@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.cgoit.faktura.document.InvoiceInfo;
 import de.cgoit.faktura.document.TotalDiscount;
 import de.cgoit.faktura.recurring.PlanInfo;
 import de.cgoit.faktura.recurring.PlanInput;
@@ -66,6 +67,34 @@ public record PlanForm(
                         .stream()
                         .map(PlanItemForm::from)
                         .toList(), plan.version(), plan.customerReference());
+    }
+
+    /**
+     * Prefills customer, contact, name, items, discount and customer reference from an invoice. The tax category of
+     * the items stays empty, so every period takes it from its tax profile.
+     */
+    PlanForm fromInvoice(InvoiceInfo invoice) {
+        var discount = invoice.totalDiscount();
+        var amount = discount != null && discount.type() == TotalDiscount.Type.AMOUNT;
+        var value = discount == null ? null : switch (discount.type()) {
+            case NONE -> null;
+            case PERCENT -> DecimalInput.formatBasisPoints((int) discount.value());
+            case AMOUNT -> DecimalInput.formatCents(discount.value());
+        };
+        var start = invoice.serviceTo() == null
+                ? invoice.issueDate()
+                : invoice.serviceTo()
+                        .plusDays(1);
+
+        return new PlanForm(invoice.customerId(), invoice.contactId(), invoice.subject(), interval, start, null,
+                leadDays, status, null, null, headerText, footerText, amount ? "AMOUNT" : "PERCENT", value,
+                invoice.items()
+                        .stream()
+                        .map(item -> new PlanItemForm(item.description(),
+                                DecimalInput.formatThousandths(item.quantityThousandths()), item.unitCode(),
+                                DecimalInput.formatCents(item.unitPriceCents()),
+                                DecimalInput.formatBasisPoints(item.discountBp()), null, item.catalogItemId()))
+                        .toList(), null, invoice.customerReference());
     }
 
     /**

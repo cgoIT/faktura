@@ -8,6 +8,8 @@ import de.cgoit.faktura.catalog.CatalogService;
 import de.cgoit.faktura.catalog.UnitService;
 import de.cgoit.faktura.customer.CustomerService;
 import de.cgoit.faktura.document.CatalogChoices;
+import de.cgoit.faktura.document.DocumentType;
+import de.cgoit.faktura.document.InvoiceService;
 import de.cgoit.faktura.recurring.PlanInfo;
 import de.cgoit.faktura.recurring.RecurringInterval;
 import de.cgoit.faktura.recurring.RecurringJobService;
@@ -55,16 +57,19 @@ public class RecurringController {
     private final CatalogService catalog;
     private final UnitService units;
     private final TextTemplateService texts;
+    private final InvoiceService invoices;
     private final RecurringProperties properties;
 
     public RecurringController(RecurringPlanService plans, RecurringJobService job, CustomerService customers,
-            CatalogService catalog, UnitService units, TextTemplateService texts, RecurringProperties properties) {
+            CatalogService catalog, UnitService units, TextTemplateService texts, InvoiceService invoices,
+            RecurringProperties properties) {
         this.plans = plans;
         this.job = job;
         this.customers = customers;
         this.catalog = catalog;
         this.units = units;
         this.texts = texts;
+        this.invoices = invoices;
         this.properties = properties;
     }
 
@@ -104,13 +109,25 @@ public class RecurringController {
         return "redirect:/recurring";
     }
 
+    /**
+     * Opens the plan editor empty, or prefilled from an invoice (customer, contact, items, discount); the first
+     * period starts the day after the invoice's service period.
+     */
     @GetMapping("/new")
-    public String newPlan(Model model) {
+    public String newPlan(@RequestParam(required = false) String fromInvoice, Model model) {
         var form = PlanForm.empty(properties.defaultLeadDays(), plans.today(),
                 texts.defaultBody(TextScope.INVOICE, TextKind.HEADER)
                         .orElse(null),
                 texts.defaultBody(TextScope.INVOICE, TextKind.FOOTER)
                         .orElse(null));
+
+        if (fromInvoice != null) {
+            var invoice = invoices.find(fromInvoice)
+                    .filter(found -> found.type() == DocumentType.INVOICE && !found.isDraft() && !found.isCancelled())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+            form = form.fromInvoice(invoice);
+        }
 
         return form(model, form, null);
     }

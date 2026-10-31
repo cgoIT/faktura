@@ -110,6 +110,10 @@ Navigation, Kachel auf der Startseite). Von dort „Prüfen und finalisieren“ 
 Zeiträume holt der Job innerhalb von 31 Tagen nach, ältere erscheinen als übersprungen. Änderungen am Plan wirken nur auf künftige Entwürfe. Fehler (z. B.
 kein Steuerprofil) stehen am Plan in der Liste.
 
+Eine Wiedervorlage lässt sich auch aus einer bestehenden Rechnung anlegen: auf der Seite einer finalisierten Rechnung „Wiedervorlage anlegen“. Der Editor öffnet
+sich mit Kunde, Positionen und Rabatt der Rechnung; das Ankerdatum ist der Tag nach ihrem Leistungsende. Intervall prüfen, dann speichern. Steuerkategorien
+und Versandkosten werden nicht übernommen.
+
 ## 8. Mailversand
 
 Finalisierte Rechnungen, Stornos, Angebote und Mahnungen senden Sie über den Versanddialog an den Kunden (Mailversand muss vom Betreiber eingerichtet sein, siehe
