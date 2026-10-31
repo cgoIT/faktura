@@ -168,6 +168,23 @@ class DunningPagesTest {
     }
 
     @Test
+    void detailPageShowsTheLetterWithItsMailPanel() throws Exception {
+        var old = invoice(30);
+
+        mvc.perform(post("/dunning").param("confirmed", "on").param("invoiceId", old.id())
+                .param("levelId", firstLevelId()));
+
+        var id = jdbc.sql("SELECT id FROM dunning").query(String.class).single();
+
+        mvc.perform(get("/dunning/" + id))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("MA" + TODAY.getYear() + "00001")))
+                .andExpect(content().string(containsString("/mail/panel?type=DUNNING&amp;id=" + id)));
+        mvc.perform(get("/dunning/unknown"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void lettersShowTheCurrentStateOfTheirInvoiceAndSettledOnesComeLastAndCanBeFilteredOut() throws Exception {
         var paid = invoice(40);
         var open = invoice(30);

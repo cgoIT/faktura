@@ -79,7 +79,7 @@
         </thead>
         <tbody>
         <tr th:each="row : ${letters}" th:classappend="${row.settled} ? 'settled'">
-          <td class="mono" th:text="${row.dunning.number}">MA202600001</td>
+          <td class="mono"><a th:href="@{/dunning/{id}(id=${row.dunning.id})}" th:text="${row.dunning.number}">MA202600001</a></td>
           <td th:text="${row.dunning.levelName}">1. Mahnung</td>
           <td class="mono"><a th:href="@{/invoices/{id}(id=${row.dunning.invoiceId})}" th:text="${row.invoiceNumber}">RE202600001</a></td>
           <td th:text="${row.customerName}">Muster GmbH</td>
@@ -87,8 +87,10 @@
           <td class="num" th:text="${@money.format(row.dunning.totalCents)}">0,00 €</td>
           <td th:text="${#temporals.format(row.dunning.newDueDate, 'dd.MM.yyyy')}">27.10.2026</td>
           <td th:replace="~{dunning/state :: badge(${row.balance})}"></td>
-          <td><a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
-                 th:text="#{invoice.pdf}">PDF öffnen</a></td>
+          <td class="row-actions">
+            <a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
+               th:text="#{invoice.pdf}">PDF öffnen</a>
+          </td>
         </tr>
         </tbody>
       </table>

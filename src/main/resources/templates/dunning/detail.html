@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(~{::title}, ~{::main}, 'dunning')}">
+<head>
+  <title th:text="${row.dunning.number} + ' – faktura'">Mahnung</title>
+</head>
+<body>
+<main class="wide">
+  <p class="lead"><a th:href="@{/dunning}" th:text="#{dunning.back}">Zurück zum Mahnwesen</a></p>
+  <h1>
+    <span th:text="${row.dunning.number}">MA202600001</span>
+    <span class="badge current" th:text="${row.dunning.levelName}">1. Mahnung</span>
+  </h1>
+  <div th:replace="~{fragments/notices :: notices}"></div>
+  <section class="card">
+    <p><a class="button" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
+          th:text="#{invoice.pdf}">PDF öffnen</a></p>
+    <dl class="preview">
+      <dt th:text="#{dunning.invoice}">Rechnung</dt>
+      <dd><a th:href="@{/invoices/{id}(id=${row.dunning.invoiceId})}" th:text="${row.invoiceNumber}">RE202600001</a></dd>
+      <dt th:text="#{invoice.customer}">Kunde</dt>
+      <dd th:text="${row.customerName}">Muster GmbH</dd>
+      <dt th:text="#{payment.date}">Datum</dt>
+      <dd th:text="${#temporals.format(row.dunning.date, 'dd.MM.yyyy')}">20.10.2026</dd>
+      <dt th:text="#{dunning.newDueDate}">Neue Frist</dt>
+      <dd th:text="${#temporals.format(row.dunning.newDueDate, 'dd.MM.yyyy')}">27.10.2026</dd>
+      <dt th:text="#{payment.open}">Offen</dt>
+      <dd th:text="${@money.format(row.dunning.openCents)}">0,00 €</dd>
+      <dt th:text="#{dunning.fee}">Gebühr</dt>
+      <dd th:text="${@money.format(row.dunning.feeCents)}">0,00 €</dd>
+      <dt th:text="#{dunning.interest}">Zinsen</dt>
+      <dd th:text="${@money.format(row.dunning.interestCents)}">0,00 €</dd>
+      <dt th:text="#{dunning.total}">Forderung</dt>
+      <dd th:text="${@money.format(row.dunning.totalCents)}">0,00 €</dd>
+      <dt th:text="#{dunning.invoiceState}">Rechnung</dt>
+      <dd><span th:replace="~{dunning/state :: badge(${row.balance})}"></span></dd>
+    </dl>
+  </section>
+  <section class="card">
+    <h2 th:text="#{mail.title}">E-Mail</h2>
+    <div hx-trigger="load" hx-swap="outerHTML"
+         th:attr="hx-get=@{/mail/panel(type='DUNNING',id=${row.dunning.id})}"></div>
+  </section>
+</main>
+</body>
+</html>

@@ -132,6 +132,19 @@ public class DunningController {
         return target;
     }
 
+    /**
+     * Shows one created letter: data, state of the invoice, PDF and sending by mail.
+     */
+    @GetMapping("/{id}")
+    public String detail(@PathVariable String id, Model model) {
+        var row = dunnings.find(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        model.addAttribute("row", row);
+
+        return "dunning/detail";
+    }
+
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> pdf(@PathVariable String id) {
         try {

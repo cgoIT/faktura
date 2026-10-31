@@ -117,6 +117,19 @@ public class DunningService {
     }
 
     /**
+     * Finds one created letter with the state of its invoice.
+     */
+    @Transactional(readOnly = true)
+    public Optional<DunningRow> find(String dunningId) {
+        return dunnings.findById(dunningId)
+                .map(dunning -> row(dunning, invoices.list("", null)
+                        .stream()
+                        .filter(invoice -> invoice.id().equals(dunning.invoiceId()))
+                        .findFirst()
+                        .orElse(null)));
+    }
+
+    /**
      * Lists the letters of one invoice, lowest level first.
      */
     @Transactional(readOnly = true)

@@ -21,15 +21,13 @@
       </thead>
       <tbody>
       <tr th:each="letter : ${letters}">
-        <td class="mono" th:text="${letter.number}">MA202600001</td>
+        <td class="mono"><a th:href="@{/dunning/{id}(id=${letter.id})}" th:text="${letter.number}">MA202600001</a></td>
         <td th:text="${letter.levelName}">1. Mahnung</td>
         <td th:text="${#temporals.format(letter.date, 'dd.MM.yyyy')}">20.10.2026</td>
         <td class="num" th:text="${@money.format(letter.totalCents)}">0,00 €</td>
         <td th:text="${#temporals.format(letter.newDueDate, 'dd.MM.yyyy')}">27.10.2026</td>
-        <td><a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${letter.id})}"
-               th:text="#{invoice.pdf}">PDF öffnen</a>
-          <div hx-trigger="load" hx-swap="outerHTML"
-               th:attr="hx-get=@{/mail/panel(type='DUNNING',id=${letter.id})}"></div></td>
+        <td class="row-actions"><a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${letter.id})}"
+               th:text="#{invoice.pdf}">PDF öffnen</a></td>
       </tr>
       </tbody>
     </table>
