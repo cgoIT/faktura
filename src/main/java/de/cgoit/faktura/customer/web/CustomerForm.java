@@ -4,6 +4,7 @@ import de.cgoit.faktura.customer.CustomerInfo;
 import de.cgoit.faktura.customer.CustomerInput;
 import de.cgoit.faktura.customer.EInvoiceMode;
 import de.cgoit.faktura.shared.DecimalInput;
+import de.cgoit.faktura.shared.MailTone;
 import de.cgoit.faktura.shared.RuleViolationException;
 import jakarta.validation.constraints.Size;
 
@@ -22,11 +23,12 @@ public record CustomerForm(
         @Size(max = 10, message = "{validation.percent}") String discount,
         String note,
         EInvoiceMode einvoiceMode,
-        String mailRecipients) {
+        String mailRecipients,
+        MailTone mailTone) {
 
     static CustomerForm empty() {
         return new CustomerForm(null, null, null, null, "DE", null, null, null, null, null,
-                EInvoiceMode.ZUGFERD, null);
+                EInvoiceMode.ZUGFERD, null, null);
     }
 
     static CustomerForm from(CustomerInfo c) {
@@ -34,7 +36,7 @@ public record CustomerForm(
 
         return new CustomerForm(c.name(), c.street(), c.zip(), c.city(), c.country(), c.vatId(), c.invoiceEmail(),
                 c.paymentDays(), discount, c.note(),
-                c.einvoiceMode(), c.mailRecipients());
+                c.einvoiceMode(), c.mailRecipients(), c.mailTone());
     }
 
     /**
@@ -46,7 +48,7 @@ public record CustomerForm(
         var discountBp = discount == null || discount.isBlank() ? null : DecimalInput.parseBasisPoints(discount);
 
         return new CustomerInput(name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note,
-                einvoiceMode, mailRecipients);
+                einvoiceMode, mailRecipients, mailTone);
     }
 
     /**

@@ -42,6 +42,15 @@
         <p class="hint" th:text="#{mail.template.system.hint}">Systemvorlage.</p>
       </div>
       <div class="field wide" th:unless="${system}">
+        <label for="tone" th:text="#{mail.template.tone}">Ansprache</label>
+        <select id="tone" th:field="*{tone}">
+          <option value="" th:text="#{mail.template.tone.none}">Standard</option>
+          <option value="FORMAL" th:text="#{mail.tone.FORMAL}">formell</option>
+          <option value="INFORMAL" th:text="#{mail.tone.INFORMAL}">informell</option>
+        </select>
+        <span class="hint" th:text="#{mail.template.tone.hint}">Hinweis</span>
+      </div>
+      <div class="field wide" th:unless="${system}">
         <label class="check">
           <input type="checkbox" name="makeDefault" value="true" th:checked="${mailTemplateForm.makeDefault}">
           <span th:text="#{mail.template.makeDefault}">Als Standard für diesen Dokumenttyp verwenden</span>

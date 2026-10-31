@@ -36,6 +36,7 @@ import de.cgoit.faktura.mail.internal.MailProperties;
 import de.cgoit.faktura.mail.internal.MailRenderer;
 import de.cgoit.faktura.mail.internal.SampleValues;
 import de.cgoit.faktura.shared.InputValidator;
+import de.cgoit.faktura.shared.MailTone;
 import de.cgoit.faktura.shared.RuleViolationException;
 import de.cgoit.faktura.textblock.TextTemplateService;
 import jakarta.mail.AuthenticationFailedException;
@@ -153,7 +154,7 @@ public class MailService {
     public MailDraft prepare(MailTarget target, String templateId) {
         var source = resolve(target);
         var file = pdf(target);
-        var template = chooseTemplate(source.scope(), templateId);
+        var template = chooseTemplate(source.scope(), templateId, source.basis().mailTone());
         var values = source.basis().placeholders();
         var subject = template.map(found -> renderer.subject(texts.expand(found.subject(), values))).orElse("");
         var body = template.map(found -> texts.expand(found.body(), values)).orElse("");
@@ -168,11 +169,16 @@ public class MailService {
     }
 
     /**
-     * Picks the requested template if it belongs to the document type, else the default of the type.
+     * Picks the requested template if it belongs to the document type; without a request the template with the
+     * tone of the customer, else the default of the type.
      */
-    private Optional<MailTemplateInfo> chooseTemplate(MailScope scope, String templateId) {
+    private Optional<MailTemplateInfo> chooseTemplate(MailScope scope, String templateId, MailTone tone) {
         if (templateId == null || templateId.isBlank()) {
-            return templates.defaultFor(scope);
+            return templates.list(scope)
+                    .stream()
+                    .filter(found -> tone != null && found.tone() == tone)
+                    .findFirst()
+                    .or(() -> templates.defaultFor(scope));
         }
 
         return templates.find(templateId)

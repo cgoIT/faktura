@@ -72,7 +72,7 @@ public class MailTemplateService {
         var valid = validated(input);
         var id = UUID.randomUUID().toString();
 
-        templates.insert(id, valid.scope(), valid.name(), valid.subject(), valid.body());
+        templates.insert(id, valid.scope(), valid.name(), valid.subject(), valid.body(), valid.tone());
         applyDefault(id, valid);
 
         return templates.findById(id).orElseThrow();
@@ -89,9 +89,9 @@ public class MailTemplateService {
         var existing = templates.findById(id)
                 .orElseThrow(() -> new RuleViolationException("mail.template.error.unknown"));
         var valid = validated(new MailTemplateInput(existing.scope(), input.name(), input.subject(), input.body(),
-                input.makeDefault()));
+                input.makeDefault(), input.tone()));
 
-        templates.update(id, valid.name(), valid.subject(), valid.body());
+        templates.update(id, valid.name(), valid.subject(), valid.body(), valid.tone());
         applyDefault(id, valid);
 
         return templates.findById(id).orElseThrow();
@@ -123,7 +123,7 @@ public class MailTemplateService {
 
     private MailTemplateInput validated(MailTemplateInput input) {
         var normalized = new MailTemplateInput(input.scope(), blankToNull(input.name()), blankToNull(input.subject()),
-                blankToNull(input.body()), input.makeDefault());
+                blankToNull(input.body()), input.makeDefault(), input.tone());
 
         validator.check(normalized);
         texts.validate(normalized.subject());

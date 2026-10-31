@@ -3,6 +3,7 @@ package de.cgoit.faktura.document.internal;
 import de.cgoit.faktura.customer.ContactInfo;
 import de.cgoit.faktura.customer.CustomerInfo;
 import de.cgoit.faktura.customer.EInvoiceMode;
+import de.cgoit.faktura.shared.MailTone;
 
 /**
  * Copy of the customer data printed on a document, stored as JSON when the document is finalized.
@@ -22,7 +23,8 @@ public record RecipientSnapshot(
         EInvoiceMode einvoiceMode,
         String contactEmail,
         String contactFirstName,
-        String mailRecipients) {
+        String mailRecipients,
+        MailTone mailTone) {
 
     /**
      * Snapshots stored before the electronic invoice existed have no mode; they count as none. Older snapshots have
@@ -33,13 +35,13 @@ public record RecipientSnapshot(
     }
 
     /**
-     * Creates a snapshot without separate mail recipients.
+     * Creates a snapshot without mail recipients and mail tone.
      */
     public RecipientSnapshot(String number, String name, String street, String zip, String city, String country,
             String vatId, String invoiceEmail, String contactName, String contactSalutation,
             String contactLastName, EInvoiceMode einvoiceMode, String contactEmail, String contactFirstName) {
         this(number, name, street, zip, city, country, vatId, invoiceEmail, contactName, contactSalutation,
-                contactLastName, einvoiceMode, contactEmail, contactFirstName, null);
+                contactLastName, einvoiceMode, contactEmail, contactFirstName, null, null);
     }
 
     /**
@@ -49,7 +51,7 @@ public record RecipientSnapshot(
             String vatId, String invoiceEmail, String contactName, String contactSalutation,
             String contactLastName) {
         this(number, name, street, zip, city, country, vatId, invoiceEmail, contactName, contactSalutation,
-                contactLastName, EInvoiceMode.NONE, null, null, null);
+                contactLastName, EInvoiceMode.NONE, null, null, null, null);
     }
 
     /**
@@ -60,7 +62,7 @@ public record RecipientSnapshot(
                 customer.city(), customer.country(), customer.vatId(), customer.invoiceEmail(),
                 contact == null ? null : contact.fullName(), contact == null ? null : contact.salutation(),
                 contact == null ? null : contact.lastName(), customer.einvoiceMode(),
-                contact == null ? null : contact.email(), contact == null ? null : contact.firstName(), customer.mailRecipients());
+                contact == null ? null : contact.email(), contact == null ? null : contact.firstName(), customer.mailRecipients(), customer.mailTone());
     }
 
     /**

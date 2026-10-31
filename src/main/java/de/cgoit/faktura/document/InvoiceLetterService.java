@@ -62,7 +62,7 @@ public class InvoiceLetterService {
                             return new MailBasis(header.number(), header.dueDate(),
                                     recipient.invoiceEmail(), recipient.contactEmail(),
                                     placeholders.build(header, sender, recipient, header.grossTotalCents(),
-                                            header.number()), recipient.mailRecipients());
+                                            header.number()), recipient.mailRecipients(), recipient.mailTone());
                         }));
     }
 }

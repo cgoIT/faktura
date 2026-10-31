@@ -3,6 +3,7 @@ package de.cgoit.faktura.document;
 import java.time.LocalDate;
 import java.util.Map;
 
+import de.cgoit.faktura.shared.MailTone;
 import de.cgoit.faktura.textblock.Placeholder;
 
 /**
@@ -13,6 +14,7 @@ import de.cgoit.faktura.textblock.Placeholder;
  * @param recipientEmail invoice e-mail address of the customer, may be {@code null}
  * @param contactEmail   e-mail address of the contact person chosen for the document, may be {@code null}
  * @param mailRecipients addresses of the customer for sending by mail (comma separated), may be {@code null}
+ * @param mailTone       how the customer is addressed in mails, may be {@code null}
  * @param placeholders   escaped values for the placeholders of the mail text
  */
 public record MailBasis(
@@ -21,14 +23,23 @@ public record MailBasis(
         String recipientEmail,
         String contactEmail,
         Map<Placeholder, String> placeholders,
-        String mailRecipients) {
+        String mailRecipients,
+        MailTone mailTone) {
+
+    /**
+     * Creates a basis without a mail tone.
+     */
+    public MailBasis(String number, LocalDate dueDate, String recipientEmail, String contactEmail,
+            Map<Placeholder, String> placeholders, String mailRecipients) {
+        this(number, dueDate, recipientEmail, contactEmail, placeholders, mailRecipients, null);
+    }
 
     /**
      * Creates a basis without separate mail recipients.
      */
     public MailBasis(String number, LocalDate dueDate, String recipientEmail, String contactEmail,
             Map<Placeholder, String> placeholders) {
-        this(number, dueDate, recipientEmail, contactEmail, placeholders, null);
+        this(number, dueDate, recipientEmail, contactEmail, placeholders, null, null);
     }
 
     /**

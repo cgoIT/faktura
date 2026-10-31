@@ -200,7 +200,7 @@ public class CustomerService {
                 givenCountry == null ? "DE" : givenCountry.toUpperCase(Locale.ROOT), compactVatId(input.vatId()),
                 blankToNull(input.invoiceEmail()), input.paymentDays(), input.discountBp(), blankToNull(input.note()),
                 input.einvoiceMode() == null ? EInvoiceMode.NONE : input.einvoiceMode(),
-                normalizedRecipients(input.mailRecipients()));
+                normalizedRecipients(input.mailRecipients()), input.mailTone());
 
         validator.check(normalized);
         requireKnownCountry(normalized.country());

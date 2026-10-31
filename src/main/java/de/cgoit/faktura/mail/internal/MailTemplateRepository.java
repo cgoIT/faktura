@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import de.cgoit.faktura.mail.MailScope;
 import de.cgoit.faktura.mail.MailTemplateInfo;
+import de.cgoit.faktura.shared.MailTone;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class MailTemplateRepository {
 
-    private static final String SELECT = "SELECT id, scope, name, subject, body, is_default FROM mail_template";
+    private static final String SELECT = "SELECT id, scope, name, subject, body, is_default, tone FROM mail_template";
 
     private final JdbcClient jdbc;
     private final Clock clock;
@@ -55,22 +56,27 @@ public class MailTemplateRepository {
                 .optional();
     }
 
-    public void insert(String id, MailScope scope, String name, String subject, String body) {
+    public void insert(String id, MailScope scope, String name, String subject, String body, MailTone tone) {
         jdbc.sql("""
-                        INSERT INTO mail_template (id, scope, name, subject, body, is_default, created_at)
-                        VALUES (:id, :scope, :name, :subject, :body, 0, :now)
+                        INSERT INTO mail_template (id, scope, name, subject, body, tone, is_default, created_at)
+                        VALUES (:id, :scope, :name, :subject, :body, :tone, 0, :now)
                         """)
                 .param("id", id)
                 .param("scope", scope.name())
                 .param("name", name)
                 .param("subject", subject)
                 .param("body", body)
+                .param("tone", tone == null ? null : tone.name())
                 .param("now", Instant.now(clock).toString())
                 .update();
     }
 
-    public void update(String id, String name, String subject, String body) {
-        jdbc.sql("UPDATE mail_template SET name = :name, subject = :subject, body = :body WHERE id = :id")
+    public void update(String id, String name, String subject, String body, MailTone tone) {
+        jdbc.sql("""
+                        UPDATE mail_template SET name = :name, subject = :subject, body = :body, tone = :tone
+                        WHERE id = :id
+                        """)
+                .param("tone", tone == null ? null : tone.name())
                 .param("id", id)
                 .param("name", name)
                 .param("subject", subject)
@@ -98,6 +104,7 @@ public class MailTemplateRepository {
 
     private static MailTemplateInfo map(ResultSet rs, int rowNum) throws SQLException {
         return new MailTemplateInfo(rs.getString("id"), MailScope.valueOf(rs.getString("scope")), rs.getString("name"),
-                rs.getString("subject"), rs.getString("body"), rs.getInt("is_default") == 1);
+                rs.getString("subject"), rs.getString("body"), rs.getInt("is_default") == 1,
+                rs.getString("tone") == null ? null : MailTone.valueOf(rs.getString("tone")));
     }
 }

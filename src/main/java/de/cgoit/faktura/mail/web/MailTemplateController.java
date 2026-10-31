@@ -86,7 +86,7 @@ public class MailTemplateController {
         var form = templates.find(copy)
                 .filter(source -> !source.scope().system())
                 .map(source -> new MailTemplateForm(source.scope(), source.name(), source.subject(), source.body(),
-                        Boolean.FALSE))
+                        Boolean.FALSE, source.tone()))
                 .orElse(MailTemplateForm.empty(scope));
 
         return form(model, form, null);
@@ -97,7 +97,7 @@ public class MailTemplateController {
         var template = find(id);
 
         return form(model, new MailTemplateForm(template.scope(), template.name(), template.subject(),
-                template.body(), template.isDefault()), template);
+                template.body(), template.isDefault(), template.tone()), template);
     }
 
     @PostMapping

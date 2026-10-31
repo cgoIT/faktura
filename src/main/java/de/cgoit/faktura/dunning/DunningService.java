@@ -252,7 +252,7 @@ public class DunningService {
                                     ? "" : String.valueOf(ChronoUnit.DAYS.between(basis.dueDate(), dunning.date())));
 
                             return new MailBasis(dunning.number(), basis.dueDate(), basis.recipientEmail(),
-                                    basis.contactEmail(), values, basis.mailRecipients());
+                                    basis.contactEmail(), values, basis.mailRecipients(), basis.mailTone());
                         }));
     }
 

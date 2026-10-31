@@ -1,5 +1,6 @@
 package de.cgoit.faktura.customer;
 
+import de.cgoit.faktura.shared.MailTone;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ import jakarta.validation.constraints.Size;
  * @param paymentDays term in days, {@code null} to use the default of the company
  * @param discountBp  default discount in basis points, {@code null} for none
  * @param mailRecipients addresses documents are sent to by mail, separated by comma or semicolon, may be empty
+ * @param mailTone how the customer is addressed in mails, {@code null} for the default template
  * @param einvoiceMode which electronic invoice the customer receives, {@code null} means none
  */
 public record CustomerInput(
@@ -28,7 +30,18 @@ public record CustomerInput(
         Integer discountBp,
         @Size(max = 2000, message = "{validation.tooLong}") String note,
         EInvoiceMode einvoiceMode,
-        @Size(max = 500, message = "{validation.tooLong}") String mailRecipients) {
+        @Size(max = 500, message = "{validation.tooLong}") String mailRecipients,
+        MailTone mailTone) {
+
+    /**
+     * Creates input without a mail tone.
+     */
+    public CustomerInput(String name, String street, String zip, String city, String country, String vatId,
+            String invoiceEmail, Integer paymentDays, Integer discountBp, String note, EInvoiceMode einvoiceMode,
+            String mailRecipients) {
+        this(name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note, einvoiceMode,
+                mailRecipients, null);
+    }
 
     /**
      * Creates input without separate mail recipients.
@@ -36,7 +49,7 @@ public record CustomerInput(
     public CustomerInput(String name, String street, String zip, String city, String country, String vatId,
             String invoiceEmail, Integer paymentDays, Integer discountBp, String note, EInvoiceMode einvoiceMode) {
         this(name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note, einvoiceMode,
-                null);
+                null, null);
     }
 
     /**

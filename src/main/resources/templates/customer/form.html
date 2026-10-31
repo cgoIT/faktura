@@ -71,6 +71,15 @@
           <span class="field-error" th:errors="*{mailRecipients}"></span>
         </div>
         <div class="field">
+          <label for="mailTone" th:text="#{customer.mailTone}">Ansprache in Mails</label>
+          <select id="mailTone" th:field="*{mailTone}">
+            <option value="" th:text="#{customer.mailTone.default}">Standard</option>
+            <option value="FORMAL" th:text="#{mail.tone.FORMAL}">formell</option>
+            <option value="INFORMAL" th:text="#{mail.tone.INFORMAL}">informell</option>
+          </select>
+          <span class="hint" th:text="#{customer.mailTone.hint}">Hinweis</span>
+        </div>
+        <div class="field">
           <label for="paymentDays" th:text="#{customer.paymentDays}">Zahlungsziel (Tage)</label>
           <input type="number" id="paymentDays" th:field="*{paymentDays}" min="0" max="365">
           <span class="hint" th:text="#{customer.paymentDays.hint}">leer = Standard</span>

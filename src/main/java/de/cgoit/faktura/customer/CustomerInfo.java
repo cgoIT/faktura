@@ -1,5 +1,7 @@
 package de.cgoit.faktura.customer;
 
+import de.cgoit.faktura.shared.MailTone;
+
 /**
  * Customer master data.
  *
@@ -9,6 +11,7 @@ package de.cgoit.faktura.customer;
  * @param discountBp   default discount in basis points (500 = 5 %), {@code null} for none
  * @param einvoiceMode which electronic invoice the customer receives
  * @param mailRecipients addresses documents are sent to by mail (comma separated), {@code null}: contact person or invoice e-mail
+ * @param mailTone how the customer is addressed in mails, {@code null}: default template
  * @param archived     archived customers are hidden from selections but stay for existing documents
  */
 public record CustomerInfo(
@@ -26,7 +29,18 @@ public record CustomerInfo(
         String note,
         EInvoiceMode einvoiceMode,
         boolean archived,
-        String mailRecipients) {
+        String mailRecipients,
+        MailTone mailTone) {
+
+    /**
+     * Creates a customer without a mail tone.
+     */
+    public CustomerInfo(String id, String number, String name, String street, String zip, String city,
+            String country, String vatId, String invoiceEmail, Integer paymentDays, Integer discountBp, String note,
+            EInvoiceMode einvoiceMode, boolean archived, String mailRecipients) {
+        this(id, number, name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note,
+                einvoiceMode, archived, mailRecipients, null);
+    }
 
     /**
      * Creates a customer without separate mail recipients.
