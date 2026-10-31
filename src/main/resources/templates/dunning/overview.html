@@ -40,12 +40,13 @@
           <td class="num" th:text="${row.amounts.feeCents != 0} ? ${@money.format(row.amounts.feeCents)} : '—'">—</td>
           <td class="num" th:text="${row.amounts.interestCents != 0} ? ${@money.format(row.amounts.interestCents)} : '—'">—</td>
           <td class="num" th:text="${@money.format(row.amounts.totalCents)}">0,00 €</td>
-          <td class="row-actions">
-            <a class="button secondary" target="_blank"
+          <td class="row-actions icons">
+            <a class="icon-button" target="_blank"
                th:href="@{/dunning/preview.pdf(invoiceId=${row.invoiceId},levelId=${row.level.id})}"
-               th:text="#{dunning.preview}">Vorschau</a>
-            <button type="button" th:attr="hx-get=@{/dunning/confirm(invoiceId=${row.invoiceId},levelId=${row.level.id})}"
-                    hx-target="#dunning-dialog" hx-swap="innerHTML" th:text="#{dunning.create}">Mahnung erstellen</button>
+               th:attr="aria-label=#{dunning.preview},title=#{dunning.preview}"><svg th:replace="~{fragments/icons :: eye}"></svg></a>
+            <button type="button" class="icon-button primary"
+                    th:attr="hx-get=@{/dunning/confirm(invoiceId=${row.invoiceId},levelId=${row.level.id})},aria-label=#{dunning.create},title=#{dunning.create}"
+                    hx-target="#dunning-dialog" hx-swap="innerHTML"><svg th:replace="~{fragments/icons :: plus}"></svg></button>
           </td>
         </tr>
         </tbody>
@@ -87,9 +88,9 @@
           <td class="num" th:text="${@money.format(row.dunning.totalCents)}">0,00 €</td>
           <td th:text="${#temporals.format(row.dunning.newDueDate, 'dd.MM.yyyy')}">27.10.2026</td>
           <td th:replace="~{dunning/state :: badge(${row.balance})}"></td>
-          <td class="row-actions">
-            <a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
-               th:text="#{invoice.pdf}">PDF öffnen</a>
+          <td class="row-actions icons">
+            <a class="icon-button" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
+               th:attr="aria-label=#{invoice.pdf},title=#{invoice.pdf}"><svg th:replace="~{fragments/icons :: pdf}"></svg></a>
           </td>
         </tr>
         </tbody>

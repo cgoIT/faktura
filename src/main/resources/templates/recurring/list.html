@@ -68,16 +68,16 @@
           <td class="num" th:text="${@money.format(plan.netCents)}">450,00 €</td>
           <td><span class="badge" th:classappend="${plan.status.name() == 'ACTIVE'} ? 'current'"
                     th:text="#{'recurring.status.' + ${plan.status}}">Aktiv</span></td>
-          <td>
+          <td class="row-actions icons">
             <form method="post" th:action="@{/recurring/{id}/status(id=${plan.id})}"
                   th:if="${plan.status.name() == 'ACTIVE'}">
               <input type="hidden" name="status" value="PAUSED">
-              <button type="submit" class="secondary" th:text="#{recurring.pause}">Pausieren</button>
+              <button type="submit" class="icon-button" th:attr="aria-label=#{recurring.pause},title=#{recurring.pause}"><svg th:replace="~{fragments/icons :: pause}"></svg></button>
             </form>
             <form method="post" th:action="@{/recurring/{id}/status(id=${plan.id})}"
                   th:if="${plan.status.name() == 'PAUSED'}">
               <input type="hidden" name="status" value="ACTIVE">
-              <button type="submit" class="secondary" th:text="#{recurring.resume}">Fortsetzen</button>
+              <button type="submit" class="icon-button" th:attr="aria-label=#{recurring.resume},title=#{recurring.resume}"><svg th:replace="~{fragments/icons :: play}"></svg></button>
             </form>
           </td>
         </tr>

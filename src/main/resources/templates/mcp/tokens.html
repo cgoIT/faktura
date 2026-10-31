@@ -47,11 +47,11 @@
         <td><span class="badge" th:text="#{'mcp.token.status.' + ${token.status.name()}}">Aktiv</span></td>
         <td th:text="${row.lastUsed} ?: '–'">–</td>
         <td th:text="${token.createdBy} ?: '–'">admin</td>
-        <td>
+        <td class="row-actions icons">
           <form method="post" th:if="${token.status.name() == 'ACTIVE'}"
                 th:action="@{/settings/mcp-tokens/{id}/revoke(id=${token.id})}"
                 th:attr="data-confirm=#{mcp.token.revoke.confirm(${token.name})}">
-            <button type="submit" class="secondary" th:text="#{mcp.token.revoke}">Widerrufen</button>
+            <button type="submit" class="icon-button danger" th:attr="aria-label=#{mcp.token.revoke},title=#{mcp.token.revoke}"><svg th:replace="~{fragments/icons :: ban}"></svg></button>
           </form>
         </td>
       </tr>
