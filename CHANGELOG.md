@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/cgoIT/faktura/compare/v0.8.0...v0.9.0) (2026-10-31)
+
+
+### Features
+
+* mobile layout (menu, card tables, stacked forms and dialogs, tab drop-down) and version with commit in the footer ([69d5bcd](https://github.com/cgoIT/faktura/commit/69d5bcd53bd0710c78042ac9cf029cf0380d6e25))
+
 ## [0.8.0](https://github.com/cgoIT/faktura/compare/v0.7.0...v0.8.0) (2026-10-31)
 
 
