@@ -495,6 +495,10 @@ public class MailService {
     }
 
     private static String prefilledRecipients(MailBasis basis) {
+        if (basis.mailRecipients() != null && !basis.mailRecipients().isBlank()) {
+            return basis.mailRecipients().strip();
+        }
+
         if (basis.contactEmail() != null && !basis.contactEmail().isBlank()) {
             return basis.contactEmail().strip();
         }

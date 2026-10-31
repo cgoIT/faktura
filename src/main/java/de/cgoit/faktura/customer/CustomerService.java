@@ -5,11 +5,13 @@ import static de.cgoit.faktura.shared.Texts.contains;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import de.cgoit.faktura.customer.internal.ContactRepository;
 import de.cgoit.faktura.customer.internal.CustomerRepository;
@@ -197,12 +199,19 @@ public class CustomerService {
                 blankToNull(input.zip()), blankToNull(input.city()),
                 givenCountry == null ? "DE" : givenCountry.toUpperCase(Locale.ROOT), compactVatId(input.vatId()),
                 blankToNull(input.invoiceEmail()), input.paymentDays(), input.discountBp(), blankToNull(input.note()),
-                input.einvoiceMode() == null ? EInvoiceMode.NONE : input.einvoiceMode());
+                input.einvoiceMode() == null ? EInvoiceMode.NONE : input.einvoiceMode(),
+                normalizedRecipients(input.mailRecipients()));
 
         validator.check(normalized);
         requireKnownCountry(normalized.country());
         requireVatIdFormat(normalized.vatId());
         requireEmailFormat(normalized.invoiceEmail(), "invoiceEmail");
+
+        if (normalized.mailRecipients() != null) {
+            for (var address : normalized.mailRecipients().split(", ")) {
+                requireEmailFormat(address, "mailRecipients");
+            }
+        }
 
         if (normalized.einvoiceMode() == EInvoiceMode.XRECHNUNG) {
             throw new RuleViolationException("customer.error.einvoiceMode", "einvoiceMode");
@@ -251,6 +260,22 @@ public class CustomerService {
         if (!pattern.matcher(vatId).matches()) {
             throw new RuleViolationException("validation.vatId", "vatId");
         }
+    }
+
+    /**
+     * Splits at comma or semicolon and joins the addresses again with a comma; empty becomes {@code null}.
+     */
+    private static String normalizedRecipients(String recipients) {
+        if (recipients == null) {
+            return null;
+        }
+
+        var joined = Arrays.stream(recipients.split("[,;]"))
+                .map(String::strip)
+                .filter(address -> !address.isEmpty())
+                .collect(Collectors.joining(", "));
+
+        return joined.isEmpty() ? null : joined;
     }
 
     private static void requireEmailFormat(String email, String field) {

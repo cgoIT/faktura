@@ -8,6 +8,7 @@ package de.cgoit.faktura.customer;
  * @param paymentDays  payment term in days, {@code null} to use the default of the company
  * @param discountBp   default discount in basis points (500 = 5 %), {@code null} for none
  * @param einvoiceMode which electronic invoice the customer receives
+ * @param mailRecipients addresses documents are sent to by mail (comma separated), {@code null}: contact person or invoice e-mail
  * @param archived     archived customers are hidden from selections but stay for existing documents
  */
 public record CustomerInfo(
@@ -24,7 +25,18 @@ public record CustomerInfo(
         Integer discountBp,
         String note,
         EInvoiceMode einvoiceMode,
-        boolean archived) {
+        boolean archived,
+        String mailRecipients) {
+
+    /**
+     * Creates a customer without separate mail recipients.
+     */
+    public CustomerInfo(String id, String number, String name, String street, String zip, String city,
+            String country, String vatId, String invoiceEmail, Integer paymentDays, Integer discountBp, String note,
+            EInvoiceMode einvoiceMode, boolean archived) {
+        this(id, number, name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note,
+                einvoiceMode, archived, null);
+    }
 
     /**
      * Creates a customer without electronic invoice.

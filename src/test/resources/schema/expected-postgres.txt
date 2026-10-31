@@ -66,6 +66,7 @@ TABLE customer
   COLUMN einvoice_mode character varying(10) NOT NULL DEFAULT 'NONE'::character varying
   COLUMN id character varying(36) NOT NULL
   COLUMN invoice_email character varying(200)
+  COLUMN mail_recipients character varying(500)
   COLUMN name character varying(200) NOT NULL
   COLUMN note character varying(2000)
   COLUMN number character varying(50) NOT NULL

@@ -20,7 +20,7 @@ public class CustomerRepository {
 
     private static final String SELECT = """
             SELECT id, number, name, street, zip, city, country, vat_id, invoice_email, payment_days, discount_bp,
-                   note, einvoice_mode, archived
+                   note, einvoice_mode, archived, mail_recipients
             FROM customer
             """;
 
@@ -58,9 +58,9 @@ public class CustomerRepository {
 
         jdbc.sql("""
                         INSERT INTO customer (id, number, name, street, zip, city, country, vat_id, invoice_email,
-                                              payment_days, discount_bp, note, einvoice_mode, archived, created_at)
+                                              payment_days, discount_bp, note, einvoice_mode, mail_recipients, archived, created_at)
                         VALUES (:id, :number, :name, :street, :zip, :city, :country, :vatId, :invoiceEmail,
-                                :paymentDays, :discountBp, :note, :einvoiceMode, 0, :createdAt)
+                                :paymentDays, :discountBp, :note, :einvoiceMode, :mailRecipients, 0, :createdAt)
                         """)
                 .params(parameters(id, c))
                 .param("number", number)
@@ -73,7 +73,7 @@ public class CustomerRepository {
                         UPDATE customer SET name = :name, street = :street, zip = :zip, city = :city,
                                country = :country, vat_id = :vatId, invoice_email = :invoiceEmail,
                                payment_days = :paymentDays, discount_bp = :discountBp, note = :note,
-                               einvoice_mode = :einvoiceMode
+                               einvoice_mode = :einvoiceMode, mail_recipients = :mailRecipients
                         WHERE id = :id
                         """)
                 .params(parameters(id, c))
@@ -101,6 +101,7 @@ public class CustomerRepository {
         parameters.put("discountBp", c.discountBp());
         parameters.put("note", c.note());
         parameters.put("einvoiceMode", c.einvoiceMode().name());
+        parameters.put("mailRecipients", c.mailRecipients());
 
         return parameters;
     }

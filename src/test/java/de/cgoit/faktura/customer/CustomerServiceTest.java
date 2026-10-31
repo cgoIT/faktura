@@ -93,6 +93,12 @@ class CustomerServiceTest {
                 .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("vatId"));
         assertThatThrownBy(() -> customers.create(badMail))
                 .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("invoiceEmail"));
+        assertThatThrownBy(() -> customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null, null,
+                null, null, null, EInvoiceMode.NONE, "a@example.test, kaputt")))
+                .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("mailRecipients"));
+        assertThat(customers.create(new CustomerInput("Müller GmbH", null, null, null, "DE", null, null, null, null,
+                null, EInvoiceMode.NONE, " a@example.test ;b@example.test,, ")).mailRecipients())
+                .isEqualTo("a@example.test, b@example.test");
         assertThatThrownBy(() -> customers.addContact(customer.id(), new ContactInput("Erika", " ")))
                 .hasMessage("validation.required")
                 .satisfies(e -> assertThat(((RuleViolationException) e).field()).isEqualTo("lastName"));

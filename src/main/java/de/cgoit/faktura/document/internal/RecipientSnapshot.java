@@ -21,14 +21,25 @@ public record RecipientSnapshot(
         String contactLastName,
         EInvoiceMode einvoiceMode,
         String contactEmail,
-        String contactFirstName) {
+        String contactFirstName,
+        String mailRecipients) {
 
     /**
      * Snapshots stored before the electronic invoice existed have no mode; they count as none. Older snapshots have
-     * no contact e-mail address either.
+     * no contact e-mail address and no mail recipients either.
      */
     public RecipientSnapshot {
         einvoiceMode = einvoiceMode == null ? EInvoiceMode.NONE : einvoiceMode;
+    }
+
+    /**
+     * Creates a snapshot without separate mail recipients.
+     */
+    public RecipientSnapshot(String number, String name, String street, String zip, String city, String country,
+            String vatId, String invoiceEmail, String contactName, String contactSalutation,
+            String contactLastName, EInvoiceMode einvoiceMode, String contactEmail, String contactFirstName) {
+        this(number, name, street, zip, city, country, vatId, invoiceEmail, contactName, contactSalutation,
+                contactLastName, einvoiceMode, contactEmail, contactFirstName, null);
     }
 
     /**
@@ -38,7 +49,7 @@ public record RecipientSnapshot(
             String vatId, String invoiceEmail, String contactName, String contactSalutation,
             String contactLastName) {
         this(number, name, street, zip, city, country, vatId, invoiceEmail, contactName, contactSalutation,
-                contactLastName, EInvoiceMode.NONE, null, null);
+                contactLastName, EInvoiceMode.NONE, null, null, null);
     }
 
     /**
@@ -49,7 +60,7 @@ public record RecipientSnapshot(
                 customer.city(), customer.country(), customer.vatId(), customer.invoiceEmail(),
                 contact == null ? null : contact.fullName(), contact == null ? null : contact.salutation(),
                 contact == null ? null : contact.lastName(), customer.einvoiceMode(),
-                contact == null ? null : contact.email(), contact == null ? null : contact.firstName());
+                contact == null ? null : contact.email(), contact == null ? null : contact.firstName(), customer.mailRecipients());
     }
 
     /**

@@ -23,6 +23,7 @@ import de.cgoit.faktura.archive.ArchiveService;
 import de.cgoit.faktura.audit.AuditAction;
 import de.cgoit.faktura.audit.AuditObjectType;
 import de.cgoit.faktura.audit.AuditService;
+import de.cgoit.faktura.customer.CustomerInput;
 import de.cgoit.faktura.customer.CustomerService;
 import de.cgoit.faktura.document.FinalizeService;
 import de.cgoit.faktura.document.InvoiceInfo;
@@ -228,6 +229,20 @@ class MailServiceTest {
         var invoice = MailTestData.invoice(invoices, finalizer, customerId, null, TODAY);
 
         assertThat(mail.prepare(document(invoice), null).recipients()).isEqualTo(MailTestData.CUSTOMER_EMAIL);
+    }
+
+    @Test
+    void customerMailRecipientsWinOverContactAndInvoiceAddress() {
+        var customer = customers.find(customerId).orElseThrow();
+
+        customers.update(customerId, new CustomerInput(customer.name(), customer.street(), customer.zip(),
+                customer.city(), customer.country(), customer.vatId(), customer.invoiceEmail(),
+                customer.paymentDays(), customer.discountBp(), customer.note(), customer.einvoiceMode(),
+                "a@example.test; b@example.test"));
+
+        var invoice = invoice();
+
+        assertThat(mail.prepare(document(invoice), null).recipients()).isEqualTo("a@example.test, b@example.test");
     }
 
     @Test

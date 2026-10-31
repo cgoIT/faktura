@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Size;
  *
  * @param paymentDays term in days, {@code null} to use the default of the company
  * @param discountBp  default discount in basis points, {@code null} for none
+ * @param mailRecipients addresses documents are sent to by mail, separated by comma or semicolon, may be empty
  * @param einvoiceMode which electronic invoice the customer receives, {@code null} means none
  */
 public record CustomerInput(
@@ -26,7 +27,17 @@ public record CustomerInput(
         @Min(value = 0, message = "{validation.percent}") @Max(value = 10_000, message = "{validation.percent}")
         Integer discountBp,
         @Size(max = 2000, message = "{validation.tooLong}") String note,
-        EInvoiceMode einvoiceMode) {
+        EInvoiceMode einvoiceMode,
+        @Size(max = 500, message = "{validation.tooLong}") String mailRecipients) {
+
+    /**
+     * Creates input without separate mail recipients.
+     */
+    public CustomerInput(String name, String street, String zip, String city, String country, String vatId,
+            String invoiceEmail, Integer paymentDays, Integer discountBp, String note, EInvoiceMode einvoiceMode) {
+        this(name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note, einvoiceMode,
+                null);
+    }
 
     /**
      * Creates input without electronic invoice.

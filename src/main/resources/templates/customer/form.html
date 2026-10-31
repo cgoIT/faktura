@@ -65,6 +65,12 @@
           <span class="field-error" th:errors="*{invoiceEmail}"></span>
         </div>
         <div class="field">
+          <label for="mailRecipients" th:text="#{customer.mailRecipients}">Empfänger beim Mailversand</label>
+          <input type="text" id="mailRecipients" th:field="*{mailRecipients}" maxlength="500" autocomplete="off">
+          <span class="hint" th:text="#{customer.mailRecipients.hint}">Mehrere Adressen mit Komma trennen.</span>
+          <span class="field-error" th:errors="*{mailRecipients}"></span>
+        </div>
+        <div class="field">
           <label for="paymentDays" th:text="#{customer.paymentDays}">Zahlungsziel (Tage)</label>
           <input type="number" id="paymentDays" th:field="*{paymentDays}" min="0" max="365">
           <span class="hint" th:text="#{customer.paymentDays.hint}">leer = Standard</span>

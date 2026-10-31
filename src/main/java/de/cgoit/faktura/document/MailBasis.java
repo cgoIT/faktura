@@ -12,6 +12,7 @@ import de.cgoit.faktura.textblock.Placeholder;
  * @param number         number of the invoice or cancellation
  * @param recipientEmail invoice e-mail address of the customer, may be {@code null}
  * @param contactEmail   e-mail address of the contact person chosen for the document, may be {@code null}
+ * @param mailRecipients addresses of the customer for sending by mail (comma separated), may be {@code null}
  * @param placeholders   escaped values for the placeholders of the mail text
  */
 public record MailBasis(
@@ -19,7 +20,16 @@ public record MailBasis(
         LocalDate dueDate,
         String recipientEmail,
         String contactEmail,
-        Map<Placeholder, String> placeholders) {
+        Map<Placeholder, String> placeholders,
+        String mailRecipients) {
+
+    /**
+     * Creates a basis without separate mail recipients.
+     */
+    public MailBasis(String number, LocalDate dueDate, String recipientEmail, String contactEmail,
+            Map<Placeholder, String> placeholders) {
+        this(number, dueDate, recipientEmail, contactEmail, placeholders, null);
+    }
 
     /**
      * Hides personal data from logs.

@@ -21,11 +21,12 @@ public record CustomerForm(
         Integer paymentDays,
         @Size(max = 10, message = "{validation.percent}") String discount,
         String note,
-        EInvoiceMode einvoiceMode) {
+        EInvoiceMode einvoiceMode,
+        String mailRecipients) {
 
     static CustomerForm empty() {
         return new CustomerForm(null, null, null, null, "DE", null, null, null, null, null,
-                EInvoiceMode.ZUGFERD);
+                EInvoiceMode.ZUGFERD, null);
     }
 
     static CustomerForm from(CustomerInfo c) {
@@ -33,7 +34,7 @@ public record CustomerForm(
 
         return new CustomerForm(c.name(), c.street(), c.zip(), c.city(), c.country(), c.vatId(), c.invoiceEmail(),
                 c.paymentDays(), discount, c.note(),
-                c.einvoiceMode());
+                c.einvoiceMode(), c.mailRecipients());
     }
 
     /**
@@ -45,7 +46,7 @@ public record CustomerForm(
         var discountBp = discount == null || discount.isBlank() ? null : DecimalInput.parseBasisPoints(discount);
 
         return new CustomerInput(name, street, zip, city, country, vatId, invoiceEmail, paymentDays, discountBp, note,
-                einvoiceMode);
+                einvoiceMode, mailRecipients);
     }
 
     /**
