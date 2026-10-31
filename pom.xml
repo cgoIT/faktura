@@ -11,7 +11,7 @@
 
   <groupId>de.cgoit.faktura</groupId>
   <artifactId>faktura</artifactId>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
   <name>faktura</name>
   <description>faktura – kleine Rechnungsstellung mit ZUGFeRD, Wiedervorlagen und Mahnwesen.</description>
   <url>https://github.com/cgoIT/faktura</url>
