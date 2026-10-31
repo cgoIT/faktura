@@ -695,3 +695,17 @@ document.querySelectorAll('nav.tabs').forEach(function (nav) {
 
   nav.appendChild(select);
 });
+
+// Installed app (manifest display: standalone): a new tab has no way back, so links and buttons that would open a
+// PDF in a new tab open it in the app window instead (the system back gesture returns).
+document.addEventListener('click', function (event) {
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var target = event.target.closest('a[target="_blank"], [formtarget="_blank"]');
+
+  if (!standalone || !target) {
+    return;
+  }
+
+  target.removeAttribute('target');
+  target.removeAttribute('formtarget');
+}, true);
