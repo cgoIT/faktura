@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/cgoIT/faktura/compare/v0.9.1...v0.10.0) (2026-10-31)
+
+
+### Features
+
+* create a recurring plan from an existing invoice ([60930bd](https://github.com/cgoIT/faktura/commit/60930bd9810324c118a51e4ef3b39aa0ee8475fd))
+
 ## [0.9.1](https://github.com/cgoIT/faktura/compare/v0.9.0...v0.9.1) (2026-10-31)
 
 
