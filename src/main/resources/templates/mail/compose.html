@@ -30,7 +30,8 @@
         <div class="field wide" th:if="${!templates.isEmpty()}">
           <label for="mail-template" th:text="#{mail.compose.template}">Vorlage</label>
           <select id="mail-template" name="templateId"
-                  th:attr="hx-get=@{/mail/compose(type=${target.type},id=${target.id})},hx-target='#mail-dialog-' + ${target.id},hx-swap='innerHTML',hx-confirm=#{mail.compose.templateChange}">
+                  th:attr="hx-get=@{/mail/compose(type=${target.type},id=${target.id})},hx-target='#mail-dialog-' + ${target.id},hx-swap='innerHTML',hx-confirm=#{mail.compose.templateChange}"
+                  hx-include="#mail-recipients">
             <option th:each="candidate : ${templates}" th:value="${candidate.id}" th:text="${candidate.name}"
                     th:selected="${candidate.id == form.templateId}">Formell</option>
           </select>

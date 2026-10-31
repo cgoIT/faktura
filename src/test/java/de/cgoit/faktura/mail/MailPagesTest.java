@@ -211,6 +211,14 @@ class MailPagesTest {
     }
 
     @Test
+    void switchingTheTemplateKeepsTheTypedRecipients() throws Exception {
+        mvc.perform(get("/mail/compose").param("type", "DOCUMENT").param("id", invoice.id())
+                        .param("recipients", "andere@example.test"))
+                .andExpect(content().string(containsString("value=\"andere@example.test\"")))
+                .andExpect(content().string(not(containsString("value=\"" + MailTestData.CONTACT_EMAIL + "\""))));
+    }
+
+    @Test
     void composeForADraftShowsAnErrorInsteadOfAForm() throws Exception {
         mvc.perform(get("/mail/compose").param("type", "DOCUMENT").param("id", "unbekannt"))
                 .andExpect(status().isOk())
@@ -240,6 +248,18 @@ class MailPagesTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Zuletzt gesendet am")))
                 .andExpect(content().string(containsString(MailTestData.CONTACT_EMAIL)));
+    }
+
+    @Test
+    void theMailGoesToTheAddressTypedInTheDialog() throws Exception {
+        mvc.perform(post("/mail/send").param("type", "DOCUMENT").param("id", invoice.id())
+                        .param("templateId", "").param("recipients", "andere@example.test")
+                        .param("subject", "Betreff").param("body", "Text").param("confirmed", "true"))
+                .andExpect(status().isOk());
+
+        assertThat(sender.sent()).hasSize(1);
+        assertThat(sender.sent().getFirst().getAllRecipients()).hasSize(1);
+        assertThat(sender.sent().getFirst().getAllRecipients()[0].toString()).isEqualTo("andere@example.test");
     }
 
     @Test

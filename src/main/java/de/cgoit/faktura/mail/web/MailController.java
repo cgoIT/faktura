@@ -58,11 +58,13 @@ public class MailController {
     }
 
     /**
-     * Returns the content of the send dialog, prefilled from the chosen template; nothing is sent.
+     * Returns the content of the send dialog, prefilled from the chosen template; nothing is sent. Recipients typed
+     * before switching the template are kept.
      */
     @GetMapping("/compose")
     public String compose(@RequestParam MailOwnerType type, @RequestParam String id,
-            @RequestParam(required = false) String templateId, Model model) {
+            @RequestParam(required = false) String templateId,
+            @RequestParam(required = false) String recipients, Model model) {
         var target = new MailTarget(type, id);
 
         try {
@@ -72,7 +74,8 @@ public class MailController {
                     .map(MailTemplateInfo::id)
                     .orElse("");
 
-            return dialog(model, target, draft, new MailForm(chosenId, draft.recipients(), draft.subject(),
+            return dialog(model, target, draft, new MailForm(chosenId,
+                    recipients == null || recipients.isBlank() ? draft.recipients() : recipients, draft.subject(),
                     draft.body()));
         } catch (RuleViolationException e) {
             model.addAttribute("error", e.messageKey());
