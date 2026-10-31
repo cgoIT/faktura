@@ -10,7 +10,9 @@ COPY mvnw pom.xml ./
 RUN ./mvnw -B -ntp dependency:go-offline
 
 COPY src src
-RUN ./mvnw -B -ntp -DskipTests package \
+# no .git in the build context: the commit comes in as a build argument (shown in the footer)
+ARG GIT_COMMIT=unknown
+RUN ./mvnw -B -ntp -DskipTests -Dgit.commit.id.abbrev="$(echo "$GIT_COMMIT" | cut -c1-7)" package \
     && cp target/faktura-*.jar application.jar \
     && java -Djarmode=tools -jar application.jar extract --layers --destination /build/extracted
 

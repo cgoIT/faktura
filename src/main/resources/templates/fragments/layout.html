@@ -19,9 +19,13 @@
 </head>
 <body>
 <aside class="sidebar">
-  <div>
-    <a class="brand" th:href="@{/}" th:attr="aria-label=#{nav.home}"><span class="brand-mark"></span><span>faktura</span></a>
-    <nav class="nav" th:aria-label="#{nav.label}">
+  <div class="sidebar-top">
+    <div class="topbar">
+      <a class="brand" th:href="@{/}" th:attr="aria-label=#{nav.home}"><span class="brand-mark"></span><span>faktura</span></a>
+      <button type="button" class="menu-toggle secondary" data-nav-toggle aria-expanded="false" aria-controls="main-nav"
+              th:text="#{nav.menu}">Menü</button>
+    </div>
+    <nav class="nav" id="main-nav" th:aria-label="#{nav.label}">
       <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'invoices'} ? 'active'" th:href="@{/invoices}"
          th:text="#{nav.invoices}">Rechnungen</a>
       <a class="nav-item" th:unless="${adminOnly}" th:classappend="${active == 'offers'} ? 'active'" th:href="@{/offers}"
@@ -68,6 +72,7 @@
        th:text="#{nav.adminMode}">Admin-Modus</a>
   </div>
   <p class="sidebar-disclaimer" th:text="#{app.disclaimer}">Ohne Gewähr, keine Steuer- oder Rechtsberatung.</p>
+  <p class="sidebar-version" th:if="${appVersion != null}" th:text="#{app.version(${appVersion})}">Version 0.8.0 (abc1234)</p>
   </div>
 </aside>
 <main th:replace="${content}">

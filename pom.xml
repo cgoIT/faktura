@@ -203,6 +203,22 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <version>9.0.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <failOnNoGitDirectory>false</failOnNoGitDirectory>
+          <generateGitPropertiesFile>false</generateGitPropertiesFile>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
@@ -227,6 +243,12 @@
             <goals>
               <goal>build-info</goal>
             </goals>
+            <configuration>
+              <additionalProperties>
+                <!-- set by the git plugin; the Docker build passes -Dgit.commit.id.abbrev (no .git there); otherwise it stays a literal ${...} -->
+                <commit>${git.commit.id.abbrev}</commit>
+              </additionalProperties>
+            </configuration>
           </execution>
         </executions>
       </plugin>

@@ -639,3 +639,59 @@ document.addEventListener('click', function (event) {
     report('data-copy-failed');
   });
 });
+
+// Mobile menu: the button shows and hides the navigation (the CSS only hides it on narrow screens).
+document.addEventListener('click', function (event) {
+  var toggle = event.target.closest('[data-nav-toggle]');
+
+  if (!toggle) {
+    return;
+  }
+
+  var open = toggle.closest('.sidebar-top').classList.toggle('nav-open');
+
+  toggle.setAttribute('aria-expanded', String(open));
+});
+
+// Narrow screens show table rows as cards; every cell names its column from the header (CSS ::before).
+function labelTableCells(root) {
+  root.querySelectorAll('table').forEach(function (table) {
+    var headers = Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) {
+      return th.textContent.trim();
+    });
+
+    table.querySelectorAll('tbody tr').forEach(function (row) {
+      Array.prototype.forEach.call(row.children, function (cell, index) {
+        if (cell.tagName === 'TD' && !cell.hasAttribute('colspan') && headers[index]) {
+          cell.setAttribute('data-label', headers[index]);
+        }
+      });
+    });
+  });
+}
+
+labelTableCells(document);
+// the swapped element may already be detached (outerHTML), so look at the whole page
+document.addEventListener('htmx:afterSettle', function () {
+  labelTableCells(document);
+});
+
+// Settings tabs: a drop-down with the same entries, shown instead of the tab bar on narrow screens (CSS).
+document.querySelectorAll('nav.tabs').forEach(function (nav) {
+  var select = document.createElement('select');
+
+  select.className = 'tabs-select';
+  select.setAttribute('aria-label', nav.getAttribute('aria-label') || '');
+
+  nav.querySelectorAll('a.tab').forEach(function (tab) {
+    var option = new Option(tab.textContent.trim(), tab.getAttribute('href'), false, tab.classList.contains('active'));
+
+    select.add(option);
+  });
+
+  select.addEventListener('change', function () {
+    window.location.href = select.value;
+  });
+
+  nav.appendChild(select);
+});
