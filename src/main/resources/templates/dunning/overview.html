@@ -74,7 +74,7 @@
           <th th:text="#{payment.date}">Datum</th>
           <th class="num" th:text="#{dunning.total}">Forderung</th>
           <th th:text="#{dunning.newDueDate}">Neue Frist</th>
-          <th th:text="#{dunning.invoiceState}">Rechnung</th>
+          <th th:text="#{dunning.invoiceState}">Zahlungsstatus</th>
           <th></th>
         </tr>
         </thead>
@@ -87,7 +87,7 @@
           <td th:text="${#temporals.format(row.dunning.date, 'dd.MM.yyyy')}">20.10.2026</td>
           <td class="num" th:text="${@money.format(row.dunning.totalCents)}">0,00 €</td>
           <td th:text="${#temporals.format(row.dunning.newDueDate, 'dd.MM.yyyy')}">27.10.2026</td>
-          <td th:replace="~{dunning/state :: badge(${row.balance})}"></td>
+          <td><span th:replace="~{dunning/state :: badge(${row.balance})}"></span></td>
           <td class="row-actions icons">
             <a class="icon-button" target="_blank" th:href="@{/dunning/{id}/pdf(id=${row.dunning.id})}"
                th:attr="aria-label=#{invoice.pdf},title=#{invoice.pdf}"><svg th:replace="~{fragments/icons :: pdf}"></svg></a>
