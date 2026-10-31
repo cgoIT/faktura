@@ -26,8 +26,8 @@
         <td th:text="${#temporals.format(letter.date, 'dd.MM.yyyy')}">20.10.2026</td>
         <td class="num" th:text="${@money.format(letter.totalCents)}">0,00 €</td>
         <td th:text="${#temporals.format(letter.newDueDate, 'dd.MM.yyyy')}">27.10.2026</td>
-        <td class="row-actions"><a class="button secondary" target="_blank" th:href="@{/dunning/{id}/pdf(id=${letter.id})}"
-               th:text="#{invoice.pdf}">PDF öffnen</a></td>
+        <td class="row-actions icons"><a class="icon-button" target="_blank" th:href="@{/dunning/{id}/pdf(id=${letter.id})}"
+               th:attr="aria-label=#{invoice.pdf},title=#{invoice.pdf}"><svg th:replace="~{fragments/icons :: pdf}"></svg></a></td>
       </tr>
       </tbody>
     </table>

@@ -72,9 +72,9 @@
       <td class="num line-total"><span th:id="|line-total-${i.index}|"
                             th:text="${calc != null} ? ${@money.format(calc.lineTotals().get(i.index))} : '–'">0,00 €</span></td>
       <td>
-        <button type="button" class="secondary" th:hx-post="@{${base + '/items/remove'}(index=${i.index})}"
-                hx-target="#items" hx-swap="outerHTML" th:aria-label="#{invoice.item.remove(${i.count})}"
-                th:text="#{invoice.item.removeShort}">Entfernen</button>
+        <button type="button" class="icon-button danger" th:hx-post="@{${base + '/items/remove'}(index=${i.index})}"
+                hx-target="#items" hx-swap="outerHTML"
+                th:attr="aria-label=#{invoice.item.remove(${i.count})},title=#{invoice.item.remove(${i.count})}"><svg th:replace="~{fragments/icons :: trash}"></svg></button>
       </td>
     </tr>
     <tr th:if="${#lists.isEmpty(invoiceForm.items)}"><td colspan="8" class="empty" th:text="#{invoice.items.empty}">Noch keine Positionen.</td></tr>

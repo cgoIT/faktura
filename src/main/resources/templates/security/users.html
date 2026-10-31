@@ -29,24 +29,24 @@
       <tr th:each="row : ${users}" th:with="user=${row.user}">
         <td th:text="${user.username}">anna</td>
         <td th:text="${user.displayName}">Anna Beispiel</td>
-        <td>
+        <td class="row-actions icons">
           <form method="post" th:action="@{/settings/users/{id}/admin(id=${user.id})}">
             <input type="hidden" name="admin" th:value="${!user.admin}">
-            <button type="submit" class="secondary" th:disabled="${row.lastAdmin}" th:attr="title=${row.lastAdmin} ? #{user.error.lastAdmin} : null"
-                  th:text="${user.admin} ? #{user.admin.revoke} : #{user.admin.grant}">Ändern</button>
+            <button type="submit" class="icon-button" th:disabled="${row.lastAdmin}"
+                    th:attr="aria-label=${user.admin} ? #{user.admin.revoke} : #{user.admin.grant},title=${row.lastAdmin} ? #{user.error.lastAdmin} : (${user.admin} ? #{user.admin.revoke} : #{user.admin.grant})"><svg th:replace="${user.admin} ? ~{fragments/icons :: shield-off} : ~{fragments/icons :: shield}"></svg></button>
           </form>
         </td>
-        <td>
+        <td class="row-actions icons">
           <form method="post" th:action="@{/settings/users/{id}/active(id=${user.id})}">
             <input type="hidden" name="active" th:value="${!user.active}">
-            <button type="submit" class="secondary" th:disabled="${row.lastAdmin}" th:attr="title=${row.lastAdmin} ? #{user.error.lastAdmin} : null"
-                  th:text="${user.active} ? #{user.deactivate} : #{user.activate}">Ändern</button>
+            <button type="submit" class="icon-button" th:disabled="${row.lastAdmin}"
+                    th:attr="aria-label=${user.active} ? #{user.deactivate} : #{user.activate},title=${row.lastAdmin} ? #{user.error.lastAdmin} : (${user.active} ? #{user.deactivate} : #{user.activate})"><svg th:replace="${user.active} ? ~{fragments/icons :: ban} : ~{fragments/icons :: check}"></svg></button>
           </form>
         </td>
         <td th:text="${row.lastLogin} ?: '–'">–</td>
-        <td th:if="${passwords}">
-          <button type="button" class="secondary" th:attr="data-modal-open='password-dialog-' + ${user.id}"
-                  th:text="#{user.passwordSet}">Passwort setzen</button>
+        <td class="row-actions icons" th:if="${passwords}">
+          <button type="button" class="icon-button"
+                  th:attr="data-modal-open='password-dialog-' + ${user.id},aria-label=#{user.passwordSet},title=#{user.passwordSet}"><svg th:replace="~{fragments/icons :: key}"></svg></button>
           <dialog class="message-dialog" th:id="'password-dialog-' + ${user.id}"
                   th:attr="aria-labelledby='password-title-' + ${user.id}">
             <form method="post" class="stack" th:action="@{/settings/users/{id}/password(id=${user.id})}">

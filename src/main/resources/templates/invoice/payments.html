@@ -41,10 +41,10 @@
           <span class="hint" th:if="${payment.reversedById != null}" th:text="#{payment.wasReversed}">korrigiert</span>
         </td>
         <td class="num" th:text="${@money.format(payment.amountCents)}">485,45 €</td>
-        <td>
-          <button type="button" class="secondary" th:if="${payment.canBeReversed()}"
-                  th:attr="hx-post=@{/invoices/{id}/payments/{pid}/reverse(id=${invoice.id},pid=${payment.id})},hx-confirm=#{payment.reverse.confirm}"
-                  hx-target="#payment-panel" hx-swap="outerHTML" th:text="#{payment.reverse}">Korrigieren</button>
+        <td class="row-actions icons">
+          <button type="button" class="icon-button" th:if="${payment.canBeReversed()}"
+                  th:attr="hx-post=@{/invoices/{id}/payments/{pid}/reverse(id=${invoice.id},pid=${payment.id})},hx-confirm=#{payment.reverse.confirm},aria-label=#{payment.reverse},title=#{payment.reverse}"
+                  hx-target="#payment-panel" hx-swap="outerHTML"><svg th:replace="~{fragments/icons :: undo}"></svg></button>
         </td>
       </tr>
       </tbody>
