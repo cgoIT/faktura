@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/cgoIT/faktura/compare/v0.6.0...v0.7.0) (2026-10-31)
+
+
+### Features
+
+* add a detail page for dunning letters with PDF and mail sending ([63a1b06](https://github.com/cgoIT/faktura/commit/63a1b0670ab734e10276a0d5b14f77cb18699286))
+* add links to MCP results ([483428f](https://github.com/cgoIT/faktura/commit/483428f9bff312c3074f55d959963f843a5c037d))
+* use icon buttons for actions in table rows ([f0548ce](https://github.com/cgoIT/faktura/commit/f0548cee7ec3322bdb4c052c0f254799f739acab))
+
+
+### Bug Fixes
+
+* keep the payment state badge inside its table cell ([ac11f2e](https://github.com/cgoIT/faktura/commit/ac11f2e08156ccf8fc87f0766bbb543390c87b79))
+
 ## [0.6.0](https://github.com/cgoIT/faktura/compare/v0.5.0...v0.6.0) (2026-10-27)
 
 
