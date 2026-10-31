@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/cgoIT/faktura/compare/v0.7.0...v0.8.0) (2026-10-31)
+
+
+### Features
+
+* add mail recipients to customers for the send dialog ([3b95d68](https://github.com/cgoIT/faktura/commit/3b95d6865fe854b0e7f26b3af59d34524a809083))
+* choose the mail template by the tone set on the customer ([faa9147](https://github.com/cgoIT/faktura/commit/faa9147424e855b54fca4ccce5154f38c6bbe9fb))
+
+
+### Bug Fixes
+
+* keep the typed recipients when switching the mail template ([da72d2c](https://github.com/cgoIT/faktura/commit/da72d2c275a14e635b0e2393d87b5b010501dae4))
+
 ## [0.7.0](https://github.com/cgoIT/faktura/compare/v0.6.0...v0.7.0) (2026-10-31)
 
 
