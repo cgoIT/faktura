@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.0](https://github.com/cgoIT/faktura/compare/v0.10.0...v0.11.0) (2026-11-01)
+
+
+### Features
+
+* copy a finalized invoice as a draft ([7ea9dea](https://github.com/cgoIT/faktura/commit/7ea9deab51630bf93f2ff7f117a53c90e561409b))
+* copy item button and tablet layout for item tables ([803cfeb](https://github.com/cgoIT/faktura/commit/803cfebba9120829593c5052af8e8e7bb3011a07))
+* links and logo placeholder in mail texts ([4de23cd](https://github.com/cgoIT/faktura/commit/4de23cdd1e8426216485e9b0494924f982b6974b))
+
 ## [0.10.0](https://github.com/cgoIT/faktura/compare/v0.9.1...v0.10.0) (2026-10-31)
 
 
