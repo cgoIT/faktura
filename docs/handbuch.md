@@ -77,6 +77,15 @@ Fehler korrigieren Sie über **Storno**: Auf der finalisierten Rechnung „Storn
 mit negativen Beträgen ausgleicht und auf das Original verweist (bei E-Rechnung als Gutschrift). Das Original bleibt unverändert. Je Rechnung gibt es
 höchstens einen Storno. Anschließend schreiben Sie bei Bedarf eine neue Rechnung.
 
+### Rechnung als Entwurf kopieren
+
+Auf der Seite einer finalisierten Rechnung (auch einer stornierten) legt **„Als Entwurf kopieren“** einen neuen Entwurf an und öffnet ihn im Editor.
+Kunde, Ansprechpartner, Kundenreferenz, Betreff, Positionen, Gesamtrabatt und Versandkosten werden übernommen. Das Datum ist heute, der Leistungszeitraum
+bleibt leer, Zahlungsziel und Texte sind die Standardwerte. Die Rechnung bleibt unverändert und ist nicht mit dem Entwurf verknüpft. Preise und Steuer
+prüft faktura wie bei jedem Entwurf; erlaubt das heutige Steuerprofil die Steuerkategorie einer Position nicht mehr, wird die Kopie abgelehnt.
+
+Jede Position eines Entwurfs lässt sich im Editor mit dem Kopieren-Symbol am Zeilenende duplizieren; die Kopie steht am Ende der Liste.
+
 ## 4. E-Rechnung (ZUGFeRD)
 
 Bei Kunden mit der E-Rechnungs-Einstellung „ZUGFeRD“ erzeugt faktura beim Finalisieren ein PDF/A-3 mit eingebettetem XML (EN 16931), vergleicht
