@@ -205,6 +205,22 @@ public class RecurringController {
     }
 
     /**
+     * Appends a full copy of the item at {@code index} to the end of the list.
+     */
+    @PostMapping("/items/copy")
+    public String copyItem(PlanForm form, BindingResult result, @RequestParam int index, Model model) {
+        var items = form.itemList();
+
+        if (index >= 0 && index < items.size()) {
+            items.add(items.get(index));
+        }
+
+        itemsModel(model, form.withItems(items));
+
+        return "recurring/fragments :: items";
+    }
+
+    /**
      * Searches the catalog for the picker of the plan form. Plans take every active entry; the tax profile is
      * checked when the draft is created.
      */

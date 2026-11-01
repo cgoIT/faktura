@@ -431,6 +431,26 @@ class InvoicePagesTest {
     }
 
     @Test
+    void itemCopyIsAppendedWithAllValues() throws Exception {
+        var html = mvc.perform(htmx(post("/invoices/items/copy")).param("index", "0")
+                        .param("customerId", customerId).param("issueDate", "2026-10-20")
+                        .param("items[0].description", "Webentwicklung").param("items[0].quantity", "6")
+                        .param("items[0].unitCode", "Std").param("items[0].price", "85,00")
+                        .param("items[0].discount", "10").param("items[0].taxCategory", "E")
+                        .param("items[0].taxRate", "0")
+                        .param("items[1].description", "Domain").param("items[1].quantity", "1")
+                        .param("items[1].price", "12,00").param("items[1].taxCategory", "E")
+                        .param("items[1].taxRate", "0"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(html).contains("name=\"items[2].description\"");
+        assertThat(itemRow(html, 2)).contains("Webentwicklung").contains("85,00").contains("value=\"10\"");
+    }
+
+    @Test
     void serviceRuleOfAnItemShowsAtItsRowAndStaysAtItAfterARowIsRemoved() throws Exception {
         var html = mvc.perform(override(exampleForm(post("/invoices")), "items[1].description", " "))
                 .andExpect(status().isOk())

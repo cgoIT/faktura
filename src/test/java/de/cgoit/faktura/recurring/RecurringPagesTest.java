@@ -282,6 +282,21 @@ class RecurringPagesTest {
     }
 
     @Test
+    void itemRowCanBeCopiedToTheEnd() throws Exception {
+        mvc.perform(post("/recurring/items/copy")
+                        .param("index", "0")
+                        .param("items[0].description", "A")
+                        .param("items[0].quantity", "2")
+                        .param("items[0].price", "1,50")
+                        .param("items[1].description", "B")
+                        .param("items[1].quantity", "1")
+                        .param("items[1].price", "3,00"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"items[2].description\"")))
+                .andExpect(content().string(containsString("value=\"1,50\"")));
+    }
+
+    @Test
     void pausingAndResumingFromTheList() throws Exception {
         var created = plan();
 

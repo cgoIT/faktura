@@ -568,6 +568,22 @@ public class InvoiceController {
         return "invoice/fragments :: itemsUpdate";
     }
 
+    /**
+     * Appends a full copy of the item at {@code index} to the end of the list.
+     */
+    @PostMapping("/items/copy")
+    public String copyItem(InvoiceForm form, BindingResult result, @RequestParam int index, Model model) {
+        var items = form.itemList();
+
+        if (index >= 0 && index < items.size()) {
+            items.add(items.get(index));
+        }
+
+        liveModel(model, form.withItems(items), result.hasErrors() ? FORM_ERROR : null);
+
+        return "invoice/fragments :: itemsUpdate";
+    }
+
     private String addItem(InvoiceForm form, String catalogItemId, BindingResult result, Model model) {
         var items = form.itemList();
         var error = result.hasErrors() ? FORM_ERROR : null;
