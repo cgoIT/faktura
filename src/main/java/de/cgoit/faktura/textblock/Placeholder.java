@@ -49,6 +49,8 @@ public enum Placeholder {
     VAT_ID("firma_ustid"),
     COMPANY_EMAIL("firma_email"),
     COMPANY_PHONE("firma_telefon"),
+    /** Logo of the company at this place; only filled in mails, empty without a logo file. */
+    LOGO("logo", false, true),
     /** Name of the dunning level; only filled in dunning letters. */
     DUNNING_LEVEL("mahnstufe"),
     /** Open amount of the invoice; only filled in dunning letters. */
@@ -80,16 +82,27 @@ public enum Placeholder {
     /** Link to the application, empty without a configured base URL; only filled in the notification digest. */
     NOTICE_LINK("link", true);
 
+    /**
+     * What {@link #LOGO} expands to in a mail text; the mail renderer turns it into the image.
+     */
+    public static final String LOGO_MARKER = "[logo]";
+
     private final String key;
     private final boolean digest;
+    private final boolean mail;
 
     Placeholder(String key) {
-        this(key, false);
+        this(key, false, false);
     }
 
     Placeholder(String key, boolean digest) {
+        this(key, digest, false);
+    }
+
+    Placeholder(String key, boolean digest, boolean mail) {
         this.key = key;
         this.digest = digest;
+        this.mail = mail;
     }
 
     /**
@@ -100,20 +113,30 @@ public enum Placeholder {
     }
 
     /**
-     * Returns the placeholders for texts about documents (invoice texts, dunning texts, document mails).
+     * Returns the placeholders for texts about documents (invoice texts, dunning texts).
      */
     public static List<Placeholder> forDocuments() {
+        return Arrays.stream(values())
+                .filter(placeholder -> !placeholder.digest && !placeholder.mail)
+                .toList();
+    }
+
+    /**
+     * Returns the placeholders of document mails: those of documents plus the mail-only ones.
+     */
+    public static List<Placeholder> forMails() {
         return Arrays.stream(values())
                 .filter(placeholder -> !placeholder.digest)
                 .toList();
     }
 
     /**
-     * Returns the placeholders of the notification mail: its own ones and the name of the company and the owner.
+     * Returns the placeholders of the notification mail: its own ones, the company, the owner and the logo.
      */
     public static List<Placeholder> forDigest() {
         return Arrays.stream(values())
-                .filter(placeholder -> placeholder.digest || placeholder == COMPANY || placeholder == OWNER)
+                .filter(placeholder -> placeholder.digest || placeholder == COMPANY || placeholder == OWNER
+                        || placeholder == LOGO)
                 .toList();
     }
 

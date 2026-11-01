@@ -169,7 +169,7 @@ public class MailTemplateController {
         model.addAttribute("system", form.scope() != null && form.scope().system());
         model.addAttribute("placeholders", form.scope() == MailScope.NOTIFICATION_DIGEST
                 ? Placeholder.forDigest()
-                : Placeholder.forDocuments());
+                : Placeholder.forMails());
         model.addAttribute("sourceGroups", previewSources());
 
         return FORM_VIEW;

@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,6 +39,7 @@ import de.cgoit.faktura.mail.internal.SampleValues;
 import de.cgoit.faktura.shared.InputValidator;
 import de.cgoit.faktura.shared.MailTone;
 import de.cgoit.faktura.shared.RuleViolationException;
+import de.cgoit.faktura.textblock.Placeholder;
 import de.cgoit.faktura.textblock.TextTemplateService;
 import jakarta.mail.AuthenticationFailedException;
 import jakarta.mail.MessagingException;
@@ -155,7 +157,7 @@ public class MailService {
         var source = resolve(target);
         var file = pdf(target);
         var template = chooseTemplate(source.scope(), templateId, source.basis().mailTone());
-        var values = source.basis().placeholders();
+        var values = withLogo(source.basis().placeholders());
         var subject = template.map(found -> renderer.subject(texts.expand(found.subject(), values))).orElse("");
         var body = template.map(found -> texts.expand(found.body(), values)).orElse("");
         var size = file.map(ArchivedFile::sizeBytes)
@@ -203,7 +205,7 @@ public class MailService {
      * @throws RuleViolationException if subject or text use an unknown placeholder or the document is not finalized
      */
     public MailPreview previewTemplate(String subject, String body, MailTarget target) {
-        var values = target == null ? samples.values() : resolve(target).basis().placeholders();
+        var values = withLogo(target == null ? samples.values() : resolve(target).basis().placeholders());
         var plainSubject = renderer.subject(texts.expand(subject, values));
         var text = texts.expand(body, values);
 
@@ -309,7 +311,7 @@ public class MailService {
 
         try {
             var message = sender.createMimeMessage();
-            var helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED, "UTF-8");
+            var helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
             var from = senderAddress().orElseThrow();
 
             helper.setFrom(new InternetAddress(from, company.find()
@@ -317,7 +319,8 @@ public class MailService {
                     .orElse(null), "UTF-8"));
             helper.setTo(addresses.getFirst());
             helper.setSubject(plainSubject);
-            helper.setText(renderer.text(body), renderer.html(plainSubject, body));
+            helper.setText(renderer.text(body), renderer.mailHtml(plainSubject, body));
+            renderer.attachLogo(helper, body);
             sender.send(message);
         } catch (MailException | MessagingException | UnsupportedEncodingException e) {
             var errorKey = errorKey(e);
@@ -405,7 +408,7 @@ public class MailService {
             String attachmentName, byte[] content) {
         try {
             var message = sender.createMimeMessage();
-            var helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED, "UTF-8");
+            var helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
             var from = senderAddress().orElseThrow();
 
             var fromName = company.find()
@@ -426,13 +429,23 @@ public class MailService {
             }
 
             helper.setSubject(subject);
-            helper.setText(renderer.text(body), renderer.html(subject, body));
+            helper.setText(renderer.text(body), renderer.mailHtml(subject, body));
+            renderer.attachLogo(helper, body);
             helper.addAttachment(attachmentName, new ByteArrayResource(content), "application/pdf");
 
             return message;
         } catch (MessagingException | UnsupportedEncodingException e) {
             throw new RuleViolationException("mail.error.build");
         }
+    }
+
+    private static Map<Placeholder, String> withLogo(Map<Placeholder, String> values) {
+        var withLogo = new EnumMap<Placeholder, String>(Placeholder.class);
+
+        withLogo.putAll(values);
+        withLogo.put(Placeholder.LOGO, Placeholder.LOGO_MARKER);
+
+        return withLogo;
     }
 
     private byte[] read(ArchivedFile file) {

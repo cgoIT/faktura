@@ -9,12 +9,15 @@ import java.util.regex.Pattern;
  * Converts the simple markup of header and footer texts to XHTML. Supported: {@code **bold**}, {@code *italic*},
  * {@code __underline__}, bullet lists ({@code - item}), numbered lists ({@code 1. item}), indentation by leading spaces
  * (two spaces per list level) and paragraphs separated by blank lines. A backslash prints the next markup character
- * literally. Everything else is plain text; HTML in the input is escaped, so the result is always well-formed and safe.
- * A marker without a matching partner is printed as it is.
+ * literally. A link is written {@code [text](https://example.org)}; only {@code http}, {@code https} and {@code mailto}
+ * addresses become links. Everything else is plain text; HTML in the input is escaped, so the result is always
+ * well-formed and safe. A marker without a matching partner is printed as it is.
  */
 public final class RichText {
 
     private static final Pattern LIST_ITEM = Pattern.compile("^(\\s*)(?:([-*•])|(\\d+[.)]))\\s+(.*)$");
+    private static final Pattern LINK = Pattern
+            .compile("(?<!\\\\)\\[((?:[^\\[\\]\\\\]|\\\\.)+)]\\(((?:https?://|mailto:)[^\\s()<>\"]+)\\)");
     private static final int SPACES_PER_LEVEL = 2;
     private static final char NON_BREAKING_SPACE = ' ';
 
@@ -31,7 +34,9 @@ public final class RichText {
 
         return value.replace("\\", "\\\\")
                 .replace("*", "\\*")
-                .replace("_", "\\_");
+                .replace("_", "\\_")
+                .replace("[", "\\[")
+                .replace("]", "\\]");
     }
 
     /**
@@ -115,6 +120,30 @@ public final class RichText {
      * Removes the markers of one line and resolves escaped characters.
      */
     static String plainInline(String text) {
+        var plain = new StringBuilder();
+        var matcher = LINK.matcher(text);
+        var last = 0;
+
+        while (matcher.find()) {
+            var label = plainText(text.substring(matcher.start(1), matcher.end(1)));
+            var address = unescape(matcher.group(2));
+
+            plain.append(plainText(text.substring(last, matcher.start())))
+                    .append(label.equals(address) ? address : label + " (" + address + ")");
+            last = matcher.end();
+        }
+
+        return plain.append(plainText(text.substring(last))).toString();
+    }
+
+    /**
+     * Resolves the escapes of a value that was put into an address by a placeholder.
+     */
+    private static String unescape(String address) {
+        return address.replaceAll("\\\\(.)", "$1");
+    }
+
+    private static String plainText(String text) {
         var tokens = tokenize(text);
         pair(tokens, text);
 
@@ -178,6 +207,22 @@ public final class RichText {
      * Converts bold, italic and underline markers inside one line.
      */
     static String inline(String text) {
+        var html = new StringBuilder();
+        var matcher = LINK.matcher(text);
+        var last = 0;
+
+        while (matcher.find()) {
+            html.append(inlineText(text.substring(last, matcher.start())))
+                    .append("<a href=\"").append(escapeXml(unescape(matcher.group(2)))).append("\">")
+                    .append(inlineText(matcher.group(1)))
+                    .append("</a>");
+            last = matcher.end();
+        }
+
+        return html.append(inlineText(text.substring(last))).toString();
+    }
+
+    private static String inlineText(String text) {
         var tokens = tokenize(text);
         pair(tokens, text);
 
@@ -211,7 +256,7 @@ public final class RichText {
         while (i < text.length()) {
             var c = text.charAt(i);
 
-            if (c == '\\' && i + 1 < text.length() && "\\*_".indexOf(text.charAt(i + 1)) >= 0) {
+            if (c == '\\' && i + 1 < text.length() && "\\*_[]".indexOf(text.charAt(i + 1)) >= 0) {
                 plain.append(text.charAt(i + 1));
                 i += 2;
 

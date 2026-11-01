@@ -93,6 +93,7 @@ public class DigestBuilder {
         values.put(Placeholder.NOTICE_OFFERS, settings.offerEnabled() ? expiringOffers(items) : "");
         values.put(Placeholder.NOTICE_COUNT, String.valueOf(items.size()));
         values.put(Placeholder.NOTICE_LINK, RichText.escape(baseUrl));
+        values.put(Placeholder.LOGO, Placeholder.LOGO_MARKER);
 
         var info = company.find();
 

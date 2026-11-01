@@ -11,6 +11,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class RichTextTest {
 
+    @ParameterizedTest
+    @MethodSource("inlineCases")
+    void inlineMarkup(String input, String expected) {
+        assertThat(RichText.inline(input)).isEqualTo(expected);
+    }
+
     static Stream<Arguments> inlineCases() {
         return Stream.of(
                 Arguments.of("**fett**", "<b>fett</b>"),
@@ -25,13 +31,18 @@ class RichTextTest {
                 Arguments.of("**a __b** c__", "**a <u>b** c</u>"),
                 Arguments.of("\\*kein kursiv\\*", "*kein kursiv*"),
                 Arguments.of("snake_case und __x__", "snake_case und <u>x</u>"),
-                Arguments.of("<b>&\"</b>", "&lt;b&gt;&amp;&quot;&lt;/b&gt;"));
-    }
-
-    @ParameterizedTest
-    @MethodSource("inlineCases")
-    void inlineMarkup(String input, String expected) {
-        assertThat(RichText.inline(input)).isEqualTo(expected);
+                Arguments.of("<b>&\"</b>", "&lt;b&gt;&amp;&quot;&lt;/b&gt;"),
+                Arguments.of("Siehe [unsere Seite](https://example.org/a_b?x=1&y=2).",
+                        "Siehe <a href=\"https://example.org/a_b?x=1&amp;y=2\">unsere Seite</a>."),
+                Arguments.of("[**fett**](mailto:info@example.org)",
+                        "<a href=\"mailto:info@example.org\"><b>fett</b></a>"),
+                Arguments.of("[" + RichText.escape("a](https://evil.example) [b") + "](https://example.org)",
+                        "<a href=\"https://example.org\">a](https://evil.example) [b</a>"),
+                Arguments.of("[x](https://example.org/" + RichText.escape("a_b*c") + ")",
+                        "<a href=\"https://example.org/a_b*c\">x</a>"),
+                Arguments.of("[x](javascript:alert(1))", "[x](javascript:alert(1))"),
+                Arguments.of("\\[x](https://example.org)", "[x](https://example.org)"),
+                Arguments.of(RichText.escape("[x](https://example.org)"), "[x](https://example.org)"));
     }
 
     @Test
@@ -77,7 +88,11 @@ class RichTextTest {
                 Arguments.of("\\*kein kursiv\\*", "*kein kursiv*"),
                 Arguments.of("ohne Ende **offen", "ohne Ende **offen"),
                 Arguments.of("<b>&\"</b>", "<b>&\"</b>"),
-                Arguments.of("Kunde Foo \\_ Bar \\* Baz", "Kunde Foo _ Bar * Baz"));
+                Arguments.of("Kunde Foo \\_ Bar \\* Baz", "Kunde Foo _ Bar * Baz"),
+                Arguments.of("Siehe [unsere Seite](https://example.org).", "Siehe unsere Seite (https://example.org)."),
+                Arguments.of("[https://example.org](https://example.org)", "https://example.org"),
+                Arguments.of("[Mail](mailto:info@example.org)", "Mail (mailto:info@example.org)"),
+                Arguments.of("\\[x](https://example.org)", "[x](https://example.org)"));
     }
 
     @ParameterizedTest

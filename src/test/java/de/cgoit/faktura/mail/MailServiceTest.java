@@ -299,7 +299,11 @@ class MailServiceTest {
         assertThat(message.isMimeType("multipart/mixed")).isTrue();
         assertThat(root.getCount()).isEqualTo(2);
 
-        var alternative = root.getBodyPart(0);
+        var related = root.getBodyPart(0);
+
+        assertThat(related.isMimeType("multipart/related")).isTrue();
+
+        var alternative = ((Multipart) related.getContent()).getBodyPart(0);
 
         assertThat(alternative.isMimeType("multipart/alternative")).isTrue();
         assertThat(((Multipart) alternative.getContent()).getBodyPart(0).isMimeType("text/plain")).isTrue();
