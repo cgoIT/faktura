@@ -408,6 +408,29 @@ public class InvoiceController {
     }
 
     /**
+     * Creates a draft as a copy of a finalized invoice and opens it in the editor.
+     */
+    @PostMapping("/{id}/copy")
+    public String copy(@PathVariable String id, RedirectAttributes redirect) {
+        findInvoice(id);
+
+        try {
+            var draft = invoices.copyAsDraft(id);
+            redirect.addFlashAttribute("message", "invoice.copied");
+
+            return "redirect:" + base() + "/" + draft.id();
+        } catch (RuleViolationException e) {
+            redirect.addFlashAttribute("error", e.messageKey());
+            redirect.addFlashAttribute("errorDetails", e.details());
+        } catch (RuntimeException e) {
+            LOG.error("Copying invoice {} failed", id, e);
+            redirect.addFlashAttribute("error", "invoice.error.copyFailed");
+        }
+
+        return "redirect:" + base() + "/" + id;
+    }
+
+    /**
      * Cancels a finalized invoice with a cancellation document and opens that document.
      */
     @PostMapping("/{id}/cancel")

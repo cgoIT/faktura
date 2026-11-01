@@ -34,6 +34,8 @@ import de.cgoit.faktura.document.internal.SnapshotCodec;
 import de.cgoit.faktura.shared.InputValidator;
 import de.cgoit.faktura.shared.RuleViolationException;
 import de.cgoit.faktura.tax.TaxProfileInfo;
+import de.cgoit.faktura.textblock.TextKind;
+import de.cgoit.faktura.textblock.TextScope;
 import de.cgoit.faktura.textblock.TextTemplateService;
 import de.cgoit.faktura.tax.TaxProfileService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -257,6 +259,35 @@ public class InvoiceService {
                 .orElseThrow(() -> new RuleViolationException("invoice.error.unknown"));
 
         return createDraft(DocumentType.INVOICE, input, offerId);
+    }
+
+    /**
+     * Creates an invoice draft as a copy of a finalized invoice, also of a cancelled one: customer, contact person,
+     * customer reference, subject, items, total discount and shipping costs are copied. The draft starts today with
+     * no service period, the payment term of the customer and the default texts for invoices, because the texts of
+     * the original have their placeholders replaced. Nothing links the draft to the original. Prices and tax are
+     * checked against the tax profile of today as for any draft; if it no longer allows the tax category of an item,
+     * the copy is refused instead of proposing a new one.
+     *
+     * @throws RuleViolationException if the document is no finalized invoice or the draft is invalid
+     */
+    @Transactional
+    public InvoiceInfo copyAsDraft(String invoiceId) {
+        var original = find(invoiceId)
+                .filter(found -> found.type() == DocumentType.INVOICE && found.status() == DocumentStatus.FINAL)
+                .orElseThrow(() -> new RuleViolationException("invoice.error.copyNotAllowed"));
+        var inputItems = original.items().stream()
+                .map(item -> new InvoiceItemInput(item.description(), item.quantityThousandths(), item.unitCode(),
+                        item.unitPriceCents(), item.discountBp(), item.taxCategory(), item.taxRateBp(),
+                        item.catalogItemId()))
+                .toList();
+        var shipping = original.shipping().isPresent() ? original.shipping() : null;
+        var input = new InvoiceInput(original.customerId(), LocalDate.now(clock), null, null, null,
+                original.subject(), texts.defaultBody(TextScope.INVOICE, TextKind.HEADER).orElse(null),
+                texts.defaultBody(TextScope.INVOICE, TextKind.FOOTER).orElse(null), original.totalDiscount(),
+                inputItems, original.contactId(), original.customerReference(), shipping);
+
+        return createDraft(DocumentType.INVOICE, input, null);
     }
 
     private InvoiceInfo createDraft(DocumentType type, InvoiceInput input, String refDocumentId) {

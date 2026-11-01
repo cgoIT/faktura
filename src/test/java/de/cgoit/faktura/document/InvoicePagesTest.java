@@ -234,6 +234,71 @@ class InvoicePagesTest {
     }
 
     @Test
+    void finalizedInvoiceCanBeCopiedAsDraftButADraftCannot() throws Exception {
+        var location = mvc.perform(exampleForm(post("/invoices")))
+                .andReturn()
+                .getResponse()
+                .getRedirectedUrl();
+
+        mvc.perform(post(location + "/copy"))
+                .andExpect(redirectedUrl(location));
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM document").query(Long.class).single()).isEqualTo(1);
+
+        mvc.perform(exampleForm(post(location + "/finalize")).param("version", "1").param("reviewed", "on"))
+                .andExpect(redirectedUrl(location));
+        mvc.perform(get(location))
+                .andExpect(content().string(containsString("Als Entwurf kopieren")));
+
+        var copy = mvc.perform(post(location + "/copy"))
+                .andExpect(redirectedUrlPattern("/invoices/*"))
+                .andReturn()
+                .getResponse()
+                .getRedirectedUrl();
+
+        assertThat(copy).isNotEqualTo(location);
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM document").query(Long.class).single()).isEqualTo(2);
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM document WHERE status = 'DRAFT' AND number IS NULL "
+                + "AND ref_document_id IS NULL AND subject = 'Webentwicklung Oktober 2026'")
+                .query(Long.class).single()).isEqualTo(1);
+        mvc.perform(get(copy))
+                .andExpect(content().string(containsString("name=\"items[0].description\"")))
+                .andExpect(content().string(containsString("Webentwicklung")))
+                .andExpect(content().string(containsString("85,00")));
+        mvc.perform(post("/offers/" + location.substring("/invoices/".length()) + "/copy"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cancelledInvoiceCanBeCopiedButACancellationCannot() throws Exception {
+        var location = mvc.perform(exampleForm(post("/invoices")))
+                .andReturn()
+                .getResponse()
+                .getRedirectedUrl();
+
+        mvc.perform(exampleForm(post(location + "/finalize")).param("version", "1").param("reviewed", "on"))
+                .andExpect(redirectedUrl(location));
+
+        var cancellation = mvc.perform(post(location + "/cancel"))
+                .andReturn()
+                .getResponse()
+                .getRedirectedUrl();
+        var totalBefore = jdbc.sql("SELECT SUM(gross_total_cents) FROM document WHERE status = 'FINAL'")
+                .query(Long.class).single();
+
+        mvc.perform(post(cancellation + "/copy"))
+                .andExpect(redirectedUrl(cancellation));
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM document WHERE status = 'DRAFT'").query(Long.class).single())
+                .isZero();
+
+        mvc.perform(post(location + "/copy"))
+                .andExpect(redirectedUrlPattern("/invoices/*"));
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM document WHERE status = 'DRAFT'").query(Long.class).single())
+                .isEqualTo(1);
+        assertThat(jdbc.sql("SELECT SUM(gross_total_cents) FROM document WHERE status = 'FINAL'")
+                .query(Long.class).single()).isEqualTo(totalBefore);
+    }
+
+    @Test
     void reviewDialogShowsTheDocumentAsItWouldBeFinalizedAndStoresNothing() throws Exception {
         var location = mvc.perform(exampleForm(post("/invoices")))
                 .andReturn()
