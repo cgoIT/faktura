@@ -451,6 +451,23 @@ class InvoicePagesTest {
     }
 
     @Test
+    void itemCopyWithIndexOutsideTheListAddsNothing() throws Exception {
+        for (var index : new String[] {"-1", "1"}) {
+            var html = mvc.perform(htmx(post("/invoices/items/copy")).param("index", index)
+                            .param("customerId", customerId).param("issueDate", "2026-10-20")
+                            .param("items[0].description", "Webentwicklung").param("items[0].quantity", "6")
+                            .param("items[0].price", "85,00").param("items[0].taxCategory", "E")
+                            .param("items[0].taxRate", "0"))
+                    .andExpect(status().isOk())
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+
+            assertThat(html).doesNotContain("name=\"items[1].description\"");
+        }
+    }
+
+    @Test
     void serviceRuleOfAnItemShowsAtItsRowAndStaysAtItAfterARowIsRemoved() throws Exception {
         var html = mvc.perform(override(exampleForm(post("/invoices")), "items[1].description", " "))
                 .andExpect(status().isOk())

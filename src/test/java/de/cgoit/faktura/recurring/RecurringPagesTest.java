@@ -297,6 +297,17 @@ class RecurringPagesTest {
     }
 
     @Test
+    void itemRowCopyWithIndexOutsideTheListAddsNothing() throws Exception {
+        mvc.perform(post("/recurring/items/copy")
+                        .param("index", "1")
+                        .param("items[0].description", "A")
+                        .param("items[0].quantity", "1")
+                        .param("items[0].price", "1,00"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("items[1].description"))));
+    }
+
+    @Test
     void pausingAndResumingFromTheList() throws Exception {
         var created = plan();
 

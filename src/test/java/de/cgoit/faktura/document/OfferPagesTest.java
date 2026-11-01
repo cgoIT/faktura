@@ -87,6 +87,13 @@ class OfferPagesTest {
                 .param("items[0].taxCategory", "E").param("items[0].taxRate", "0");
     }
 
+    @Test
+    void itemCopyWorksForOffers() throws Exception {
+        mvc.perform(form(post("/offers/items/copy")).param("index", "0"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"items[1].description\"")));
+    }
+
     private String createOffer() throws Exception {
         var location = mvc.perform(form(post("/offers")))
                 .andExpect(redirectedUrlPattern("/offers/*"))
