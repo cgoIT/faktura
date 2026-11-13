@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- build: Liberica JDK 25, layered jar --------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM bellsoft/liberica-runtime-container:jdk-25-glibc AS build
+FROM --platform=$BUILDPLATFORM bellsoft/liberica-runtime-container:jdk-27-glibc AS build
 WORKDIR /build
 
 # dependencies first, so that they stay cached while only the sources change
@@ -17,7 +17,7 @@ RUN ./mvnw -B -ntp -DskipTests -Dgit.commit.id.abbrev="$(echo "$GIT_COMMIT" | cu
     && java -Djarmode=tools -jar application.jar extract --layers --destination /build/extracted
 
 # ---- run: Liberica JRE 25 -------------------------------------------------------------------------------------------
-FROM bellsoft/liberica-runtime-container:jre-25-glibc
+FROM bellsoft/liberica-runtime-container:jre-27-glibc
 
 # FAKTURA_CONTAINER makes the application refuse the dev profile (it would reset the database)
 ENV FAKTURA_CONTAINER=true \
