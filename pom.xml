@@ -40,7 +40,7 @@
     <!-- Spring Modulith 2.1 brings ArchUnit 1.4, which cannot read Java 27 classes; drop once it brings 1.5+ -->
     <archunit.version>1.5.1</archunit.version>
     <sqlite-jdbc.version>3.50.3.0</sqlite-jdbc.version>
-    <openhtmltopdf.version>1.1.102</openhtmltopdf.version>
+    <openhtmltopdf.version>1.1.114</openhtmltopdf.version>
     <mustang.version>2.26.0</mustang.version>
     <zxing.version>3.5.4</zxing.version>
     <!-- Test output goes to target/surefire-reports; show it again with -Dmaven.test.redirectTestOutputToFile=false -->
