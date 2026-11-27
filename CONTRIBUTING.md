@@ -9,7 +9,7 @@ Sicherheitslücken bitte nicht öffentlich melden, siehe [SECURITY.md](SECURITY.
 ## Bauen und testen
 
 ```bash
-./mvnw verify                      # alles, wie in der CI (Java 25; PostgreSQL-Tests brauchen Docker)
+./mvnw verify                      # alles, wie in der CI (Java 27; PostgreSQL-Tests brauchen Docker)
 ./mvnw test -Dtest=ModularityTests # nur Modulgrenzen
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # Entwicklung mit erfundenen Testdaten
 ```

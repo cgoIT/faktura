@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: liberica
-          java-version: '25'
+          java-version: '27'
           cache: maven
       # SQLite-Tests laufen immer, die PostgreSQL-Tests nutzen das Docker des Runners (Testcontainers).
       - name: Build und Tests

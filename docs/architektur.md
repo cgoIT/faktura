@@ -1,6 +1,6 @@
 # Architektur
 
-faktura ist ein kleiner modularer Monolith mit Spring Boot 4.1 auf Java 25, gebaut mit Maven und betrieben als ein
+faktura ist ein kleiner modularer Monolith mit Spring Boot 4.1 auf Java 27, gebaut mit Maven und betrieben als ein
 Docker-Container hinter dem eigenen Pangolin-Stack (Zugriffsschutz über Authentik).
 
 ```
@@ -12,7 +12,7 @@ Browser ──> Pangolin (TLS, Authentik) ──> faktura (ein Container) ──
 
 | Bereich | Wahl | Anmerkung |
 | --- | --- | --- |
-| Sprache | Java 25 (LTS) | `.tool-versions` |
+| Sprache | Java 27 | `.tool-versions` |
 | Framework | Spring Boot 4.1.x | Modularisierte Starter (`spring-boot-starter-webmvc`, `-flyway` …) |
 | Build | Maven mit Wrapper | Maven Central ist in manchen Umgebungen gesperrt, der Build läuft lokal und in der CI |
 | Web | Spring MVC, Thymeleaf, htmx | htmx und Schriften liegen lokal unter `static/`; Texte in `messages_de.properties` |

@@ -56,7 +56,7 @@ Backups verschlüsseln, Zugriff begrenzen, DSGVO und Aufbewahrungsfristen beacht
 
 ## Voraussetzungen
 
-- Docker mit Compose (empfohlen), **oder** Java 25 und Maven (der Wrapper `./mvnw` liegt bei)
+- Docker mit Compose (empfohlen), **oder** Java 27 und Maven (der Wrapper `./mvnw` liegt bei)
 - Für die Entwicklung mit Mail-Catcher: Docker (Mailpit)
 
 ## Schnellstart
