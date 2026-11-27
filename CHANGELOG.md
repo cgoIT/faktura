@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/cgoIT/faktura/compare/v0.11.0...v0.12.0) (2026-11-27)
+
+
+### Features
+
+* show dunning costs next to the payments of an invoice ([0f8d881](https://github.com/cgoIT/faktura/commit/0f8d88173629e94ddee632aa77a876417b660458))
+
 ## [0.11.0](https://github.com/cgoIT/faktura/compare/v0.10.0...v0.11.0) (2026-11-01)
 
 
