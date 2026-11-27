@@ -397,6 +397,13 @@ public class InvoiceController {
         model.addAttribute("openAmount", balance == null ? "" : DecimalInput.formatCents(balance.openCents()));
         model.addAttribute("paymentMethods", PaymentMethod.values());
         model.addAttribute("canRecord", balance != null && balance.state() != PaymentState.CANCELLED);
+        model.addAttribute("dunningClaim", balance == null || balance.state() == PaymentState.CANCELLED
+                ? null
+                : dunningHints.stream()
+                        .flatMap(hints -> hints.latestClaim(id)
+                                .stream())
+                        .findFirst()
+                        .orElse(null));
     }
 
     private static PaymentMethod parseMethod(String method) {

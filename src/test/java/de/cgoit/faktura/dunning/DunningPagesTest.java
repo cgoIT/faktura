@@ -278,6 +278,30 @@ class DunningPagesTest {
     }
 
     @Test
+    void paymentPanelShowsTheCostsOfTheLetterWithoutChangingTheState() throws Exception {
+        var old = invoice(30);
+        var level = levels.list().getFirst();
+
+        levels.update(level.id(), new DunningLevelInput(level.level(), level.name(), level.daysAfterDue(), 500, 0,
+                level.newDueDays(), level.headerText(), level.footerText(), true));
+        mvc.perform(post("/dunning").param("confirmed", "on").param("invoiceId", old.id())
+                .param("levelId", level.id()));
+
+        mvc.perform(get("/invoices/" + old.id()))
+                .andExpect(content().string(containsString("Mahngebühr laut MA")))
+                .andExpect(content().string(containsString("1.005,00")))
+                .andExpect(content().string(not(containsString("Verzugszinsen laut"))));
+
+        payments.record(old.id(), new PaymentInput(TODAY, 100_700, PaymentMethod.BANK_TRANSFER, null, null));
+
+        mvc.perform(get("/invoices/" + old.id()))
+                .andExpect(content().string(containsString("Mahnkosten bezahlt")))
+                .andExpect(content().string(containsString("Überzahlung")))
+                .andExpect(content().string(containsString("2,00")));
+        assertThat(payments.balance(old.id()).overpaidCents()).isEqualTo(700);
+    }
+
+    @Test
     void invoiceListMarksSuggestionsAndFiltersThem() throws Exception {
         var old = invoice(30);
         var young = invoice(0);

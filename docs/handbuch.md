@@ -109,6 +109,8 @@ können mehrere Rechnungen (Teilrechnungen) entstehen.
 - **Mahnwesen**: Die Seite schlägt vor, welche überfällige Rechnung welche Stufe braucht (Zahlungserinnerung, 1. und 2. Mahnung). Tage, Gebühren,
   Zinsen und Texte pflegen Sie unter Einstellungen → Mahnstufen. Eine Mahnung erstellen Sie aus der Vorschau; sie hat eine eigene Nummer und ein PDF. **faktura
   versendet nichts von allein**; die Mahnung wird, wenn gewünscht, per Mail aus dem Versanddialog verschickt. Mit der Zahlung enden die Vorschläge.
+  Fordert die letzte Mahnung Gebühren oder Zinsen, zeigt der Zahlungsbereich der Rechnung sie zusätzlich an, samt „Offen inkl. Mahnkosten“. Der Zahlungsstand
+  richtet sich weiter nach dem Rechnungsbetrag: Ist er bezahlt, gilt die Rechnung als bezahlt, auch wenn Sie auf die Mahnkosten verzichten.
   Verzugszinsen und Mahngebühren sind Standard „aus“; prüfen Sie rechtliche Grenzen selbst.
 
 ## 7. Wiedervorlagen (wiederkehrende Rechnungen)

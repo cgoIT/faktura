@@ -17,8 +17,22 @@
     <dd th:text="${@money.format(balance.paidCents)}">0,00 €</dd>
     <dt th:text="#{payment.open}">Offen</dt>
     <dd th:text="${@money.format(balance.openCents)}">485,45 €</dd>
-    <dt th:if="${balance.overpaidCents > 0}" th:text="#{payment.overpaid}">Überzahlung</dt>
-    <dd th:if="${balance.overpaidCents > 0}" th:text="${@money.format(balance.overpaidCents)}">0,00 €</dd>
+    <th:block th:if="${dunningClaim != null}">
+      <dt th:if="${dunningClaim.feeCents > 0}" th:text="#{payment.dunning.fee(${dunningClaim.number})}">Mahngebühr</dt>
+      <dd th:if="${dunningClaim.feeCents > 0}" th:text="${@money.format(dunningClaim.feeCents)}">0,00 €</dd>
+      <dt th:if="${dunningClaim.interestCents > 0}"
+          th:text="#{payment.dunning.interest(${dunningClaim.number})}">Verzugszinsen</dt>
+      <dd th:if="${dunningClaim.interestCents > 0}" th:text="${@money.format(dunningClaim.interestCents)}">0,00 €</dd>
+      <dt th:text="#{payment.dunning.open}">Offen inkl. Mahnkosten</dt>
+      <dd th:text="${@money.format(dunningClaim.openCents(balance))}">0,00 €</dd>
+      <dt th:if="${dunningClaim.paidCostCents(balance) > 0}" th:text="#{payment.dunning.paid}">Mahnkosten bezahlt</dt>
+      <dd th:if="${dunningClaim.paidCostCents(balance) > 0}"
+          th:text="${@money.format(dunningClaim.paidCostCents(balance))}">0,00 €</dd>
+    </th:block>
+    <th:block th:with="overpaid=${dunningClaim == null ? balance.overpaidCents : dunningClaim.overpaidCents(balance)}">
+      <dt th:if="${overpaid > 0}" th:text="#{payment.overpaid}">Überzahlung</dt>
+      <dd th:if="${overpaid > 0}" th:text="${@money.format(overpaid)}">0,00 €</dd>
+    </th:block>
   </dl>
   <div class="table-scroll" th:if="${!#lists.isEmpty(payments)}">
     <table>
