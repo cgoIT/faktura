@@ -267,7 +267,8 @@ class OfferServiceTest {
 
     @Test
     void theListShowsTheDerivedStateAndFiltersByIt() {
-        var open = finalizer.finalizeInvoice(offerDraft().id());
+        var stillValid = input(customerId, LocalDate.now().plusDays(30));
+        var open = finalizer.finalizeInvoice(invoices.createOfferDraft(stillValid).id());
         var expired = finalizer.finalizeInvoice(invoices.createOfferDraft(input(customerId, ISSUED)).id());
         var draft = offerDraft();
 
